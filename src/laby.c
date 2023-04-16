@@ -6,23 +6,23 @@
 /*
  * All information about a single room should be encoded in one byte:
  *
- * |   C   |U L B R|
+ * |   C   |L U R B|
  * |0 0 0 0|0 0 0 0|
  *
- * Section R: describes the right border of the room;
- * Section B: describes the bottom border of the room;
+ * Section C: describes content of the room;
  * Section L: describes the left border of the room;
  * Section U: describes the upper border of the room;
- * Section C: describes content of the room;
+ * Section R: describes the right border of the room;
+ * Section B: describes the bottom border of the room;
  */
 typedef unsigned char room;
 
 enum border
 {
-  RIGHT_BORDER = 1,
-  BOTTOM_BORDER = 2,
-  LEFT_BORDER = 4,
-  UPPER_BORDER = 8
+  BOTTOM_BORDER = 1,
+  RIGHT_BORDER = 2,
+  UPPER_BORDER = 4,
+  LEFT_BORDER = 8,
 };
 
 #define BORDER_MASK = 0xf;

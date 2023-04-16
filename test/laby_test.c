@@ -18,7 +18,7 @@ empty_laby_test ()
                    " ╠══╬══╬══╬══╣ \r\n"
                    " ╚══╩══╩══╩══╝ ";
   // when:
-  uc_render_laby (&buf, &lab);
+  uc_render_laby_compact (&buf, &lab);
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
@@ -38,7 +38,7 @@ simple_laby_test ()
                    " ║   ╘═╝ \r\n"
                    " ╚════╕  ";
   // when:
-  uc_render_laby (&buf, &lab);
+  uc_render_laby_compact (&buf, &lab);
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;

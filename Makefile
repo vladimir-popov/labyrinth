@@ -15,7 +15,7 @@ compile: clean
 	mkdir $(BUILD)
 	$(CC) -o $(BUILD)/$(BIN) $(SRC)/app.c
 
-run: compile
+run:
 	@$(BUILD)/$(NAME)
 
 test-compile: compile
