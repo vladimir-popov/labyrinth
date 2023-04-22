@@ -37,6 +37,19 @@ dstr_append (dstr *this, const char *prefix, int len)
 }
 
 void
+dstr_append_one (dstr *this, const char prefix)
+{
+  char *new = realloc (this->chars, this->length + 1);
+
+  if (new == NULL)
+    return;
+
+  new[this->length] = prefix;
+  this->chars = new;
+  this->length++;
+}
+
+void
 dstr_free (const dstr *str)
 {
   free (str->chars);

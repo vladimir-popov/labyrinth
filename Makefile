@@ -19,7 +19,7 @@ run:
 	@$(BUILD)/$(NAME)
 
 test-compile: compile
-	$(CC) -I$(SRC) -o $(BUILD)/run_tests $(TEST)/laby_test.c
+	$(CC) -g -I$(SRC) -o $(BUILD)/run_tests $(TEST)/laby_test.c
 
 test: test-compile
 	@$(BUILD)/run_tests

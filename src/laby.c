@@ -70,15 +70,34 @@ laby_free (laby *lab)
 unsigned char
 laby_get_border (laby *lab, int row, int col)
 {
-  int border = lab->rooms[row][col];
-  if (row == 0)
-    border |= UPPER_BORDER;
-  if (col == 0)
-    border |= LEFT_BORDER;
-  if (row == lab->rows_count - 1)
-    border |= BOTTOM_BORDER;
-  if (col == lab->cols_count - 1)
-    border |= RIGHT_BORDER;
+  int is_col_inside = col >= 0 && col < lab->cols_count;
+  int is_row_inside = row >= 0 && row < lab->rows_count;
+
+  int border = 0;
+
+  if (is_row_inside && is_col_inside)
+    {
+      border = lab->rooms[row][col];
+      if (row == 0)
+        border |= UPPER_BORDER;
+      if (col == 0)
+        border |= LEFT_BORDER;
+      if (row == lab->rows_count - 1)
+        border |= BOTTOM_BORDER;
+      if (col == lab->cols_count - 1)
+        border |= RIGHT_BORDER;
+    }
+  else if (is_col_inside && row == -1)
+    border = BOTTOM_BORDER;
+  else if (is_col_inside && row == lab->rows_count)
+    border = UPPER_BORDER;
+  else if (is_row_inside && col == -1)
+    border = RIGHT_BORDER;
+  else if (is_row_inside && col == lab->cols_count)
+    border = LEFT_BORDER;
+  else
+    border = 0;
+
   return border & 0xf;
 }
 
@@ -170,6 +189,7 @@ laby_print_raw (laby *lab)
     {
       for (int c = 0; c < lab->cols_count; c++)
         printf ("%d ", lab->rooms[r][c]);
+
       printf ("\r\n");
     }
 }
@@ -177,10 +197,11 @@ laby_print_raw (laby *lab)
 void
 laby_print_borders (laby *lab)
 {
-  for (int r = 0; r < lab->rows_count; r++)
+  for (int r = -1; r <= lab->rows_count; r++)
     {
-      for (int c = 0; c < lab->cols_count; c++)
-        printf ("%d ", laby_get_border (lab, r, c));
+      for (int c = -1; c <= lab->cols_count; c++)
+        printf ("%2d ", laby_get_border (lab, r, c));
+
       printf ("\r\n");
     }
 }
