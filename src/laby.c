@@ -6,16 +6,16 @@
 /*
  * All information about a single room should be encoded in one byte:
  *
- * |   C   |L U R B|
- * |0 0 0 0|0 0 0 0|
+ * |     V     |L U R B|
+ * |0 0 ... 0 0|0 0 0 0|
  *
- * Section C: describes content of the room;
+ * Section V: describes a content of the room;
  * Section L: describes the left border of the room;
  * Section U: describes the upper border of the room;
  * Section R: describes the right border of the room;
  * Section B: describes the bottom border of the room;
  */
-typedef unsigned char room;
+typedef unsigned int room;
 
 enum border
 {
@@ -101,7 +101,7 @@ laby_get_border (laby *lab, int row, int col)
   return border & 0xf;
 }
 
-/* Add border flag and return update flag value */
+/* Add border flag. */
 void
 laby_add_border (laby *lab, int row, int col, enum border border)
 {
@@ -121,6 +121,40 @@ laby_add_border (laby *lab, int row, int col, enum border border)
       lab->rooms[row - 1][col] |= BOTTOM_BORDER;
 }
 
+/* Remove border flag. */
+void
+laby_rm_border (laby *lab, int row, int col, enum border border)
+{
+  lab->rooms[row][col] &= ~border;
+  /* also, we should set appropriate borders for neighbors */
+  if (border & RIGHT_BORDER)
+    if (col < lab->cols_count - 1)
+      lab->rooms[row][col + 1] &= ~LEFT_BORDER;
+  if (border & BOTTOM_BORDER)
+    if (row < lab->rows_count - 1)
+      lab->rooms[row + 1][col] &= ~UPPER_BORDER;
+  if (border & LEFT_BORDER)
+    if (col > 0)
+      lab->rooms[row][col - 1] &= ~RIGHT_BORDER;
+  if (border & UPPER_BORDER)
+    if (row > 0)
+      lab->rooms[row - 1][col] &= ~BOTTOM_BORDER;
+}
+
+void
+laby_set_value (laby *lab, int r, int c, unsigned char value)
+{
+  lab->rooms[r][c] = (value << 4) | laby_get_border (lab, r, c);
+}
+
+unsigned char
+laby_get_value (laby *lab, int r, int c)
+{
+  return lab->rooms[r][c] >> 4;
+}
+
+#define get(C) laby_get_value (&lab, r, (C))
+#define set(C, V) laby_set_value (&lab, r, (C), (V))
 laby
 laby_generate_eller (int rows, int cols, int seed)
 {
@@ -129,58 +163,54 @@ laby_generate_eller (int rows, int cols, int seed)
   /* The final labyrinth */
   laby lab = laby_init_empty (rows, cols);
 
-  /* Sets of rooms */
-  unsigned char *sets = malloc (cols * sizeof (unsigned char));
-  unsigned char *_sets = malloc (cols * sizeof (unsigned char));
-
-  /* Set unique set number for every room at the first row */
-  for (unsigned char j = 0; j < cols; j++)
-    sets[j] = j + 1;
-
   for (int r = 0; r < rows - 1; r++)
     {
+      /* set unique set for every empty room in the row */
+      for (int j = 0; j < cols; j++)
+        if (get (j) == 0 && j > 0)
+          set (j, (get (j - 1) + 1));
+
       /* decide if two rooms should have a horizontal border */
       for (int c = 0; c < cols - 1; c++)
         {
-          if (rand () % 2 == 0)
+          if (get (c) != get (c + 1) && rand () % 3 == 0)
             laby_add_border (&lab, r, c, RIGHT_BORDER);
           else
-            sets[c + 1] = sets[c];
+            set (c + 1, get (c));
         }
-      /* we will generate bottom borders according to the sets for the
-       * current line and change sets for the room on next row */
-      memcpy (_sets, sets, cols);
       /* decide if two rooms should have a vertical border */
-      for (int c = 0; c < cols - 1; c++)
+      for (int c = 0; c < cols; c++)
         {
-          if (rand () % 2 == 0)
+          if (rand () % 2 > 0)
             {
-              /* count of rooms without bottom border in the current set */
-              int n = 0;
-              for (int i = c + 1; i < cols && _sets[i] == _sets[c] && n == 0;
-                   i++)
-                n++;
-              for (int i = c - 1; i >= 0 && _sets[i] == _sets[c] && n == 0;
-                   i++)
-                n = (lab.rooms[r][c] | BOTTOM_BORDER) ? n : n + 1;
-              /* we can create a border, if exists at least one room in the
-               * same set with bottom border */
+              /* is cell with the same set exists on the right side */
+              int n = ((c < cols - 2) && (get (c) == get (c + 1))) ? 1 : 0;
+              /* count of rooms without bottom border in the current set
+               * (bottom borders could appear only from the left side) */
+              for (int i = c - 1; i >= 0 && (get (i) == get (c)) && n == 0;
+                   i--)
+                n = (lab.rooms[r][i] & BOTTOM_BORDER) ? n : n + 1;
+              /* we can create a border, if it's not a single room in the set,
+               * and at least one room without bottom border exists in the same
+               * set */
               if (n > 0)
-                {
-                  laby_add_border (&lab, r, c, BOTTOM_BORDER);
-                  /* change the set of the underlining room
-                   * (should not be equal to the right room set) */
-                  sets[c] = (c < cols - 1) ? _sets[c + 1] + 1 : _sets[c] + 1;
-                }
+                laby_add_border (&lab, r, c, BOTTOM_BORDER);
             }
+          if (laby_get_border (&lab, r, c) & BOTTOM_BORDER)
+            /* mark the underlining room to change its set */
+            laby_set_value (&lab, r + 1, c, 0);
+          else
+            laby_set_value (&lab, r + 1, c, get (c));
         }
     }
-
-  free (sets);
-  free (_sets);
+  /* remove dead ends */
+  for (int c = 0; c < cols - 1; c++)
+    laby_rm_border (&lab, rows - 1, c, RIGHT_BORDER);
 
   return lab;
 }
+#undef get
+#undef set
 
 void
 laby_print_raw (laby *lab)
@@ -201,6 +231,18 @@ laby_print_borders (laby *lab)
     {
       for (int c = -1; c <= lab->cols_count; c++)
         printf ("%2d ", laby_get_border (lab, r, c));
+
+      printf ("\r\n");
+    }
+}
+
+void
+laby_print_values (laby *lab)
+{
+  for (int r = 0; r < lab->rows_count; r++)
+    {
+      for (int c = 0; c < lab->cols_count; c++)
+        printf ("%2d ", laby_get_value (lab, r, c));
 
       printf ("\r\n");
     }

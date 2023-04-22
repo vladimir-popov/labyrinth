@@ -101,8 +101,8 @@ uc_get_coner (int border, int neighbor)
   if (expect_borders (border, LEFT_BORDER)
       && expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "┫";
-  if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
-      && expect_borders (neighbor, RIGHT_BORDER))
+  if (expect_borders (border, UPPER_BORDER)
+      && expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "┻";
   if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
       && not_expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))

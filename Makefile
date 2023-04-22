@@ -13,7 +13,7 @@ clean:
 
 compile: clean
 	mkdir $(BUILD)
-	$(CC) -o $(BUILD)/$(BIN) $(SRC)/app.c
+	$(CC) $(DEBUG) -g -o $(BUILD)/$(BIN) $(SRC)/app.c
 
 run:
 	@$(BUILD)/$(NAME)
