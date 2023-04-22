@@ -173,7 +173,7 @@ laby_generate_eller (int rows, int cols, int seed)
       /* decide if two rooms should have a horizontal border */
       for (int c = 0; c < cols - 1; c++)
         {
-          if (get (r, c) != get (r, c + 1) && rand () % 3 == 0)
+          if (get (r, c) != get (r, c + 1) && rand () % 2 == 0)
             laby_add_border (&lab, r, c, RIGHT_BORDER);
           else
             set (r, c + 1, get (r, c));
@@ -181,25 +181,20 @@ laby_generate_eller (int rows, int cols, int seed)
       /* decide if two rooms should have a vertical border */
       for (int c = 0; c < cols; c++)
         {
-          if (rand () % 2 > 0)
+          /* count of rooms without bottom border in the current set */
+          int no_bb = 0;
+          for (int i = 0; i < cols && no_bb < 2; i++)
+            if (get (r, c) == get (r, i))
+              no_bb = (lab.rooms[r][i] & BOTTOM_BORDER) ? no_bb : no_bb + 1;
+
+          /* we can create a border, if it's not a single room without bottom
+           * border in the set */
+          if (no_bb > 1 && rand () % 5 > 0)
             {
-              /* is cell with the same set exists on the right side */
-              int n
-                  = ((c < cols - 2) && (get (r, c) == get (r, c + 1))) ? 1 : 0;
-              /* count of rooms without bottom border in the current set
-               * (bottom borders could appear only from the left side) */
-              for (int i = c - 1;
-                   i >= 0 && (get (r, i) == get (r, c)) && n == 0; i--)
-                n = (lab.rooms[r][i] & BOTTOM_BORDER) ? n : n + 1;
-              /* we can create a border, if it's not a single room in the set,
-               * and at least one room without bottom border exists in the same
-               * set */
-              if (n > 0)
-                laby_add_border (&lab, r, c, BOTTOM_BORDER);
+              laby_add_border (&lab, r, c, BOTTOM_BORDER);
+              /* mark the underlining room to change its set */
+              set (r + 1, c, set++);
             }
-          if (laby_get_border (&lab, r, c) & BOTTOM_BORDER)
-            /* mark the underlining room to change its set */
-            set (r + 1, c, set++);
           else
             set (r + 1, c, get (r, c));
         }
