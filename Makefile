@@ -1,27 +1,26 @@
 .DEFAULT_GOAL = build
 
-NAME := Labyrinth
+APP = labyrinth
 
 CC := gcc
 SRC := src
 TEST := test
 BUILD := build
-BIN = `echo $(NAME) | tr A-Z a-z`
 
 clean:
 	rm -rf $(BUILD)/
 
 compile: clean
 	mkdir $(BUILD)
-	$(CC) $(DEBUG) -g -o $(BUILD)/$(BIN) $(SRC)/app.c
+	$(CC) $(DEBUG) -g -o $(BUILD)/$(APP) $(SRC)/app.c
 
 run:
-	@$(BUILD)/$(NAME)
+	@$(BUILD)/$(APP)
 
 test-compile: compile
-	$(CC) -g -I$(SRC) -o $(BUILD)/run_tests $(TEST)/laby_test.c
+	$(CC) -g -I$(SRC) -o $(BUILD)/tests $(TEST)/laby_test.c
 
 test: test-compile
-	@$(BUILD)/run_tests
+	@$(BUILD)/tests
 
 build: compile test
