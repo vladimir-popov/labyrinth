@@ -1,5 +1,5 @@
 #include "term.c"
-#include "uniclaby.c"
+#include "unicode_render.c"
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -12,9 +12,6 @@ main (int argc, char *argv[])
   if (get_window_size (&height, &width) == -1)
     fatal ("Fail on getting the size of the window");
 
-  int rows = 2;
-  int cols = 4;
-
   time_t seed = time (NULL);
 
   int info = 0;
@@ -24,12 +21,6 @@ main (int argc, char *argv[])
     {
       switch (p)
         {
-        case 'r':
-          rows = strtol (optarg, NULL, 10);
-          break;
-        case 'c':
-          cols = strtol (optarg, NULL, 10);
-          break;
         case 's':
           seed = strtol (optarg, NULL, 10);
           break;
@@ -50,12 +41,6 @@ main (int argc, char *argv[])
           else if (optopt == 'w')
             fprintf (stderr, "The -w argument should be followed by a count "
                              "of symbols for whole labyrint horizontaly.");
-          if (optopt == 'r')
-            fprintf (stderr, "The -r argument should be followed by a count "
-                             "of symbols for a single room vertically.");
-          else if (optopt == 'c')
-            fprintf (stderr, "The -c argument should be followed by a count "
-                             "of symbols for a single room horizontaly.");
           else if (optopt == 's')
             fprintf (stderr, "The -s argument should be followed by a number, "
                              "which will be used as seed.");
@@ -69,13 +54,13 @@ main (int argc, char *argv[])
 
   // enter_safe_raw_mode ();
   laby lab
-      = laby_generate_eller ((height - info - 2) / rows, width / cols, seed);
-  uc_render_laby (&buf, &lab, rows, cols);
+      = laby_generate_eller ((height - info - 2) / r_rows, width / r_cols, seed);
+  laby_render (&buf, &lab);
   printf ("%s", buf.chars);
 
   if (info)
-    printf ("\r\nLabyrint size: %dx%d\tRoom size: %dx%d\tSeed: %ld\r\n",
-            height, width, rows, cols, seed);
+    printf ("\r\nLabyrint size: %dx%d\tSeed: %ld\r\n",
+            height, width, seed);
 
   return 0;
 }

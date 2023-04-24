@@ -6,26 +6,30 @@
 /*
  * All information about a single room should be encoded in one byte:
  *
- * |     V     |L U R B|
- * |0 0 ... 0 0|0 0 0 0|
+ * |   C   |L U R B|V|
+ * |0 ... 0|0 0 0 0|0|
  *
- * Section V: describes a content of the room;
+ * Section C: describes a content of the room;
  * Section L: describes the left border of the room;
  * Section U: describes the upper border of the room;
  * Section R: describes the right border of the room;
  * Section B: describes the bottom border of the room;
+ * Section V: visiting of the room; 0 - not visited; 1 - visited;
  */
 typedef unsigned int room;
 
+#define BORDERS_BITS_COUNT 4
+#define VISIT_BITS_COUNT 1
+
+#define CONTENT_SHIFT (BORDERS_BITS_COUNT + VISIT_BITS_COUNT)
+
 enum border
 {
-  BOTTOM_BORDER = 1,
-  RIGHT_BORDER = 2,
-  UPPER_BORDER = 4,
-  LEFT_BORDER = 8,
+  BOTTOM_BORDER = 1 << VISIT_BITS_COUNT,
+  RIGHT_BORDER = 2 << VISIT_BITS_COUNT,
+  UPPER_BORDER = 4 << VISIT_BITS_COUNT,
+  LEFT_BORDER = 8 << VISIT_BITS_COUNT,
 };
-
-#define BORDER_MASK = 0xf;
 
 /* The single horizontal line of rooms. */
 typedef room *row;
@@ -98,7 +102,7 @@ laby_get_border (laby *lab, int row, int col)
   else
     border = 0;
 
-  return border & 0xf;
+  return border & (0xf << VISIT_BITS_COUNT);
 }
 
 /* Add border flag. */
@@ -142,19 +146,32 @@ laby_rm_border (laby *lab, int row, int col, enum border border)
 }
 
 void
-laby_set_value (laby *lab, int r, int c, unsigned char value)
+laby_mark_as_visit (laby *lab, int r, int c)
 {
-  lab->rooms[r][c] = (value << 4) | laby_get_border (lab, r, c);
+  lab->rooms[r][c] |= 1;
+}
+
+char
+laby_is_visit(laby *lab, int r, int c)
+{
+  return lab->rooms[r][c] & 1;
+}
+
+void
+laby_set_content (laby *lab, int r, int c, unsigned char value)
+{
+  int mask = (1 << CONTENT_SHIFT) - 1;
+  lab->rooms[r][c] = (value << CONTENT_SHIFT) | (lab->rooms[r][c] & mask);
 }
 
 unsigned char
-laby_get_value (laby *lab, int r, int c)
+laby_get_content (laby *lab, int r, int c)
 {
-  return lab->rooms[r][c] >> 4;
+  return lab->rooms[r][c] >> CONTENT_SHIFT;
 }
 
-#define get(R, C) laby_get_value (&lab, (R), (C))
-#define set(R, C, V) laby_set_value (&lab, (R), (C), (V))
+#define get(R, C) laby_get_content (&lab, (R), (C))
+#define set(R, C, V) laby_set_content (&lab, (R), (C), (V))
 laby
 laby_generate_eller (int rows, int cols, int seed)
 {
@@ -185,7 +202,9 @@ laby_generate_eller (int rows, int cols, int seed)
           int no_bb = 0;
           for (int i = 0; i < cols && no_bb < 2; i++)
             if (get (r, c) == get (r, i))
-              no_bb = (lab.rooms[r][i] & BOTTOM_BORDER) ? no_bb : no_bb + 1;
+              no_bb = (laby_get_border (&lab, r, i) & BOTTOM_BORDER)
+                          ? no_bb
+                          : no_bb + 1;
 
           /* we can create a border, if it's not a single room without bottom
            * border in the set */
@@ -208,6 +227,7 @@ laby_generate_eller (int rows, int cols, int seed)
 #undef get
 #undef set
 
+/* ========== DEBUG FUNCTIONS ========== */
 void
 laby_print_raw (laby *lab)
 {
@@ -238,7 +258,7 @@ laby_print_values (laby *lab)
   for (int r = 0; r < lab->rows_count; r++)
     {
       for (int c = 0; c < lab->cols_count; c++)
-        printf ("%2d ", laby_get_value (lab, r, c));
+        printf ("%2d ", laby_get_content (lab, r, c));
 
       printf ("\r\n");
     }

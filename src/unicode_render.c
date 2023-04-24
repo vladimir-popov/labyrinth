@@ -2,11 +2,17 @@
 #include "laby.c"
 #include <stdio.h>
 
+/* The count of symbols by vertical of one room.  */
+static int r_rows = 2;
+
+/* The count of symbols by horizontal of one room.  */
+static int r_cols = 4;
+
 /**
  * Renders a labyrinth `lab` to the buffer `buf` in compact way.
  */
 void
-uc_render_laby_compact (dstr *buf, laby *lab)
+laby_render_compact (dstr *buf, laby *lab)
 {
   char *room = "═╬═";
   for (int r = 0; r < lab->rows_count; r++)
@@ -128,15 +134,10 @@ uc_get_coner (int border, int neighbor)
 
 /**
  * Renders the labyrinth `lab` to the buffer `buf`.
- *
- * @param r_rows the count of symbols by vertical of one room. Min 2.
- * @param c_rows the count of symbols by horizontal of one room. Min 2.
  */
 void
-uc_render_laby (dstr *buf, laby *lab, int r_rows, int r_cols)
+laby_render (dstr *buf, laby *lab)
 {
-  assert (r_rows > 0 && r_cols > 0);
-
   char *s;
   /* Render rooms from every row, plus one extra row for the bottom borders */
   for (int r = 0; r <= lab->rows_count; r++)

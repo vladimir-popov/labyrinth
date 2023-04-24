@@ -23,4 +23,4 @@ test-compile: compile
 test: test-compile
 	@$(BUILD)/tests
 
-build: compile test
+build: test
