@@ -1,7 +1,9 @@
+#include <stdio.h>
+
 #include "minunit.h"
 #include "term.c"
+#include "laby.c"
 #include "unicode_render.c"
-#include <stdio.h>
 
 int tests_run = 0;
 
@@ -18,7 +20,7 @@ empty_compact_laby_test ()
                    " ╠══╬══╬══╬══╣ \r\n"
                    " ╚══╩══╩══╩══╝ ";
   // when:
-  laby_render_compact (&buf, &lab);
+  unicode_render_compact (&lab, &buf);
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
@@ -38,7 +40,7 @@ simple_compact_laby_test ()
                    " ║   ╘═╝ \r\n"
                    " ╚════╕  ";
   // when:
-  laby_render_compact (&buf, &lab);
+  unicode_render_compact (&lab, &buf);
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
@@ -55,7 +57,7 @@ empty_laby_test ()
                    "┃   ┃\r\n"
                    "┗━━━┛";
   // when:
-  laby_render (&buf, &lab);
+  unicode_render (&lab, &buf);
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
@@ -84,7 +86,7 @@ simple_laby_test ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  laby_render (&buf, &lab);
+  unicode_render (&lab, &buf);
 
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
@@ -105,9 +107,9 @@ generate_eller_test ()
                    "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
-  laby lab = laby_generate_eller (3, 5, 1);
+  laby lab = eller_generate (3, 5, 1);
   // then:
-  laby_render (&buf, &lab);
+  unicode_render (&lab, &buf);
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
 }

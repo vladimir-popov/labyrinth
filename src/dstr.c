@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/******************** Dynamic string *********************/
+#ifndef __DYNAMIC_STRING__
+#define  __DYNAMIC_STRING__
 typedef struct dstr
 {
   int length;
@@ -12,6 +13,7 @@ typedef struct dstr
   {                                                                           \
     0, NULL                                                                   \
   }
+#endif /* __DYNAMIC_STRING__ */
 
 dstr
 dstr_init (const char *template)

@@ -1,54 +1,8 @@
-#include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-/*
- * All information about a single room should be encoded in one byte:
- *
- * |   C   |L U R B|V|
- * |0 ... 0|0 0 0 0|0|
- *
- * Section C: describes a content of the room;
- * Section L: describes the left border of the room;
- * Section U: describes the upper border of the room;
- * Section R: describes the right border of the room;
- * Section B: describes the bottom border of the room;
- * Section V: visiting of the room; 0 - not visited; 1 - visited;
- */
-typedef unsigned int room;
+#include "laby.h"
+#include "eller.c"
 
-#define BORDERS_BITS_COUNT 4
-#define VISIT_BITS_COUNT 1
-
-#define CONTENT_SHIFT (BORDERS_BITS_COUNT + VISIT_BITS_COUNT)
-
-enum border
-{
-  BOTTOM_BORDER = 1 << VISIT_BITS_COUNT,
-  RIGHT_BORDER = 2 << VISIT_BITS_COUNT,
-  UPPER_BORDER = 4 << VISIT_BITS_COUNT,
-  LEFT_BORDER = 8 << VISIT_BITS_COUNT,
-};
-
-/* The single horizontal line of rooms. */
-typedef room *row;
-
-/* The structure described a labyrinth */
-typedef struct laby
-{
-  /* The count of rooms by horizontal */
-  int cols_count;
-
-  /* The count of rooms by vertical */
-  int rows_count;
-
-  /* The rows of the labyrinth's rooms */
-  row *rooms;
-
-} laby;
-
-/* Creates a new labyrinth with cols x rows empty rooms. */
 laby
 laby_init_empty (int rows, int cols)
 {
@@ -60,7 +14,6 @@ laby_init_empty (int rows, int cols)
   return l;
 }
 
-/* Frees memory of all rooms. */
 void
 laby_free (laby *lab)
 {
@@ -70,7 +23,6 @@ laby_free (laby *lab)
   free (lab->rooms);
 }
 
-/*  Returns only 4 first bits, which are about borders of the room. */
 unsigned char
 laby_get_border (laby *lab, int row, int col)
 {
@@ -105,7 +57,6 @@ laby_get_border (laby *lab, int row, int col)
   return border & (0xf << VISIT_BITS_COUNT);
 }
 
-/* Add border flag. */
 void
 laby_add_border (laby *lab, int row, int col, enum border border)
 {
@@ -125,7 +76,6 @@ laby_add_border (laby *lab, int row, int col, enum border border)
       lab->rooms[row - 1][col] |= BOTTOM_BORDER;
 }
 
-/* Remove border flag. */
 void
 laby_rm_border (laby *lab, int row, int col, enum border border)
 {
@@ -172,62 +122,11 @@ laby_get_content (laby *lab, int r, int c)
   return lab->rooms[r][c] >> CONTENT_SHIFT;
 }
 
-#define get(R, C) laby_get_content (&lab, (R), (C))
-#define set(R, C, V) laby_set_content (&lab, (R), (C), (V))
 laby
-laby_generate_eller (int rows, int cols, int seed)
+laby_generate (int rows, int cols, int seed)
 {
-  srand (seed);
-
-  /* The final labyrinth */
-  laby lab = laby_init_empty (rows, cols);
-
-  int set = 1;
-  /* set unique set for every empty room in the first row */
-  for (int j = 0; j < cols; j++)
-    set (0, j, set++);
-
-  for (int r = 0; r < rows - 1; r++)
-    {
-      /* decide if two rooms should have a horizontal border */
-      for (int c = 0; c < cols - 1; c++)
-        {
-          if (get (r, c) != get (r, c + 1) && rand () % 2 == 0)
-            laby_add_border (&lab, r, c, RIGHT_BORDER);
-          else
-            set (r, c + 1, get (r, c));
-        }
-      /* decide if two rooms should have a vertical border */
-      for (int c = 0; c < cols; c++)
-        {
-          /* count of rooms without bottom border in the current set */
-          int no_bb = 0;
-          for (int i = 0; i < cols && no_bb < 2; i++)
-            if (get (r, c) == get (r, i))
-              no_bb = (laby_get_border (&lab, r, i) & BOTTOM_BORDER)
-                          ? no_bb
-                          : no_bb + 1;
-
-          /* we can create a border, if it's not a single room without bottom
-           * border in the set */
-          if (no_bb > 1 && rand () % 5 > 0)
-            {
-              laby_add_border (&lab, r, c, BOTTOM_BORDER);
-              /* mark the underlining room to change its set */
-              set (r + 1, c, set++);
-            }
-          else
-            set (r + 1, c, get (r, c));
-        }
-    }
-  /* remove dead ends */
-  for (int c = 0; c < cols - 1; c++)
-    laby_rm_border (&lab, rows - 1, c, RIGHT_BORDER);
-
-  return lab;
+  return eller_generate(rows, cols, seed);
 }
-#undef get
-#undef set
 
 /* ========== DEBUG FUNCTIONS ========== */
 void

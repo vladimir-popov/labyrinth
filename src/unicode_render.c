@@ -1,18 +1,17 @@
-#include "dstr.c"
-#include "laby.c"
 #include <stdio.h>
+#include <string.h>
+
+#include "dstr.c"
+#include "laby.h"
 
 /* The count of symbols by vertical of one room.  */
-static int r_rows = 2;
+static int laby_room_rows = 2;
 
 /* The count of symbols by horizontal of one room.  */
-static int r_cols = 4;
+static int laby_room_cols = 4;
 
-/**
- * Renders a labyrinth `lab` to the buffer `buf` in compact way.
- */
 void
-laby_render_compact (dstr *buf, laby *lab)
+unicode_render_compact (laby *lab, dstr *buf)
 {
   char *room = "═╬═";
   for (int r = 0; r < lab->rows_count; r++)
@@ -90,7 +89,7 @@ not_expect_borders (int border, char expected)
 }
 
 static char *
-uc_get_coner (int border, int neighbor)
+get_corner (int border, int neighbor)
 {
   if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
       && not_expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
@@ -136,14 +135,14 @@ uc_get_coner (int border, int neighbor)
  * Renders the labyrinth `lab` to the buffer `buf`.
  */
 void
-laby_render (dstr *buf, laby *lab)
+unicode_render (laby *lab, dstr *buf)
 {
   char *s;
   /* Render rooms from every row, plus one extra row for the bottom borders */
   for (int r = 0; r <= lab->rows_count; r++)
     {
       /* iterates over room height (only one line for the last extra row) */
-      int n = (r < lab->rows_count) ? r_rows : 1;
+      int n = (r < lab->rows_count) ? laby_room_rows : 1;
       for (int i = 0; i < n; i++)
         {
           /* Take a room from the row, plus one more for the right border */
@@ -159,19 +158,19 @@ laby_render (dstr *buf, laby *lab)
 
               /* Iterate over columns of the single room
                * (only one symbol for the extra right room) */
-              int k = (c < lab->cols_count) ? r_cols : 1;
+              int k = (c < lab->cols_count) ? laby_room_cols : 1;
               for (int j = 0; j < k; j++)
                 {
                   /* render the first row of the room */
                   if (i == 0)
                     {
-                      s = (j == 0) ? uc_get_coner (border, neighbor)
+                      s = (j == 0) ? get_corner (border, neighbor)
                           : (border & UPPER_BORDER) ? "━"
                           : (is_visited || laby_is_visited (lab, r - 1, c))
                               ? "·"
                               : " ";
                     }
-                  /* render others */
+                  /* render the content of the room (the second row) */
                   else
                     {
                       int is_border = (j == 0) && (border & LEFT_BORDER);

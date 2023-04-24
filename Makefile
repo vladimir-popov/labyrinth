@@ -12,13 +12,13 @@ clean:
 
 compile: clean
 	mkdir $(BUILD)
-	$(CC) $(DEBUG) -g -o $(BUILD)/$(APP) $(SRC)/app.c
+	$(CC) $(DEBUG) -g -o $(BUILD)/$(APP) $(SRC)/laby.c $(SRC)/app.c
 
 run:
 	@$(BUILD)/$(APP)
 
 test-compile: compile
-	$(CC) -g -I$(SRC) -o $(BUILD)/tests $(TEST)/laby_test.c
+	$(CC) -g -I$(SRC) -o $(BUILD)/tests $(TEST)/tests.c
 
 test: test-compile
 	@$(BUILD)/tests
