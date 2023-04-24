@@ -60,6 +60,7 @@ empty_laby_test ()
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
 }
+
 static char *
 simple_laby_test ()
 {
@@ -70,37 +71,41 @@ simple_laby_test ()
   laby_add_border (&lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
   laby_add_border (&lab, 2, 2, UPPER_BORDER);
 
-  char *expected = 
-"┏━━━━━━━┳━━━┓\r\n"
-"┃       ┃   ┃\r\n"
-"┃   ┏━━━┛   ┃\r\n"
-"┃   ┃       ┃\r\n"
-"┃   ┗━━━━━━━┫\r\n"
-"┃           ┃\r\n"
-"┗━━━━━━━━━━━┛";
+  laby_mark_as_visited (&lab, 0, 0);
+  laby_mark_as_visited (&lab, 0, 1);
+  laby_mark_as_visited (&lab, 1, 0);
+
+  char *expected = "┏━━━━━━━┳━━━┓\r\n"
+                   "┃·······┃   ┃\r\n"
+                   "┃···┏━━━┛   ┃\r\n"
+                   "┃···┃       ┃\r\n"
+                   "┃···┗━━━━━━━┫\r\n"
+                   "┃           ┃\r\n"
+                   "┗━━━━━━━━━━━┛";
+
   // when:
   laby_render (&buf, &lab);
+
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
 }
 
 static char *
-generate_eller_test()
+generate_eller_test ()
 {
   // given:
   dstr buf = DSTR_EMPTY;
-  char *expected = 
-"┏━━━━━━━━━━━━━━━┳━━━┓\r\n"
-"┃               ┃   ┃\r\n"
-"┃   ━━━━━━━━┳━━━┛   ┃\r\n"
-"┃           ┃       ┃\r\n"
-"┣━━━━━━━    ┗━━━    ┃\r\n"
-"┃                   ┃\r\n"
-"┗━━━━━━━━━━━━━━━━━━━┛";
+  char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\r\n"
+                   "┃               ┃   ┃\r\n"
+                   "┃   ━━━━━━━━┳━━━┛   ┃\r\n"
+                   "┃           ┃       ┃\r\n"
+                   "┣━━━━━━━    ┗━━━    ┃\r\n"
+                   "┃                   ┃\r\n"
+                   "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
-  laby lab = laby_generate_eller(3, 5, 1);
+  laby lab = laby_generate_eller (3, 5, 1);
   // then:
   laby_render (&buf, &lab);
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
@@ -114,7 +119,7 @@ all_tests ()
   mu_run_test (simple_compact_laby_test);
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
-  mu_run_test(generate_eller_test);
+  mu_run_test (generate_eller_test);
   return 0;
 }
 

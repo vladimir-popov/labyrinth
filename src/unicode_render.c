@@ -146,16 +146,18 @@ laby_render (dstr *buf, laby *lab)
       int n = (r < lab->rows_count) ? r_rows : 1;
       for (int i = 0; i < n; i++)
         {
-          /* Take a room form the row, plus one more for the right border */
+          /* Take a room from the row, plus one more for the right border */
           for (int c = 0; c <= lab->cols_count; c++)
             {
+              int is_visited = laby_is_visited (lab, r, c);
+
               /* We will render left and upper borders at once.
                * To choose correct symbol for the corner we need to know a
                * neighbor. */
               int border = laby_get_border (lab, r, c);
               int neighbor = laby_get_border (lab, r - 1, c - 1);
 
-              /* Iterate over width of the single room
+              /* Iterate over columns of the single room
                * (only one symbol for the extra right room) */
               int k = (c < lab->cols_count) ? r_cols : 1;
               for (int j = 0; j < k; j++)
@@ -165,12 +167,15 @@ laby_render (dstr *buf, laby *lab)
                     {
                       s = (j == 0) ? uc_get_coner (border, neighbor)
                           : (border & UPPER_BORDER) ? "━"
-                                                    : " ";
+                          : (is_visited || laby_is_visited (lab, r - 1, c))
+                              ? "·"
+                              : " ";
                     }
                   /* render others */
                   else
                     {
-                      s = (j == 0 && (border & LEFT_BORDER)) ? "┃" : " ";
+                      int is_border = (j == 0) && (border & LEFT_BORDER);
+                      s = (is_border) ? "┃" : (is_visited) ? "·" : " ";
                     }
                   dstr_append (buf, s, strlen (s));
                 }

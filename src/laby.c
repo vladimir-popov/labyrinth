@@ -146,15 +146,17 @@ laby_rm_border (laby *lab, int row, int col, enum border border)
 }
 
 void
-laby_mark_as_visit (laby *lab, int r, int c)
+laby_mark_as_visited (laby *lab, int r, int c)
 {
   lab->rooms[r][c] |= 1;
 }
 
 char
-laby_is_visit(laby *lab, int r, int c)
+laby_is_visited (laby *lab, int r, int c)
 {
-  return lab->rooms[r][c] & 1;
+  int is_col_inside = c >= 0 && c < lab->cols_count;
+  int is_row_inside = r >= 0 && r < lab->rows_count;
+  return (is_row_inside && is_col_inside) ? lab->rooms[r][c] & 1 : 0;
 }
 
 void
