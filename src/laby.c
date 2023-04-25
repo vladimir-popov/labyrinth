@@ -154,7 +154,7 @@ laby_print_borders (laby *lab)
 }
 
 void
-laby_print_values (laby *lab)
+laby_print_contents (laby *lab)
 {
   for (int r = 0; r < lab->rows_count; r++)
     {
