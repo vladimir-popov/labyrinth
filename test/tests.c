@@ -3,6 +3,7 @@
 #include "minunit.h"
 #include "term.c"
 #include "laby.c"
+#include "eller.c"
 #include "unicode_render.c"
 
 int tests_run = 0;

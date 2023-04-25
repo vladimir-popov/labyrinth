@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #include "term.c"
-#include "laby.h"
+#include "game.h"
 #include "unicode_render.c"
 
 time_t seed = 0;
@@ -55,21 +55,30 @@ parse_args (int argc, char *argv[])
   return 0;
 }
 
+key read_key () 
+{
+  return KEY_ESC;
+}
+
+void
+render (game *game)
+{
+  dstr buf = DSTR_EMPTY;
+  unicode_render (&game->level, &buf);
+  printf ("%s", buf.chars);
+}
+
 int
 main (int argc, char *argv[])
 {
   if (parse_args (argc, argv) != 0)
     return -1;
 
-  dstr buf = DSTR_EMPTY;
-
   int rows = (height - info - 2) / laby_room_rows;
   int cols = width / laby_room_cols;
 
-  // enter_safe_raw_mode ();
-  laby lab = laby_generate (rows, cols, seed);
-  unicode_render (&lab, &buf);
-  printf ("%s", buf.chars);
+  game game = new_game(rows, cols, seed);
+  game_loop(&game);
 
   if (info)
     printf ("\r\nLabyrint size: %dx%d\tSeed: %ld\r\n", rows, cols, seed);

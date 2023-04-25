@@ -1,7 +1,7 @@
+#include <stdlib.h>
 #include <stdio.h>
 
 #include "laby.h"
-#include "eller.c"
 
 laby
 laby_init_empty (int rows, int cols)
@@ -120,12 +120,6 @@ unsigned char
 laby_get_content (laby *lab, int r, int c)
 {
   return lab->rooms[r][c] >> CONTENT_SHIFT;
-}
-
-laby
-laby_generate (int rows, int cols, int seed)
-{
-  return eller_generate(rows, cols, seed);
 }
 
 /* ========== DEBUG FUNCTIONS ========== */

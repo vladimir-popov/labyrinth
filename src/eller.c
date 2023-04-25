@@ -5,7 +5,6 @@
  * https://weblog.jamisbuck.org/2010/12/29/maze-generation-eller-s-algorithm
  * @see http://www.neocomputer.org/projects/eller.html
  */
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "laby.h"
@@ -65,10 +64,6 @@ eller_generate (int rows, int cols, int seed)
           else
             _s[c] = s[c];
         }
-
-      for (int i = 0; i < cols; i++)
-        printf ("%d, ", s[i]);
-      printf ("\n");
     }
   /* remove dead ends */
   for (int c = 0; c < cols - 1; c++)

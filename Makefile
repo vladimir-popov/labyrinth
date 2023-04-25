@@ -12,7 +12,7 @@ clean:
 
 compile: clean
 	mkdir $(BUILD)
-	$(CC) $(DEBUG) -g -o $(BUILD)/$(APP) $(SRC)/laby.c $(SRC)/app.c
+	$(CC) $(DEBUG) -g -o $(BUILD)/$(APP) $(SRC)/laby.c $(SRC)/game.c $(SRC)/app.c
 
 run:
 	@$(BUILD)/$(APP)
