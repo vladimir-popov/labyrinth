@@ -1,8 +1,14 @@
+/**
+ * This is the representation of the current game
+ * field, which includes the size and borders of the labyrinth, information
+ * about the visited rooms, items, creatures and so on.
+ */
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "laby.h"
 
+
+/* Creates a new labyrinth with cols x rows empty rooms. */
 laby
 laby_init_empty (int rows, int cols)
 {
@@ -14,6 +20,7 @@ laby_init_empty (int rows, int cols)
   return l;
 }
 
+/* Frees memory of the labyrinth. */
 void
 laby_free (laby *lab)
 {
@@ -23,6 +30,7 @@ laby_free (laby *lab)
   free (lab->rooms);
 }
 
+/*  Returns only 4 first bits, which are about borders of the room. */
 unsigned char
 laby_get_border (laby *lab, int row, int col)
 {
@@ -57,6 +65,7 @@ laby_get_border (laby *lab, int row, int col)
   return border & (0xf << VISIT_BITS_COUNT);
 }
 
+/* Add border flag. */
 void
 laby_add_border (laby *lab, int row, int col, enum border border)
 {
@@ -76,6 +85,7 @@ laby_add_border (laby *lab, int row, int col, enum border border)
       lab->rooms[row - 1][col] |= BOTTOM_BORDER;
 }
 
+/* Remove border flag. */
 void
 laby_rm_border (laby *lab, int row, int col, enum border border)
 {
@@ -122,39 +132,72 @@ laby_get_content (laby *lab, int r, int c)
   return lab->rooms[r][c] >> CONTENT_SHIFT;
 }
 
-/* ========== DEBUG FUNCTIONS ========== */
-void
-laby_print_raw (laby *lab)
+/*
+ * This is an implementation of the Eller's algorithm.
+ *
+ * @see
+ * https://weblog.jamisbuck.org/2010/12/29/maze-generation-eller-s-algorithm
+ * @see http://www.neocomputer.org/projects/eller.html
+ */
+laby
+laby_generate (int rows, int cols, int seed)
 {
-  for (int r = 0; r < lab->rows_count; r++)
+  srand (seed);
+
+  /* The final labyrinth */
+  laby lab = laby_init_empty (rows, cols);
+
+  /* Sets of rooms. The first one is a sets for the current row, the second is
+   * for the next row */
+  char *s = malloc(sizeof(char) * cols);
+  char *_s = malloc(sizeof(char) * cols);
+
+  int set = 1;
+  /* set unique set for every empty room in the first row */
+  for (int j = 0; j < cols; j++)
+    _s[j] = set++;
+
+  for (int r = 0; r < rows - 1; r++)
     {
-      for (int c = 0; c < lab->cols_count; c++)
-        printf ("%d ", lab->rooms[r][c]);
+      /* swap sets to use `s` for the current row */
+      char *tmp = s;
+      s = _s;
+      _s = tmp;
 
-      printf ("\r\n");
+      /* decide if two rooms should have a horizontal border */
+      for (int c = 0; c < cols - 1; c++)
+        {
+          if (s[c] != s[c + 1] && rand () % 2 == 0)
+            laby_add_border (&lab, r, c, RIGHT_BORDER);
+          else
+            s[c + 1] = s[c];
+        }
+      /* decide if two rooms should have a vertical border */
+      for (int c = 0; c < cols; c++)
+        {
+          /* count of rooms without bottom border in the current set */
+          int no_bb = 0;
+          for (int i = 0; i < cols && no_bb < 2; i++)
+            if (s[c] == s[i])
+              no_bb = (laby_get_border (&lab, r, i) & BOTTOM_BORDER)
+                          ? no_bb
+                          : no_bb + 1;
+
+          /* we can create a border, if it's not a single room without bottom
+           * border in the set */
+          if (no_bb > 1 && rand () % 5 > 0)
+            {
+              laby_add_border (&lab, r, c, BOTTOM_BORDER);
+              /* mark the underlining room to change its set */
+              _s[c] = set++;
+            }
+          else
+            _s[c] = s[c];
+        }
     }
-}
+  /* remove dead ends */
+  for (int c = 0; c < cols - 1; c++)
+    laby_rm_border (&lab, rows - 1, c, RIGHT_BORDER);
 
-void
-laby_print_borders (laby *lab)
-{
-  for (int r = -1; r <= lab->rows_count; r++)
-    {
-      for (int c = -1; c <= lab->cols_count; c++)
-        printf ("%2d ", laby_get_border (lab, r, c));
-
-      printf ("\r\n");
-    }
-}
-
-void
-laby_print_contents (laby *lab)
-{
-  for (int r = 0; r < lab->rows_count; r++)
-    {
-      for (int c = 0; c < lab->cols_count; c++)
-        printf ("%2d ", laby_get_content (lab, r, c));
-
-      printf ("\r\n");
-    }
+  return lab;
 }

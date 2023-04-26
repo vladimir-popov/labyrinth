@@ -1,10 +1,5 @@
-/**
- * This is the representation of the current game
- * level, which includes the size and borders of the labyrinth, information
- * about the visited rooms, items, creatures and so on.
- */
-#ifndef __LABYRINTH_H__
-#define __LABYRINTH_H__
+#ifndef __LABY__
+#define __LABY__
 
 /*
  * All information about a single room should be encoded in one byte:
@@ -17,7 +12,7 @@
  * Section U: describes the upper border of the room;
  * Section R: describes the right border of the room;
  * Section B: describes the bottom border of the room;
- * Section V: visiting of the room; 0 - not visited; 1 - visited;
+ * Section V: was room visited by player or not;
  */
 typedef unsigned int room;
 
@@ -51,26 +46,39 @@ typedef struct laby
 } laby;
 
 /* Creates a new labyrinth with cols x rows empty rooms. */
-laby laby_init_empty (int rows, int cols);
+laby
+laby_init_empty (int rows, int cols);
 
 /* Frees memory of the labyrinth. */
-void laby_free (laby *lab);
+void
+laby_free (laby *lab);
 
 /*  Returns only 4 first bits, which are about borders of the room. */
-unsigned char laby_get_border (laby *lab, int row, int col);
+unsigned char
+laby_get_border (laby *lab, int row, int col);
 
 /* Add border flag. */
-void laby_add_border (laby *lab, int row, int col, enum border border);
+void
+laby_add_border (laby *lab, int row, int col, enum border border);
 
 /* Remove border flag. */
-void laby_rm_border (laby *lab, int row, int col, enum border border);
+void
+laby_rm_border (laby *lab, int row, int col, enum border border);
 
-void laby_mark_as_visited (laby *lab, int r, int c);
+void
+laby_mark_as_visited (laby *lab, int r, int c);
 
-char laby_is_visited (laby *lab, int r, int c);
+char
+laby_is_visited (laby *lab, int r, int c);
 
-void laby_set_content (laby *lab, int r, int c, unsigned char value);
+void
+laby_set_content (laby *lab, int r, int c, unsigned char value);
 
-unsigned char laby_get_content (laby *lab, int r, int c);
+unsigned char
+laby_get_content (laby *lab, int r, int c);
 
-#endif /* __LABYRINTH_H__ */
+laby
+laby_generate (int rows, int cols, int seed);
+
+
+#endif /* __LABY__ */

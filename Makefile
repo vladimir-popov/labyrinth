@@ -14,11 +14,11 @@ compile: clean
 	mkdir $(BUILD)
 	$(CC) $(DEBUG) -g -o $(BUILD)/$(APP) $(SRC)/laby.c $(SRC)/game.c $(SRC)/app.c
 
-run:
+run: compile
 	@$(BUILD)/$(APP)
 
 test-compile: compile
-	$(CC) -g -I$(SRC) -o $(BUILD)/tests $(TEST)/tests.c
+	$(CC) -g -I$(SRC) -o $(BUILD)/tests $(SRC)/laby.c $(TEST)/tests.c
 
 test: test-compile
 	@$(BUILD)/tests

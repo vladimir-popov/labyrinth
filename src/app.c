@@ -1,15 +1,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
 
-#include "term.c"
 #include "game.h"
-#include "unicode_render.c"
+#include "term.c"
+#include "render.c"
 
 time_t seed = 0;
 int height = 0;
 int width = 0;
-int info = 0;
 
 static int
 parse_args (int argc, char *argv[])
@@ -33,10 +33,6 @@ parse_args (int argc, char *argv[])
         case 'h':
           height = strtol (optarg, NULL, 10);
           break;
-        case 'i':
-          /* use count of additional lines from information as true */
-          info = 1;
-          break;
         case '?':
           if (optopt == 'h')
             fprintf (stderr, "The -h argument should be followed by a count "
@@ -55,17 +51,40 @@ parse_args (int argc, char *argv[])
   return 0;
 }
 
-key read_key () 
+key
+read_key ()
 {
-  return KEY_ESC;
-}
+  int nread;
+  char c;
+  while ((nread = read (STDIN_FILENO, &c, 1)) != 1)
+    {
+      if (nread == -1 && errno != EAGAIN)
+        fatal ("read");
+    }
 
-void
-render (game *game)
-{
-  dstr buf = DSTR_EMPTY;
-  unicode_render (&game->level, &buf);
-  printf ("%s", buf.chars);
+  if (c == ESC)
+    {
+      char seq[3];
+      if (read (STDIN_FILENO, &seq[0], 1) != 1)
+        return KEY_EXIT;
+      if (read (STDIN_FILENO, &seq[1], 1) != 1)
+        return c;
+      if (seq[0] == '[')
+        {
+          switch (seq[1])
+            {
+            case 'A':
+              return KEY_UP;
+            case 'B':
+              return KEY_DOWN;
+            case 'C':
+              return KEY_RIGHT;
+            case 'D':
+              return KEY_LEFT;
+            }
+        }
+    }
+  return c;
 }
 
 int
@@ -74,14 +93,13 @@ main (int argc, char *argv[])
   if (parse_args (argc, argv) != 0)
     return -1;
 
-  int rows = (height - info - 2) / laby_room_rows;
+  int rows = (height - 2) / laby_room_rows;
   int cols = width / laby_room_cols;
 
-  game game = new_game(rows, cols, seed);
-  game_loop(&game);
+  enter_safe_raw_mode();
 
-  if (info)
-    printf ("\r\nLabyrint size: %dx%d\tSeed: %ld\r\n", rows, cols, seed);
+  level level = new_level (rows, cols, seed);
+  game_loop (&level);
 
   return 0;
 }

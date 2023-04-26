@@ -1,12 +1,8 @@
-/**
- * This is the main "engine" of the game.
- * It uses some external functions to be independent on graphical environment,
- * and implementation details.
- */
 #ifndef __LABYRINTH_GAME__
 #define __LABYRINTH_GAME__
 
 #include "laby.h"
+
 
 typedef enum key
 {
@@ -15,7 +11,7 @@ typedef enum key
   KEY_RIGHT,
   KEY_DOWN,
   KEY_COMMAND,
-  KEY_ESC
+  KEY_EXIT
 } key;
 
 typedef struct player
@@ -24,20 +20,20 @@ typedef struct player
   int col;
 } player;
 
-typedef struct game
+typedef struct level
 {
-  laby level;
-  player p;
-} game;
+  laby lab;
+  player player;
+} level;
 
 key read_key ();
 
-void render (game *game);
+void render (level *level);
 
-game
-new_game (int rows, int cols, int seed);
+level
+new_level (int rows, int cols, int seed);
 
 void
-game_loop (game *game);
+game_loop (level *level);
 
 #endif /* __LABYRINTH_GAME__ */

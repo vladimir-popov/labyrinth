@@ -11,8 +11,8 @@
 #define ESCS "\x1b["
 
 /* Cursor Control */
-#define MOVE_RIGHT(N) ESCS #N "C"
-#define MOVE_DOWN(N) ESCS #N "B"
+#define MOVE_CURSOR_RIGHT(N) ESCS #N "C"
+#define MOVE_CURSOR_DOWN(N) ESCS #N "B"
 
 /* DSR – Device Status Report */
 #define DSR_GET_POSISION ESCS "6n"
@@ -73,20 +73,20 @@ enter_safe_raw_mode ()
    *  IEXTEN - used to tell to the terminal to wait an another character
    *           (Ctrl-V);
    */
-  raw.c_cflag &= ~(ECHO | ICANON | IEXTEN);
+  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN);
 
   /*
    * Remove some Input flags:
-   *  IXON   - it's for handle XOFF (Ctrl-S) and XON (Ctrl-Q) signals, which
-   *           are used for software control and not actual for today;
-   *  ICRNL  - used to translate '\r' to '\n';
    *  BRKINT - turns on break condition;
+   *  ICRNL  - used to translate '\r' to '\n';
    *  INPCK  - enables parity checking, which doesn’t seem to apply to modern
    *           terminal emulators;
    *  ISTRIP - causes the 8th bit of each input byte to be stripped, meaning
    *           it will set it to 0. This is probably already turned off;
+   *  IXON   - it's for handle XOFF (Ctrl-S) and XON (Ctrl-Q) signals, which
+   *           are used for software control and not actual for today;
    */
-  raw.c_iflag &= ~(IXON | ICRNL | BRKINT | INPCK | ISTRIP);
+  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
 
   /*
    * Remove some Output flags:
@@ -111,7 +111,8 @@ enter_safe_raw_mode ()
    */
   raw.c_cc[VTIME] = 1;
 
-  tcsetattr (STDIN_FILENO, TCSAFLUSH, &raw);
+  if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &raw) == -1)
+    fatal("tcsetattr");
 }
 
 int
@@ -145,7 +146,7 @@ get_window_size (int *rows, int *cols)
   struct winsize ws;
   if (ioctl (STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0)
     {
-      if (write (STDOUT_FILENO, MOVE_DOWN (999) MOVE_RIGHT (999), 12) != 12)
+      if (write (STDOUT_FILENO, MOVE_CURSOR_DOWN (999) MOVE_CURSOR_RIGHT (999), 12) != 12)
         return -1;
 
       return get_cursor_position (rows, cols);

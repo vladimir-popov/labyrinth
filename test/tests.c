@@ -1,51 +1,11 @@
 #include <stdio.h>
 
+#include "game.h"
 #include "minunit.h"
 #include "term.c"
-#include "laby.c"
-#include "eller.c"
-#include "unicode_render.c"
+#include "render.c"
 
 int tests_run = 0;
-
-static char *
-empty_compact_laby_test ()
-{
-  // given:
-  dstr buf = DSTR_EMPTY;
-  laby lab = laby_init_empty (5, 5);
-
-  char *expected = " ╔══╦══╦══╦══╗ \r\n"
-                   " ╠══╬══╬══╬══╣ \r\n"
-                   " ╠══╬══╬══╬══╣ \r\n"
-                   " ╠══╬══╬══╬══╣ \r\n"
-                   " ╚══╩══╩══╩══╝ ";
-  // when:
-  unicode_render_compact (&lab, &buf);
-  // then:
-  mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
-  return 0;
-}
-
-static char *
-simple_compact_laby_test ()
-{
-  // given:
-  dstr buf = DSTR_EMPTY;
-  laby lab = laby_init_empty (3, 3);
-  laby_add_border (&lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
-  laby_add_border (&lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
-  laby_add_border (&lab, 2, 2, UPPER_BORDER);
-
-  char *expected = " ╔═╕   ╓ \r\n"
-                   " ║   ╘═╝ \r\n"
-                   " ╚════╕  ";
-  // when:
-  unicode_render_compact (&lab, &buf);
-  // then:
-  mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
-  return 0;
-}
 
 static char *
 empty_laby_test ()
@@ -58,7 +18,7 @@ empty_laby_test ()
                    "┃   ┃\r\n"
                    "┗━━━┛";
   // when:
-  unicode_render (&lab, &buf);
+  render_laby (&lab, &buf);
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
@@ -87,7 +47,7 @@ simple_laby_test ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  unicode_render (&lab, &buf);
+  render_laby (&lab, &buf);
 
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
@@ -108,9 +68,9 @@ generate_eller_test ()
                    "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
-  laby lab = eller_generate (3, 5, 1);
+  laby lab = laby_generate (3, 5, 1);
   // then:
-  unicode_render (&lab, &buf);
+  render_laby (&lab, &buf);
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
 }
@@ -118,8 +78,6 @@ generate_eller_test ()
 static char *
 all_tests ()
 {
-  mu_run_test (empty_compact_laby_test);
-  mu_run_test (simple_compact_laby_test);
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
   mu_run_test (generate_eller_test);
@@ -138,4 +96,41 @@ main (void)
   printf ("Tests run: %d\n", tests_run);
 
   return result != 0;
+}
+
+/* ========== DEBUG FUNCTIONS ========== */
+void
+laby_print_raw (laby *lab)
+{
+  for (int r = 0; r < lab->rows_count; r++)
+    {
+      for (int c = 0; c < lab->cols_count; c++)
+        printf ("%d ", lab->rooms[r][c]);
+
+      printf ("\r\n");
+    }
+}
+
+void
+laby_print_borders (laby *lab)
+{
+  for (int r = -1; r <= lab->rows_count; r++)
+    {
+      for (int c = -1; c <= lab->cols_count; c++)
+        printf ("%2d ", laby_get_border (lab, r, c));
+
+      printf ("\r\n");
+    }
+}
+
+void
+laby_print_contents (laby *lab)
+{
+  for (int r = 0; r < lab->rows_count; r++)
+    {
+      for (int c = 0; c < lab->cols_count; c++)
+        printf ("%2d ", laby_get_content (lab, r, c));
+
+      printf ("\r\n");
+    }
 }

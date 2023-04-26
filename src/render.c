@@ -1,80 +1,15 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "dstr.c"
-#include "laby.h"
+#include "game.h"
 
 /* The count of symbols by vertical of one room.  */
-static int laby_room_rows = 2;
+static const int laby_room_rows = 2;
 
 /* The count of symbols by horizontal of one room.  */
-static int laby_room_cols = 4;
-
-void
-unicode_render_compact (laby *lab, dstr *buf)
-{
-  char *room = "═╬═";
-  for (int r = 0; r < lab->rows_count; r++)
-    {
-      for (int c = 0; c < lab->cols_count; c++)
-        {
-          switch (laby_get_border (lab, r, c))
-            {
-            case (LEFT_BORDER | UPPER_BORDER | RIGHT_BORDER | BOTTOM_BORDER):
-              room = "   ";
-              break;
-            case LEFT_BORDER:
-              room = " ╠═";
-              break;
-            case RIGHT_BORDER:
-              room = "═╣ ";
-              break;
-            case UPPER_BORDER:
-              room = "═╦═";
-              break;
-            case BOTTOM_BORDER:
-              room = "═╩═";
-              break;
-            case (UPPER_BORDER | BOTTOM_BORDER):
-              room = "═══";
-              break;
-            case (LEFT_BORDER | RIGHT_BORDER):
-              room = " ║ ";
-              break;
-            case (LEFT_BORDER | UPPER_BORDER):
-              room = " ╔═";
-              break;
-            case (RIGHT_BORDER | UPPER_BORDER):
-              room = "═╗ ";
-              break;
-            case (LEFT_BORDER | BOTTOM_BORDER):
-              room = " ╚═";
-              break;
-            case (RIGHT_BORDER | BOTTOM_BORDER):
-              room = "═╝ ";
-              break;
-            case (LEFT_BORDER | UPPER_BORDER | RIGHT_BORDER):
-              room = " ╓ ";
-              break;
-            case (UPPER_BORDER | RIGHT_BORDER | BOTTOM_BORDER):
-              room = "╕  ";
-              break;
-            case (RIGHT_BORDER | BOTTOM_BORDER | LEFT_BORDER):
-              room = " ╙ ";
-              break;
-            case (BOTTOM_BORDER | LEFT_BORDER | UPPER_BORDER):
-              room = "  ╘";
-              break;
-            default:
-              room = "═╬═";
-              break;
-            }
-          dstr_append (buf, room, strlen (room));
-        }
-      if (r < lab->rows_count - 1)
-        dstr_append (buf, "\r\n", 2);
-    }
-}
+static const int laby_room_cols = 4;
 
 static int
 expect_borders (int border, char expected)
@@ -135,7 +70,7 @@ get_corner (int border, int neighbor)
  * Renders the labyrinth `lab` to the buffer `buf`.
  */
 void
-unicode_render (laby *lab, dstr *buf)
+render_laby (laby *lab, dstr *buf)
 {
   char *s;
   /* Render rooms from every row, plus one extra row for the bottom borders */
@@ -174,6 +109,7 @@ unicode_render (laby *lab, dstr *buf)
                   else
                     {
                       int is_border = (j == 0) && (border & LEFT_BORDER);
+
                       s = (is_border) ? "┃" : (is_visited) ? "·" : " ";
                     }
                   dstr_append (buf, s, strlen (s));
@@ -183,4 +119,13 @@ unicode_render (laby *lab, dstr *buf)
             dstr_append (buf, "\r\n", 2);
         }
     }
+}
+
+void
+render (level *level)
+{
+  dstr buf = DSTR_EMPTY;
+  render_laby (&level->lab, &buf);
+  write (STDIN_FILENO, buf.chars, buf.length);
+  dstr_free(&buf);
 }
