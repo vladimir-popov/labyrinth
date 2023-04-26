@@ -3,37 +3,29 @@
 
 #include "laby.h"
 
-
-typedef enum key
+typedef enum
 {
-  KEY_LEFT,
-  KEY_UP,
-  KEY_RIGHT,
-  KEY_DOWN,
-  KEY_COMMAND,
-  KEY_EXIT
-} key;
+  CMD_MV_LEFT,
+  CMD_MV_UP,
+  CMD_MV_RIGHT,
+  CMD_MV_DOWN,
+  CMD_EXIT
+} command;
 
-typedef struct player
+typedef struct
 {
   int row;
   int col;
 } player;
 
-typedef struct level
+typedef struct
 {
   laby lab;
   player player;
 } level;
 
-key read_key ();
+level new_level (int rows, int cols, int seed);
 
-void render (level *level);
-
-level
-new_level (int rows, int cols, int seed);
-
-void
-game_loop (level *level);
+int handle_command (level *level, command cmd);
 
 #endif /* __LABYRINTH_GAME__ */

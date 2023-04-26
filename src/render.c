@@ -4,6 +4,7 @@
 
 #include "dstr.c"
 #include "game.h"
+#include "term.h"
 
 /* The count of symbols by vertical of one room.  */
 static const int laby_room_rows = 2;
@@ -125,6 +126,7 @@ void
 render (level *level)
 {
   dstr buf = DSTR_EMPTY;
+  clear_screen();
   render_laby (&level->lab, &buf);
   write (STDIN_FILENO, buf.chars, buf.length);
   dstr_free(&buf);

@@ -4,12 +4,60 @@
 #include <errno.h>
 
 #include "game.h"
-#include "term.c"
+#include "term.h"
 #include "render.c"
 
 time_t seed = 0;
 int height = 0;
 int width = 0;
+
+command
+read_command ()
+{
+  int nread;
+  char c;
+  while ((nread = read (STDIN_FILENO, &c, 1)) != 1)
+    {
+      if (nread == -1 && errno != EAGAIN)
+        fatal ("read");
+    }
+
+  if (c == ESC)
+    {
+      char seq[3];
+      if (read (STDIN_FILENO, &seq[0], 1) != 1)
+        return CMD_EXIT;
+      if (read (STDIN_FILENO, &seq[1], 1) != 1)
+        return c;
+      if (seq[0] == '[')
+        {
+          switch (seq[1])
+            {
+            case 'A':
+              return CMD_MV_UP;
+            case 'B':
+              return CMD_MV_DOWN;
+            case 'C':
+              return CMD_MV_RIGHT;
+            case 'D':
+              return CMD_MV_LEFT;
+            }
+        }
+    }
+  return c;
+}
+
+void
+game_loop (level *level)
+{
+  command cmd;
+  do
+    {
+      render (level);
+      cmd = read_command ();
+    }
+  while (handle_command (level, cmd));
+}
 
 static int
 parse_args (int argc, char *argv[])
@@ -51,55 +99,21 @@ parse_args (int argc, char *argv[])
   return 0;
 }
 
-key
-read_key ()
-{
-  int nread;
-  char c;
-  while ((nread = read (STDIN_FILENO, &c, 1)) != 1)
-    {
-      if (nread == -1 && errno != EAGAIN)
-        fatal ("read");
-    }
-
-  if (c == ESC)
-    {
-      char seq[3];
-      if (read (STDIN_FILENO, &seq[0], 1) != 1)
-        return KEY_EXIT;
-      if (read (STDIN_FILENO, &seq[1], 1) != 1)
-        return c;
-      if (seq[0] == '[')
-        {
-          switch (seq[1])
-            {
-            case 'A':
-              return KEY_UP;
-            case 'B':
-              return KEY_DOWN;
-            case 'C':
-              return KEY_RIGHT;
-            case 'D':
-              return KEY_LEFT;
-            }
-        }
-    }
-  return c;
-}
-
 int
 main (int argc, char *argv[])
 {
   if (parse_args (argc, argv) != 0)
     return -1;
 
-  int rows = (height - 2) / laby_room_rows;
-  int cols = width / laby_room_cols;
+  int rows = (height - 1) / laby_room_rows;
+  int cols = (width - 1) / laby_room_cols;
 
   enter_safe_raw_mode();
+  hide_cursor();
 
   level level = new_level (rows, cols, seed);
   game_loop (&level);
 
+  clear_screen();
   return 0;
 }

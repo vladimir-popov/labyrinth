@@ -2,8 +2,8 @@
 
 #include "game.h"
 #include "minunit.h"
-#include "term.c"
 #include "render.c"
+#include "term.c"
 
 int tests_run = 0;
 
@@ -93,7 +93,7 @@ main (void)
   else
     printf (SGR_GREEN "\nAll tests have been passed.\n" SGR_RESET);
 
-  printf ("Tests run: %d\n", tests_run);
+  printf ("Tests run: %d", tests_run);
 
   return result != 0;
 }

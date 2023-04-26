@@ -1,10 +1,5 @@
-/**
- * This is the main "engine" of the game.
- * It uses some external functions to be independent on graphical environment,
- * and implementation details.
- */
-#include "game.h"
 #include <stdio.h>
+#include "game.h"
 
 level
 new_level (int rows, int cols, int seed)
@@ -17,20 +12,8 @@ new_level (int rows, int cols, int seed)
   return level;
 }
 
-static int
-handle_key (level *level, key key)
+int
+handle_command (level *level, command cmd)
 {
-  return (key != KEY_EXIT);
-}
-
-void
-game_loop (level *level)
-{
-  key k;
-  do
-    {
-      render (level);
-      k = read_key ();
-    }
-  while (handle_key (level, k));
+  return (cmd != CMD_EXIT);
 }

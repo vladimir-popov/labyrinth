@@ -3,44 +3,14 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-
-#define FATAL_EXIT_CODE 42
-
-/* Control Symbol Introducer */
-#define ESC '\x1b'
-#define ESCS "\x1b["
-
-/* Cursor Control */
-#define MOVE_CURSOR_RIGHT(N) ESCS #N "C"
-#define MOVE_CURSOR_DOWN(N) ESCS #N "B"
-
-/* DSR – Device Status Report */
-#define DSR_GET_POSISION ESCS "6n"
-
-/* SGR - Select Graphic Rendition */
-
-/* Text colors */
-#define SGR_RESET ESCS "m"
-#define SGR_BLACK ESCS "30m"
-#define SGR_RED ESCS "31m"
-#define SGR_GREEN ESCS "32m"
-#define SGR_YELLOW ESCS "33m"
-#define SGR_BLUE ESCS "34m"
-#define SGR_MAGENTA ESCS "35m"
-#define SGR_CYAN ESCS "36m"
-#define SGR_WHITE ESCS "37m"
-
-/* Text decoration */
-#define SGR_BOLD ESCS "1m"
-#define SGR_UNDERLINE ESCS "4m"
-#define SGR_REVERSED ESCS "7m"
-#define SGR_INVERT_COLORS ESCS "7m"
+#include "term.h"
 
 struct termios orig_termios;
 
 void
 fatal (char *message)
 {
+  clear_screen();
   fprintf (stderr, "Fatal error: %s", message);
   exit (FATAL_EXIT_CODE);
 }
@@ -115,6 +85,29 @@ enter_safe_raw_mode ()
     fatal("tcsetattr");
 }
 
+void
+clear_screen() 
+{
+  /* Put cursor to the left upper corner */
+  write (STDIN_FILENO, CUP, 3);
+  /* Erase all lines on the screen */
+  write (STDIN_FILENO, ED_FROM_START, 4);
+}
+
+void
+hide_cursor ()
+{
+  write (STDIN_FILENO, RM_HIDE_CU, 6);
+  if (atexit (show_cursor) != 0)
+    fatal ("can't register reset visability of the cursor");
+}
+
+void
+show_cursor ()
+{
+  write (STDIN_FILENO, SM_SHOW_CU, 6);
+}
+
 int
 get_cursor_position (int *rows, int *cols)
 {
@@ -146,7 +139,7 @@ get_window_size (int *rows, int *cols)
   struct winsize ws;
   if (ioctl (STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0)
     {
-      if (write (STDOUT_FILENO, MOVE_CURSOR_DOWN (999) MOVE_CURSOR_RIGHT (999), 12) != 12)
+      if (write (STDOUT_FILENO, CU_DOWN (999) CU_RIGHT (999), 12) != 12)
         return -1;
 
       return get_cursor_position (rows, cols);
