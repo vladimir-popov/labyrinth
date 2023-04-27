@@ -149,7 +149,8 @@ void
 render (level *level)
 {
   dstr buf = DSTR_EMPTY;
-  clear_screen ();
+  /* Put the cursor to the upper left corner */
+  dstr_append (&buf, CUP, 3);
   render_level (level, &buf);
   write (STDIN_FILENO, buf.chars, buf.length);
   dstr_free (&buf);
