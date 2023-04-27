@@ -12,13 +12,14 @@ empty_laby_test ()
 {
   // given:
   dstr buf = DSTR_EMPTY;
-  laby lab = laby_init_empty (1, 1);
+  level level = LEVEL_EMPTY;
+  level.lab = laby_init_empty (1, 1);
 
   char *expected = "┏━━━┓\r\n"
                    "┃   ┃\r\n"
                    "┗━━━┛";
   // when:
-  render_laby (&lab, &buf);
+  render_level (&level, &buf);
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
@@ -29,14 +30,15 @@ simple_laby_test ()
 {
   // given:
   dstr buf = DSTR_EMPTY;
-  laby lab = laby_init_empty (3, 3);
-  laby_add_border (&lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
-  laby_add_border (&lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
-  laby_add_border (&lab, 2, 2, UPPER_BORDER);
+  level level = LEVEL_EMPTY;
+  level.lab = laby_init_empty (3, 3);
+  laby_add_border (&level.lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
+  laby_add_border (&level.lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
+  laby_add_border (&level.lab, 2, 2, UPPER_BORDER);
 
-  laby_mark_as_visited (&lab, 0, 0);
-  laby_mark_as_visited (&lab, 0, 1);
-  laby_mark_as_visited (&lab, 1, 0);
+  laby_mark_as_visited (&level.lab, 0, 0);
+  laby_mark_as_visited (&level.lab, 0, 1);
+  laby_mark_as_visited (&level.lab, 1, 0);
 
   char *expected = "┏━━━━━━━┳━━━┓\r\n"
                    "┃·······┃   ┃\r\n"
@@ -47,7 +49,7 @@ simple_laby_test ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  render_laby (&lab, &buf);
+  render_level (&level, &buf);
 
   // then:
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
@@ -68,9 +70,10 @@ generate_eller_test ()
                    "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
-  laby lab = laby_generate (3, 5, 1);
+  level level = LEVEL_EMPTY;
+  level.lab = laby_generate (3, 5, 1);
   // then:
-  render_laby (&lab, &buf);
+  render_level (&level, &buf);
   mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
   return 0;
 }

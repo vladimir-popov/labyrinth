@@ -6,8 +6,8 @@ new_level (int rows, int cols, int seed)
 {
   level level;
   level.lab = laby_generate (rows, cols, seed);
-  level.player.row = 0;
-  level.player.col = 0;
+  level.player.r = 0;
+  level.player.c = 0;
 
   return level;
 }

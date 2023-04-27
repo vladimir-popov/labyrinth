@@ -14,15 +14,25 @@ typedef enum
 
 typedef struct
 {
-  int row;
-  int col;
+  int r;
+  int c;
 } player;
+
+#define PLAYER_EMPTY                                                          \
+  {                                                                           \
+    0, 0                                                                      \
+  }
 
 typedef struct
 {
   laby lab;
   player player;
 } level;
+
+#define LEVEL_EMPTY                                                           \
+  {                                                                           \
+    LABY_EMPTY, PLAYER_EMPTY                                                 \
+  }
 
 level new_level (int rows, int cols, int seed);
 
