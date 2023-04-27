@@ -5,7 +5,7 @@
 
 typedef enum
 {
-  CMD_MV_LEFT,
+  CMD_MV_LEFT = 1000,
   CMD_MV_UP,
   CMD_MV_RIGHT,
   CMD_MV_DOWN,
