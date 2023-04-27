@@ -16,7 +16,7 @@ empty_laby_test ()
   level.lab = laby_init_empty (1, 1);
 
   char *expected = "┏━━━┓\r\n"
-                   "┃   ┃\r\n"
+                   "┃ @ ┃\r\n"
                    "┗━━━┛";
   // when:
   render_level (&level, &buf);
@@ -41,7 +41,7 @@ simple_laby_test ()
   laby_mark_as_visited (&level.lab, 1, 0);
 
   char *expected = "┏━━━━━━━┳━━━┓\r\n"
-                   "┃·······┃   ┃\r\n"
+                   "┃·@·····┃   ┃\r\n"
                    "┃···┏━━━┛   ┃\r\n"
                    "┃···┃       ┃\r\n"
                    "┃···┗━━━━━━━┫\r\n"
@@ -62,7 +62,7 @@ generate_eller_test ()
   // given:
   dstr buf = DSTR_EMPTY;
   char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\r\n"
-                   "┃               ┃   ┃\r\n"
+                   "┃ @             ┃   ┃\r\n"
                    "┃   ━━━━━━━━┳━━━┛   ┃\r\n"
                    "┃           ┃       ┃\r\n"
                    "┣━━━━━━━    ┗━━━    ┃\r\n"

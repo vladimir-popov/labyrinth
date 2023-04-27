@@ -67,6 +67,15 @@ get_corner (int border, int neighbor)
   return " ";
 }
 
+static char *
+get_creature (level *level, int r, int c)
+{
+  if (level->player.r == r && level->player.c == c)
+    return "@";
+  else
+    return 0;
+}
+
 static void
 render_room (level *level, int r, int c, int i, int j, dstr *buf)
 {
@@ -79,6 +88,7 @@ render_room (level *level, int r, int c, int i, int j, dstr *buf)
   int neighbor = laby_get_border (lab, r - 1, c - 1);
 
   int is_visited = laby_is_visited (lab, r, c);
+  char *creature = get_creature (level, r, c);
 
   char *s;
   /* render the first row of the room */
@@ -94,7 +104,10 @@ render_room (level *level, int r, int c, int i, int j, dstr *buf)
     {
       int is_border = (j == 0) && (border & LEFT_BORDER);
 
-      s = (is_border) ? "┃" : (is_visited) ? "·" : " ";
+      s = (is_border)                       ? "┃"
+          : (creature && (i > 0 && j == 2)) ? creature
+          : (is_visited)                    ? "·"
+                                            : " ";
     }
   dstr_append (buf, s, strlen (s));
 }
