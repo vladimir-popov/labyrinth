@@ -18,7 +18,8 @@ fatal (char *message)
 void
 disable_raw_mode ()
 {
-  tcsetattr (STDIN_FILENO, TCSAFLUSH, &orig_termios);
+  if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1)
+    fatal("recover termios");
 }
 
 void

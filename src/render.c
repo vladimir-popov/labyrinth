@@ -2,7 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "dstr.c"
+#include "dbuf.h"
 #include "game.h"
 #include "term.h"
 
@@ -77,7 +77,7 @@ get_creature (level *level, int r, int c)
 }
 
 static void
-render_room (level *level, int r, int c, int i, int j, dstr *buf)
+render_room (level *level, int r, int c, int i, int j, dbuf *buf)
 {
   laby *lab = &level->lab;
 
@@ -109,14 +109,14 @@ render_room (level *level, int r, int c, int i, int j, dstr *buf)
           : (is_visited)                    ? "·"
                                             : " ";
     }
-  dstr_append (buf, s, strlen (s));
+  buffer_append_str (buf, s, strlen (s));
 }
 
 /**
  * Renders the labyrinth `lab` to the buffer `buf`.
  */
 void
-render_level (level *level, dstr *buf)
+render_level (level *level, dbuf *buf)
 {
   laby *lab = &level->lab;
 
@@ -140,7 +140,7 @@ render_level (level *level, dstr *buf)
                 }
             }
           if (r < lab->rows_count)
-            dstr_append (buf, "\r\n", 2);
+            buffer_end_line (buf);
         }
     }
 }
@@ -148,10 +148,9 @@ render_level (level *level, dstr *buf)
 void
 render (level *level)
 {
-  dstr buf = DSTR_EMPTY;
   /* Put the cursor to the upper left corner */
-  dstr_append (&buf, CUP, 3);
+  dbuf buf = buffer_init (CUP);
   render_level (level, &buf);
-  write (STDIN_FILENO, buf.chars, buf.length);
-  dstr_free (&buf);
+  buffer_write (STDIN_FILENO, &buf);
+  buffer_free (&buf);
 }

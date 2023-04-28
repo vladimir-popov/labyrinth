@@ -11,7 +11,7 @@ static char *
 empty_laby_test ()
 {
   // given:
-  dstr buf = DSTR_EMPTY;
+  dbuf buf = DBUF_EMPTY;
   level level = LEVEL_EMPTY;
   level.lab = laby_init_empty (1, 1);
 
@@ -21,7 +21,8 @@ empty_laby_test ()
   // when:
   render_level (&level, &buf);
   // then:
-  mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
+  dstr actual = buffer_to_dstr(&buf);
+  mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
   return 0;
 }
 
@@ -29,7 +30,7 @@ static char *
 simple_laby_test ()
 {
   // given:
-  dstr buf = DSTR_EMPTY;
+  dbuf buf = DBUF_EMPTY;
   level level = LEVEL_EMPTY;
   level.lab = laby_init_empty (3, 3);
   laby_add_border (&level.lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
@@ -52,7 +53,8 @@ simple_laby_test ()
   render_level (&level, &buf);
 
   // then:
-  mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
+  dstr actual = buffer_to_dstr(&buf);
+  mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
   return 0;
 }
 
@@ -60,7 +62,7 @@ static char *
 generate_eller_test ()
 {
   // given:
-  dstr buf = DSTR_EMPTY;
+  dbuf buf = DBUF_EMPTY;
   char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\r\n"
                    "┃ @             ┃   ┃\r\n"
                    "┃   ━━━━━━━━┳━━━┛   ┃\r\n"
@@ -72,9 +74,11 @@ generate_eller_test ()
   // when:
   level level = LEVEL_EMPTY;
   level.lab = laby_generate (3, 5, 1);
-  // then:
   render_level (&level, &buf);
-  mu_assert (buf.chars, strcmp (expected, buf.chars) == 0);
+
+  // then:
+  dstr actual = buffer_to_dstr(&buf);
+  mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
   return 0;
 }
 
@@ -96,7 +100,7 @@ main (void)
   else
     printf (SGR_GREEN "\nAll tests have been passed.\n" SGR_RESET);
 
-  printf ("Tests run: %d", tests_run);
+  printf ("Tests run: %d\n", tests_run);
 
   return result != 0;
 }
