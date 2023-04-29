@@ -63,7 +63,7 @@ enter_safe_raw_mode ()
    * Remove some Output flags:
    *  OPOST - used to translate '\n' to '\r\n';
    */
-  raw.c_oflag &= ~(OPOST);
+  // raw.c_oflag &= ~(OPOST);
 
   /* Set the character size to 8 bits per byte. */
   raw.c_cflag |= (CS8);

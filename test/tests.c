@@ -15,8 +15,8 @@ empty_laby_test ()
   level level = LEVEL_EMPTY;
   level.lab = laby_init_empty (1, 1);
 
-  char *expected = "┏━━━┓\r\n"
-                   "┃ @ ┃\r\n"
+  char *expected = "┏━━━┓\n"
+                   "┃ @ ┃\n"
                    "┗━━━┛";
   // when:
   render_level (&level, &buf);
@@ -41,12 +41,12 @@ simple_laby_test ()
   laby_mark_as_visited (&level.lab, 0, 1);
   laby_mark_as_visited (&level.lab, 1, 0);
 
-  char *expected = "┏━━━━━━━┳━━━┓\r\n"
-                   "┃·@·····┃   ┃\r\n"
-                   "┃···┏━━━┛   ┃\r\n"
-                   "┃···┃       ┃\r\n"
-                   "┃···┗━━━━━━━┫\r\n"
-                   "┃           ┃\r\n"
+  char *expected = "┏━━━━━━━┳━━━┓\n"
+                   "┃·@·····┃   ┃\n"
+                   "┃···┏━━━┛   ┃\n"
+                   "┃···┃       ┃\n"
+                   "┃···┗━━━━━━━┫\n"
+                   "┃           ┃\n"
                    "┗━━━━━━━━━━━┛";
 
   // when:
@@ -63,12 +63,12 @@ generate_eller_test ()
 {
   // given:
   dbuf buf = DBUF_EMPTY;
-  char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\r\n"
-                   "┃ @             ┃   ┃\r\n"
-                   "┃   ━━━━━━━━┳━━━┛   ┃\r\n"
-                   "┃           ┃       ┃\r\n"
-                   "┣━━━━━━━    ┗━━━    ┃\r\n"
-                   "┃                   ┃\r\n"
+  char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\n"
+                   "┃ @             ┃   ┃\n"
+                   "┃   ━━━━━━━━┳━━━┛   ┃\n"
+                   "┃           ┃       ┃\n"
+                   "┣━━━━━━━    ┗━━━    ┃\n"
+                   "┃                   ┃\n"
                    "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
@@ -114,7 +114,7 @@ laby_print_raw (laby *lab)
       for (int c = 0; c < lab->cols_count; c++)
         printf ("%d ", lab->rooms[r][c]);
 
-      printf ("\r\n");
+      printf ("\n");
     }
 }
 
@@ -126,7 +126,7 @@ laby_print_borders (laby *lab)
       for (int c = -1; c <= lab->cols_count; c++)
         printf ("%2d ", laby_get_border (lab, r, c));
 
-      printf ("\r\n");
+      printf ("\n");
     }
 }
 
@@ -138,6 +138,6 @@ laby_print_contents (laby *lab)
       for (int c = 0; c < lab->cols_count; c++)
         printf ("%2d ", laby_get_content (lab, r, c));
 
-      printf ("\r\n");
+      printf ("\n");
     }
 }

@@ -87,7 +87,7 @@ buffer_to_dstr (const dbuf *buf)
       dstr line = buf->lines[i];
       dstr_append (&res, line.chars, line.length);
       if (i < buf->lines_count - 1)
-        dstr_append (&res, "\r\n", 2);
+        dstr_append (&res, "\n", 1);
     }
 
   return res;
@@ -101,6 +101,6 @@ buffer_write (int fildes, const dbuf *buf)
       dstr line = buf->lines[i];
       write (fildes, line.chars, line.length);
       if (i < buf->lines_count - 1)
-        write (fildes, "\r\n", 2);
+        write (fildes, "\n", 1);
     }
 }
