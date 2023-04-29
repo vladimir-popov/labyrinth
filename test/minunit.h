@@ -1,3 +1,5 @@
+#include <string.h>
+
 #define mu_assert(message, test)                                              \
   do                                                                          \
     {                                                                         \
@@ -5,6 +7,9 @@
         return message;                                                       \
     }                                                                         \
   while (0)
+
+#define mu_dstr_eq_to_str(actual_dstr, expected_str)                          \
+  mu_assert (actual_dstr.chars, strcmp (expected_str, actual_dstr.chars) == 0)
 
 #define mu_run_test(test)                                                     \
   do                                                                          \

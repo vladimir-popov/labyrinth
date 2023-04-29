@@ -18,7 +18,7 @@ parse_string_to_buffer_test ()
   dstr res = buffer_to_dstr (&buf);
 
   // then:
-  mu_assert (res.chars, strcmp (template, res.chars) == 0);
+  mu_dstr_eq_to_str (res, template);
   return 0;
 }
 
@@ -37,7 +37,7 @@ empty_laby_test ()
   render_level (&level, &buf);
   // then:
   dstr actual = buffer_to_dstr (&buf);
-  mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
+  mu_dstr_eq_to_str (actual, expected);
   return 0;
 }
 
@@ -69,7 +69,7 @@ simple_laby_test ()
 
   // then:
   dstr actual = buffer_to_dstr (&buf);
-  mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
+  mu_dstr_eq_to_str (actual, expected);
   return 0;
 }
 
@@ -93,7 +93,7 @@ generate_eller_test ()
 
   // then:
   dstr actual = buffer_to_dstr (&buf);
-  mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
+  mu_dstr_eq_to_str (actual, expected);
   return 0;
 }
 
