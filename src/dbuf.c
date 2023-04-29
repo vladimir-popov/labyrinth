@@ -78,6 +78,22 @@ buffer_end_line (dbuf *buf)
   buf->last_line_ended = 1;
 }
 
+dbuf
+buffer_parse (const char *str)
+{
+  dbuf buf = DBUF_EMPTY;
+  char *s = malloc (sizeof (char) * strlen(str));
+  strcpy (s, str);
+
+  char *next = strtok (s, "\r\n");
+  while (next != NULL)
+    {
+      buffer_add_line (&buf, next, strlen (next));
+      next = strtok (NULL, "\r\n");
+    }
+  return buf;
+}
+
 dstr
 buffer_to_dstr (const dbuf *buf)
 {

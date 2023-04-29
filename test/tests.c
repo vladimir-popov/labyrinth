@@ -8,6 +8,21 @@
 int tests_run = 0;
 
 static char *
+parse_string_to_buffer_test ()
+{
+  // given:
+  char *template = "This is\n"
+                   "a template";
+  // when:
+  dbuf buf = buffer_parse (template);
+  dstr res = buffer_to_dstr (&buf);
+
+  // then:
+  mu_assert (res.chars, strcmp (template, res.chars) == 0);
+  return 0;
+}
+
+static char *
 empty_laby_test ()
 {
   // given:
@@ -21,7 +36,7 @@ empty_laby_test ()
   // when:
   render_level (&level, &buf);
   // then:
-  dstr actual = buffer_to_dstr(&buf);
+  dstr actual = buffer_to_dstr (&buf);
   mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
   return 0;
 }
@@ -53,7 +68,7 @@ simple_laby_test ()
   render_level (&level, &buf);
 
   // then:
-  dstr actual = buffer_to_dstr(&buf);
+  dstr actual = buffer_to_dstr (&buf);
   mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
   return 0;
 }
@@ -77,7 +92,7 @@ generate_eller_test ()
   render_level (&level, &buf);
 
   // then:
-  dstr actual = buffer_to_dstr(&buf);
+  dstr actual = buffer_to_dstr (&buf);
   mu_assert (actual.chars, strcmp (expected, actual.chars) == 0);
   return 0;
 }
@@ -85,6 +100,7 @@ generate_eller_test ()
 static char *
 all_tests ()
 {
+  mu_run_test (parse_string_to_buffer_test);
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
   mu_run_test (generate_eller_test);

@@ -37,6 +37,11 @@ typedef struct
 dbuf buffer_init (const char *str);
 
 /**
+* Splits the string to lines by the '\n' character.
+*/
+dbuf buffer_parse(const char* str);
+
+/**
  * Appends the string to the last line in the buffer. The string should not
  * contain '\r', nor '\n' symbols.
  */
