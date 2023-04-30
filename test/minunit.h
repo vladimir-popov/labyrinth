@@ -17,7 +17,10 @@
       char *message = test ();                                                \
       tests_run++;                                                            \
       if (message)                                                            \
-        return message;                                                       \
+        {                                                                     \
+          printf ("\x1b[31m - " #test " has been failed:\n");                 \
+          return message;                                                     \
+        }                                                                     \
     }                                                                         \
   while (0)
 

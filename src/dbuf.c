@@ -1,4 +1,5 @@
 #include "dbuf.h"
+#include "term.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -82,7 +83,7 @@ dbuf
 buffer_parse (const char *str)
 {
   dbuf buf = DBUF_EMPTY;
-  char *s = malloc (sizeof (char) * strlen(str));
+  char *s = malloc (sizeof (char) * strlen (str));
   strcpy (s, str);
 
   char *next = strtok (s, "\r\n");
@@ -118,5 +119,23 @@ buffer_write (int fildes, const dbuf *buf)
       write (fildes, line.chars, line.length);
       if (i < buf->lines_count - 1)
         write (fildes, "\n", 1);
+    }
+}
+
+void
+buffer_merge (dbuf *first, const dbuf *second, int rowpad, int colpad)
+{
+  /* Iterate over intersected lines and merge them */
+  for (int i = rowpad, j = 0;
+       i < first->lines_count && j < second->lines_count; i++, j++)
+    {
+      int n = (second->lines[j].length + colpad > first->lines[i].length)
+                  ? first->lines[i].length - colpad
+                  : second->lines[j].length;
+
+      /* Copy chars from line to line */
+      char *ptr = &first->lines[i].chars[colpad];
+      for (int k = 0; k < n; k++, ptr++)
+        *ptr = second->lines[j].chars[k];
     }
 }

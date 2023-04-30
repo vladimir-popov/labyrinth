@@ -37,9 +37,9 @@ typedef struct
 dbuf buffer_init (const char *str);
 
 /**
-* Splits the string to lines by the '\n' character.
-*/
-dbuf buffer_parse(const char* str);
+ * Splits the string to lines by the '\n' character.
+ */
+dbuf buffer_parse (const char *str);
 
 /**
  * Appends the string to the last line in the buffer. The string should not
@@ -69,6 +69,11 @@ dstr buffer_to_dstr (const dbuf *buf);
  * Similar to `write(fields, buffer_to_str(...))`, but more effective.
  */
 void buffer_write (int fildes, const dbuf *buf);
+
+/**
+ * Writes the second buffer uppon the first with specified padding.
+ */
+void buffer_merge (dbuf *first, const dbuf *second, int rowpad, int colpad);
 
 void buffer_free (dbuf *buf);
 

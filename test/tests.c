@@ -21,6 +21,49 @@ parse_string_to_buffer_test ()
   mu_dstr_eq_to_str (res, template);
   return 0;
 }
+static char *
+merge_buffers_test ()
+{
+  // given:
+  dbuf first = buffer_parse (".........\n"
+                             ".........\n"
+                             ".........\n");
+  dbuf second = buffer_parse ("###");
+  char *expected = ".........\n"
+                   "...###...\n"
+                   ".........";
+
+  // when:
+  buffer_merge (&first, &second, 1, 3);
+  dstr actual = buffer_to_dstr (&first);
+
+  // then:
+  mu_dstr_eq_to_str (actual, expected);
+  return 0;
+}
+
+static char *
+merge_bigger_buffer_test ()
+{
+  // given:
+  dbuf first = buffer_parse (".......\n"
+                             ".......\n"
+                             ".......");
+  dbuf second = buffer_parse ("###\n"
+                              "######\n"
+                              "###");
+  char *expected = ".......\n"
+                   "...###.\n"
+                   "...####";
+
+  // when:
+  buffer_merge (&first, &second, 1, 3);
+  dstr actual = buffer_to_dstr (&first);
+
+  // then:
+  mu_dstr_eq_to_str (actual, expected);
+  return 0;
+}
 
 static char *
 empty_laby_test ()
@@ -101,6 +144,8 @@ static char *
 all_tests ()
 {
   mu_run_test (parse_string_to_buffer_test);
+  mu_run_test (merge_buffers_test);
+  mu_run_test (merge_bigger_buffer_test);
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
   mu_run_test (generate_eller_test);
