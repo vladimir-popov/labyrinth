@@ -3,6 +3,9 @@
 
 #define FATAL_EXIT_CODE 42
 
+/* Code of some keys */
+#define ENTER_KEY 13
+
 /* Control Symbol Introducer */
 #define ESC '\x1b'
 #define CSI "\x1b["
@@ -47,28 +50,28 @@
 #define SGR_REVERSED CSI "7m"
 #define SGR_INVERT_COLORS CSI "7m"
 
-void
-fatal (char *message);
+typedef struct
+{
+  int len;
+  char *chars;
+} key_p;
 
-void
-disable_raw_mode ();
+void fatal (char *message);
 
-void
-enter_safe_raw_mode ();
+key_p read_key ();
 
-void
-clear_screen();
+void disable_raw_mode ();
 
-void
-hide_cursor ();
+void enter_safe_raw_mode ();
 
-void
-show_cursor ();
+void clear_screen ();
 
-int
-get_cursor_position (int *rows, int *cols);
+void hide_cursor ();
 
-int
-get_window_size (int *rows, int *cols);
+void show_cursor ();
+
+int get_cursor_position (int *rows, int *cols);
+
+int get_window_size (int *rows, int *cols);
 
 #endif /* __TERM_H__ */

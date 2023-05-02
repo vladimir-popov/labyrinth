@@ -1,8 +1,12 @@
+/**
+ * This file contains the main logic of the game,
+ * which is not depend on a runtime.
+ */
 #include "game.h"
 #include <stdio.h>
 
-level
-new_level (int rows, int cols, int seed)
+static level
+generate_new_level (int rows, int cols, int seed)
 {
   level level;
   level.lab = laby_generate (rows, cols, seed);
@@ -12,11 +16,30 @@ new_level (int rows, int cols, int seed)
   return level;
 }
 
-int
-handle_command (level *level, command cmd)
+static int
+handle_cmd_in_main_menu (game *game, enum command cmd)
 {
+  switch (cmd)
+    {
+    case CMD_NEW_GAME:
+      game->level = generate_new_level (game->rows, game->cols, game->seed);
+      game->state = ST_GAME;
+      close_menu (game->menu, ST_MAIN_MENU);
+      game->menu = NULL;
+      return 1;
+    case CMD_EXIT:
+      return 0;
+    default:
+      return 1;
+    }
+}
+
+static int
+handle_cmd_in_game (game *game, enum command cmd)
+{
+  level *level = &game->level;
   player *p = &level->player;
-  char border = laby_get_border (&level->lab, p->r, p->c);
+  char border = laby_get_border (&game->level.lab, p->r, p->c);
   switch (cmd)
     {
     case CMD_MV_LEFT:
@@ -37,6 +60,52 @@ handle_command (level *level, command cmd)
       break;
     case CMD_EXIT:
       return 0;
+    default:
+      return 1;
     }
   return 1;
+}
+
+static int
+handle_cmd_in_pause (game *game, enum command cmd)
+{
+  return 1;
+}
+
+int
+handle_command (game *game, enum command cmd)
+{
+  switch (game->state)
+    {
+    case ST_MAIN_MENU:
+      return handle_cmd_in_main_menu (game, cmd);
+    case ST_GAME:
+      return handle_cmd_in_game (game, cmd);
+    case ST_PAUSE:
+      return handle_cmd_in_pause (game, cmd);
+    }
+}
+
+game
+game_init (int rows, int cols, int seed)
+{
+  void *menu = create_menu (NULL, ST_MAIN_MENU);
+  game g = { seed, rows, cols, ST_MAIN_MENU, LEVEL_EMPTY, menu };
+  return g;
+}
+
+void
+game_loop (game *game)
+{
+  enum command cmd;
+  time_t prev_render_at = time (NULL);
+  do
+    {
+      time_t now = time (NULL);
+      render (game, difftime (now, prev_render_at));
+      prev_render_at = now;
+
+      cmd = read_command (game);
+    }
+  while (handle_command (game, cmd));
 }

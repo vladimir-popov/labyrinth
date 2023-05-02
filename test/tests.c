@@ -2,7 +2,7 @@
 
 #include "game.h"
 #include "minunit.h"
-#include "render.c"
+#include "rtmterm.c"
 #include "term.c"
 
 int tests_run = 0;

@@ -1,25 +1,56 @@
+#include "term.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#include "term.h"
+
+#define DEBUG
 
 struct termios orig_termios;
 
 void
 fatal (char *message)
 {
-  clear_screen();
-  fprintf (stderr, "Fatal error: %s", message);
+  clear_screen ();
+  fprintf (stderr, "Fatal error: %s\n", message);
   exit (FATAL_EXIT_CODE);
+}
+
+key_p
+read_key ()
+{
+  int nread;
+  char chars[3];
+  key_p k = { 1, chars };
+  while ((nread = read (STDIN_FILENO, &chars[0], 1)) != 1)
+    {
+#ifndef DEBUG
+      if (nread == -1 && errno != EAGAIN)
+        {
+          char str[30];
+          sprintf (str, "read key: errno=%d", errno);
+          fatal (str);
+        }
+#endif
+    }
+
+  if (chars[0] == ESC)
+    {
+      if (read (STDIN_FILENO, &chars[1], 1) == 1)
+        k.len = 2;
+      if (read (STDIN_FILENO, &chars[2], 1) == 1)
+        k.len = 3;
+    }
+  return k;
 }
 
 void
 disable_raw_mode ()
 {
   if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1)
-    fatal("recover termios");
+    fatal ("recover termios");
 }
 
 void
@@ -83,11 +114,11 @@ enter_safe_raw_mode ()
   raw.c_cc[VTIME] = 1;
 
   if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &raw) == -1)
-    fatal("tcsetattr");
+    fatal ("tcsetattr");
 }
 
 void
-clear_screen() 
+clear_screen ()
 {
   /* Put cursor to the left upper corner */
   write (STDIN_FILENO, CUP, 3);

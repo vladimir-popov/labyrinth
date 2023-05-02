@@ -1,63 +1,16 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <errno.h>
 
-#include "game.h"
 #include "term.h"
-#include "render.c"
+#include "rtmterm.c"
 
 time_t seed = 0;
+/* windows size in chars */
 int height = 0;
 int width = 0;
 
-command
-read_command ()
-{
-  int nread;
-  char c;
-  while ((nread = read (STDIN_FILENO, &c, 1)) != 1)
-    {
-      if (nread == -1 && errno != EAGAIN)
-        fatal ("read");
-    }
-
-  if (c == ESC)
-    {
-      char seq[3];
-      if (read (STDIN_FILENO, &seq[0], 1) != 1)
-        return CMD_EXIT;
-      if (read (STDIN_FILENO, &seq[1], 1) != 1)
-        return c;
-      if (seq[0] == '[')
-        {
-          switch (seq[1])
-            {
-            case 'A':
-              return CMD_MV_UP;
-            case 'B':
-              return CMD_MV_DOWN;
-            case 'C':
-              return CMD_MV_RIGHT;
-            case 'D':
-              return CMD_MV_LEFT;
-            }
-        }
-    }
-  return c;
-}
-
-void
-game_loop (level *level)
-{
-  command cmd;
-  do
-    {
-      render (level);
-      cmd = read_command ();
-    }
-  while (handle_command (level, cmd));
-}
 
 static int
 parse_args (int argc, char *argv[])
@@ -68,7 +21,7 @@ parse_args (int argc, char *argv[])
   seed = time (NULL);
 
   int p;
-  while ((p = getopt (argc, argv, "r:c:s:w:h:i")) != -1)
+  while ((p = getopt (argc, argv, "s:w:h:")) != -1)
     {
       switch (p)
         {
@@ -84,10 +37,10 @@ parse_args (int argc, char *argv[])
         case '?':
           if (optopt == 'h')
             fprintf (stderr, "The -h argument should be followed by a count "
-                             "of symbols for whole labyrint vertically.");
+                             "of symbols for whole labyrinth vertically.");
           else if (optopt == 'w')
             fprintf (stderr, "The -w argument should be followed by a count "
-                             "of symbols for whole labyrint horizontaly.");
+                             "of symbols for whole labyrinth horizontally.");
           else if (optopt == 's')
             fprintf (stderr, "The -s argument should be followed by a number, "
                              "which will be used as seed.");
@@ -108,12 +61,13 @@ main (int argc, char *argv[])
   int rows = (height - 1) / laby_room_rows;
   int cols = (width - 1) / laby_room_cols;
 
-  enter_safe_raw_mode();
-  hide_cursor();
-
-  level level = new_level (rows, cols, seed);
-  game_loop (&level);
-
+  enter_safe_raw_mode ();
   clear_screen();
+  hide_cursor ();
+
+  game game = game_init(rows, cols, seed);
+  game_loop (&game);
+
+  clear_screen ();
   return 0;
 }
