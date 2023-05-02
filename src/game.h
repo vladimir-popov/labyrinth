@@ -24,8 +24,8 @@ enum game_state
 
 typedef struct
 {
-  int r;
-  int c;
+  int y;
+  int x;
 } player;
 
 #define PLAYER_EMPTY                                                          \
@@ -47,8 +47,11 @@ typedef struct
 typedef struct
 {
   int seed;
-  int rows;
-  int cols;
+  /* The count of rooms by vertical */
+  int height;
+  /* The count of rooms by horizontal */
+  int width;
+  /* The FSM of the game  */
   enum game_state state;
   level level;
   /* Implementation of a menu depends on runtime.
@@ -57,7 +60,7 @@ typedef struct
   void *menu;
 } game;
 
-void game_init (game *game, int rows, int cols, int seed);
+void game_init (game *game, int height, int width, int seed);
 
 void game_loop (game *game);
 

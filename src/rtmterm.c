@@ -57,6 +57,10 @@ static const int laby_room_rows = 2;
 /* The count of symbols by horizontal of one room.  */
 static const int laby_room_cols = 4;
 
+/* windows resolution in chars */
+int screen_rows = 0;
+int screen_cols = 0;
+
 static int
 expect_borders (int border, char expected)
 {
@@ -113,44 +117,44 @@ get_corner (int border, int neighbor)
 }
 
 static char *
-get_creature (level *level, int r, int c)
+get_creature (level *level, int y, int x)
 {
-  if (level->player.r == r && level->player.c == c)
+  if (level->player.y == y && level->player.x == x)
     return "@";
   else
     return 0;
 }
 
 static void
-render_room (level *level, int r, int c, int i, int j, dbuf *buf)
+render_room (level *level, int y, int x, int r, int c, dbuf *buf)
 {
   laby *lab = &level->lab;
 
   /* We will render left and upper borders at once.
    * To choose correct symbol for the corner we need to know a
    * neighbor. */
-  int border = laby_get_border (lab, r, c);
-  int neighbor = laby_get_border (lab, r - 1, c - 1);
+  int border = laby_get_border (lab, y, x);
+  int neighbor = laby_get_border (lab, y - 1, x - 1);
 
-  int is_visited = laby_is_visited (lab, r, c);
-  char *creature = get_creature (level, r, c);
+  int is_visited = laby_is_visited (lab, y, x);
+  char *creature = get_creature (level, y, x);
 
   char *s;
-  /* render the first row of the room */
-  if (i == 0)
+  /* render the first row of symbols of the room */
+  if (r == 0)
     {
-      s = (j == 0)                  ? get_corner (border, neighbor)
+      s = (c == 0)                  ? get_corner (border, neighbor)
           : (border & UPPER_BORDER) ? "━"
-          : (is_visited || laby_is_visited (lab, r - 1, c)) ? "·"
+          : (is_visited || laby_is_visited (lab, y - 1, x)) ? "·"
                                                             : " ";
     }
   /* render the content of the room (the second row) */
   else
     {
-      int is_border = (j == 0) && (border & LEFT_BORDER);
+      int is_border = (c == 0) && (border & LEFT_BORDER);
 
       s = (is_border)                       ? "┃"
-          : (creature && (i > 0 && j == 2)) ? creature
+          : (creature && (r > 0 && c == 2)) ? creature
           : (is_visited)                    ? "·"
                                             : " ";
     }
@@ -166,25 +170,25 @@ render_level (level *level, dbuf *buf)
   laby *lab = &level->lab;
 
   /* Render rooms from every row, plus one extra row for the bottom borders */
-  for (int r = 0; r <= lab->rows_count; r++)
+  for (int y = 0; y <= lab->height; y++)
     {
       /* iterates over room height (only one line for the last extra row) */
-      int n = (r < lab->rows_count) ? laby_room_rows : 1;
-      for (int i = 0; i < n; i++)
+      int n = (y < lab->height) ? laby_room_rows : 1;
+      for (int r = 0; r < n; r++)
         {
           /* Take a room from the row, plus one more for the right border */
-          for (int c = 0; c <= lab->cols_count; c++)
+          for (int x = 0; x <= lab->width; x++)
             {
 
               /* Iterate over columns of the single room
                * (only one symbol for the extra right room) */
-              int k = (c < lab->cols_count) ? laby_room_cols : 1;
-              for (int j = 0; j < k; j++)
+              int k = (x < lab->width) ? laby_room_cols : 1;
+              for (int c = 0; c < k; c++)
                 {
-                  render_room (level, r, c, i, j, buf);
+                  render_room (level, y, x, r, c, buf);
                 }
             }
-          if (r < lab->rows_count)
+          if (y < lab->height)
             buffer_end_line (buf);
         }
     }

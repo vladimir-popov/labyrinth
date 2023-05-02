@@ -36,10 +36,10 @@ typedef room *row;
 typedef struct
 {
   /* The count of rooms by horizontal */
-  int cols_count;
+  int width;
 
   /* The count of rooms by vertical */
-  int rows_count;
+  int height;
 
   /* The rows of the labyrinth's rooms */
   row *rooms;
@@ -50,29 +50,29 @@ typedef struct
     0, 0, NULL                                                                \
   }
 
-/* Creates a new labyrinth with cols x rows empty rooms. */
-void laby_init_empty (laby *lab, int rows, int cols);
+/* Creates a new labyrinth with height x width empty rooms. */
+void laby_init_empty (laby *lab, int height, int width);
 
 /* Frees memory of the labyrinth. */
 void laby_free (laby *lab);
 
 /*  Returns only 4 first bits, which are about borders of the room. */
-unsigned char laby_get_border (laby *lab, int row, int col);
+unsigned char laby_get_border (laby *lab, int y, int x);
 
 /* Add border flag. */
-void laby_add_border (laby *lab, int row, int col, enum border border);
+void laby_add_border (laby *lab, int y, int x, enum border border);
 
 /* Remove border flag. */
-void laby_rm_border (laby *lab, int row, int col, enum border border);
+void laby_rm_border (laby *lab, int y, int x, enum border border);
 
-void laby_mark_as_visited (laby *lab, int r, int c);
+void laby_mark_as_visited (laby *lab, int y, int x);
 
-char laby_is_visited (laby *lab, int r, int c);
+char laby_is_visited (laby *lab, int y, int x);
 
-void laby_set_content (laby *lab, int r, int c, unsigned char value);
+void laby_set_content (laby *lab, int y, int x, unsigned char value);
 
-unsigned char laby_get_content (laby *lab, int r, int c);
+unsigned char laby_get_content (laby *lab, int y, int x);
 
-void laby_generate (laby *lab, int rows, int cols, int seed);
+void laby_generate (laby *lab, int height, int width, int seed);
 
 #endif /* __LABY__ */

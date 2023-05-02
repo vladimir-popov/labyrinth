@@ -7,22 +7,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* Creates a new labyrinth with cols x rows empty rooms. */
+/* Creates a new labyrinth with height x width empty rooms. */
 void
-laby_init_empty (laby *lab, int rows, int cols)
+laby_init_empty (laby *lab, int height, int width)
 {
-  lab->rows_count = rows;
-  lab->cols_count = cols;
-  lab->rooms = malloc (sizeof (row) * rows);
-  for (int i = 0; i < rows; i++)
-    lab->rooms[i] = calloc (cols, sizeof (room));
+  lab->height = height;
+  lab->width = width;
+  lab->rooms = malloc (sizeof (row) * height);
+  for (int i = 0; i < height; i++)
+    lab->rooms[i] = calloc (width, sizeof (room));
 }
 
 /* Frees memory of the labyrinth. */
 void
 laby_free (laby *lab)
 {
-  for (int i = 0; i < lab->rows_count; i++)
+  for (int i = 0; i < lab->height; i++)
     free (lab->rooms[i]);
 
   free (lab->rooms);
@@ -30,32 +30,32 @@ laby_free (laby *lab)
 
 /*  Returns only 4 first bits, which are about borders of the room. */
 unsigned char
-laby_get_border (laby *lab, int row, int col)
+laby_get_border (laby *lab, int y, int x)
 {
-  int is_col_inside = col >= 0 && col < lab->cols_count;
-  int is_row_inside = row >= 0 && row < lab->rows_count;
+  int is_x_inside = x >= 0 && x < lab->width;
+  int is_y_inside = y >= 0 && y < lab->height;
 
   int border = 0;
 
-  if (is_row_inside && is_col_inside)
+  if (is_y_inside && is_x_inside)
     {
-      border = lab->rooms[row][col];
-      if (row == 0)
+      border = lab->rooms[y][x];
+      if (y == 0)
         border |= UPPER_BORDER;
-      if (col == 0)
+      if (x == 0)
         border |= LEFT_BORDER;
-      if (row == lab->rows_count - 1)
+      if (y == lab->height - 1)
         border |= BOTTOM_BORDER;
-      if (col == lab->cols_count - 1)
+      if (x == lab->width - 1)
         border |= RIGHT_BORDER;
     }
-  else if (is_col_inside && row == -1)
+  else if (is_x_inside && y == -1)
     border = BOTTOM_BORDER;
-  else if (is_col_inside && row == lab->rows_count)
+  else if (is_x_inside && y == lab->height)
     border = UPPER_BORDER;
-  else if (is_row_inside && col == -1)
+  else if (is_y_inside && x == -1)
     border = RIGHT_BORDER;
-  else if (is_row_inside && col == lab->cols_count)
+  else if (is_y_inside && x == lab->width)
     border = LEFT_BORDER;
   else
     border = 0;
@@ -65,42 +65,42 @@ laby_get_border (laby *lab, int row, int col)
 
 /* Add border flag. */
 void
-laby_add_border (laby *lab, int row, int col, enum border border)
+laby_add_border (laby *lab, int y, int x, enum border border)
 {
-  lab->rooms[row][col] |= border;
+  lab->rooms[y][x] |= border;
   /* also, we should set appropriate borders for neighbors */
   if (border & RIGHT_BORDER)
-    if (col < lab->cols_count - 1)
-      lab->rooms[row][col + 1] |= LEFT_BORDER;
+    if (x < lab->width - 1)
+      lab->rooms[y][x + 1] |= LEFT_BORDER;
   if (border & BOTTOM_BORDER)
-    if (row < lab->rows_count - 1)
-      lab->rooms[row + 1][col] |= UPPER_BORDER;
+    if (y < lab->height - 1)
+      lab->rooms[y + 1][x] |= UPPER_BORDER;
   if (border & LEFT_BORDER)
-    if (col > 0)
-      lab->rooms[row][col - 1] |= RIGHT_BORDER;
+    if (x > 0)
+      lab->rooms[y][x - 1] |= RIGHT_BORDER;
   if (border & UPPER_BORDER)
-    if (row > 0)
-      lab->rooms[row - 1][col] |= BOTTOM_BORDER;
+    if (y > 0)
+      lab->rooms[y - 1][x] |= BOTTOM_BORDER;
 }
 
 /* Remove border flag. */
 void
-laby_rm_border (laby *lab, int row, int col, enum border border)
+laby_rm_border (laby *lab, int y, int x, enum border border)
 {
-  lab->rooms[row][col] &= ~border;
+  lab->rooms[y][x] &= ~border;
   /* also, we should set appropriate borders for neighbors */
   if (border & RIGHT_BORDER)
-    if (col < lab->cols_count - 1)
-      lab->rooms[row][col + 1] &= ~LEFT_BORDER;
+    if (x < lab->width - 1)
+      lab->rooms[y][x + 1] &= ~LEFT_BORDER;
   if (border & BOTTOM_BORDER)
-    if (row < lab->rows_count - 1)
-      lab->rooms[row + 1][col] &= ~UPPER_BORDER;
+    if (y < lab->height - 1)
+      lab->rooms[y + 1][x] &= ~UPPER_BORDER;
   if (border & LEFT_BORDER)
-    if (col > 0)
-      lab->rooms[row][col - 1] &= ~RIGHT_BORDER;
+    if (x > 0)
+      lab->rooms[y][x - 1] &= ~RIGHT_BORDER;
   if (border & UPPER_BORDER)
-    if (row > 0)
-      lab->rooms[row - 1][col] &= ~BOTTOM_BORDER;
+    if (y > 0)
+      lab->rooms[y - 1][x] &= ~BOTTOM_BORDER;
 }
 
 void
@@ -110,18 +110,18 @@ laby_mark_as_visited (laby *lab, int r, int c)
 }
 
 char
-laby_is_visited (laby *lab, int r, int c)
+laby_is_visited (laby *lab, int y, int x)
 {
-  int is_col_inside = c >= 0 && c < lab->cols_count;
-  int is_row_inside = r >= 0 && r < lab->rows_count;
-  return (is_row_inside && is_col_inside) ? lab->rooms[r][c] & 1 : 0;
+  int is_y_inside = y >= 0 && y < lab->height;
+  int is_x_inside = x >= 0 && x < lab->width;
+  return (is_y_inside && is_x_inside) ? lab->rooms[y][x] & 1 : 0;
 }
 
 void
-laby_set_content (laby *lab, int r, int c, unsigned char value)
+laby_set_content (laby *lab, int y, int x, unsigned char value)
 {
   int mask = (1 << CONTENT_SHIFT) - 1;
-  lab->rooms[r][c] = (value << CONTENT_SHIFT) | (lab->rooms[r][c] & mask);
+  lab->rooms[y][x] = (value << CONTENT_SHIFT) | (lab->rooms[y][x] & mask);
 }
 
 unsigned char
@@ -138,24 +138,24 @@ laby_get_content (laby *lab, int r, int c)
  * @see http://www.neocomputer.org/projects/eller.html
  */
 void
-laby_generate (laby *lab, int rows, int cols, int seed)
+laby_generate (laby *lab, int height, int width, int seed)
 {
   srand (seed);
 
   /* The final labyrinth */
-  laby_init_empty (lab, rows, cols);
+  laby_init_empty (lab, height, width);
 
   /* Sets of rooms. The first one is a sets for the current row, the second is
    * for the next row */
-  char *s = malloc (sizeof (char) * cols);
-  char *_s = malloc (sizeof (char) * cols);
+  char *s = malloc (sizeof (char) * width);
+  char *_s = malloc (sizeof (char) * width);
 
   int set = 1;
   /* set unique set for every empty room in the first row */
-  for (int j = 0; j < cols; j++)
+  for (int j = 0; j < width; j++)
     _s[j] = set++;
 
-  for (int r = 0; r < rows - 1; r++)
+  for (int y = 0; y < height - 1; y++)
     {
       /* swap sets to use `s` for the current row */
       char *tmp = s;
@@ -163,21 +163,21 @@ laby_generate (laby *lab, int rows, int cols, int seed)
       _s = tmp;
 
       /* decide if two rooms should have a horizontal border */
-      for (int c = 0; c < cols - 1; c++)
+      for (int x = 0; x < width - 1; x++)
         {
-          if (s[c] != s[c + 1] && rand () % 2 == 0)
-            laby_add_border (lab, r, c, RIGHT_BORDER);
+          if (s[x] != s[x + 1] && rand () % 2 == 0)
+            laby_add_border (lab, y, x, RIGHT_BORDER);
           else
-            s[c + 1] = s[c];
+            s[x + 1] = s[x];
         }
       /* decide if two rooms should have a vertical border */
-      for (int c = 0; c < cols; c++)
+      for (int x = 0; x < width; x++)
         {
           /* count of rooms without bottom border in the current set */
           int no_bb = 0;
-          for (int i = 0; i < cols && no_bb < 2; i++)
-            if (s[c] == s[i])
-              no_bb = (laby_get_border (lab, r, i) & BOTTOM_BORDER)
+          for (int i = 0; i < width && no_bb < 2; i++)
+            if (s[x] == s[i])
+              no_bb = (laby_get_border (lab, y, i) & BOTTOM_BORDER)
                           ? no_bb
                           : no_bb + 1;
 
@@ -185,15 +185,15 @@ laby_generate (laby *lab, int rows, int cols, int seed)
            * border in the set */
           if (no_bb > 1 && rand () % 5 > 0)
             {
-              laby_add_border (lab, r, c, BOTTOM_BORDER);
+              laby_add_border (lab, y, x, BOTTOM_BORDER);
               /* mark the underlining room to change its set */
-              _s[c] = set++;
+              _s[x] = set++;
             }
           else
-            _s[c] = s[c];
+            _s[x] = s[x];
         }
     }
   /* remove dead ends */
-  for (int c = 0; c < cols - 1; c++)
-    laby_rm_border (lab, rows - 1, c, RIGHT_BORDER);
+  for (int x = 0; x < width - 1; x++)
+    laby_rm_border (lab, height - 1, x, RIGHT_BORDER);
 }

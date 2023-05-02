@@ -175,9 +175,9 @@ main (void)
 void
 laby_print_raw (laby *lab)
 {
-  for (int r = 0; r < lab->rows_count; r++)
+  for (int r = 0; r < lab->height; r++)
     {
-      for (int c = 0; c < lab->cols_count; c++)
+      for (int c = 0; c < lab->width; c++)
         printf ("%d ", lab->rooms[r][c]);
 
       printf ("\n");
@@ -187,9 +187,9 @@ laby_print_raw (laby *lab)
 void
 laby_print_borders (laby *lab)
 {
-  for (int r = -1; r <= lab->rows_count; r++)
+  for (int r = -1; r <= lab->height; r++)
     {
-      for (int c = -1; c <= lab->cols_count; c++)
+      for (int c = -1; c <= lab->width; c++)
         printf ("%2d ", laby_get_border (lab, r, c));
 
       printf ("\n");
@@ -199,9 +199,9 @@ laby_print_borders (laby *lab)
 void
 laby_print_contents (laby *lab)
 {
-  for (int r = 0; r < lab->rows_count; r++)
+  for (int r = 0; r < lab->height; r++)
     {
-      for (int c = 0; c < lab->cols_count; c++)
+      for (int c = 0; c < lab->width; c++)
         printf ("%2d ", laby_get_content (lab, r, c));
 
       printf ("\n");
