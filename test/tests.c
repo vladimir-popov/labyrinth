@@ -14,7 +14,8 @@ parse_string_to_buffer_test ()
   char *template = "This is\n"
                    "a template";
   // when:
-  dbuf buf = buffer_parse (template);
+  dbuf buf;
+  buffer_parse (&buf, template);
   dstr res = buffer_to_dstr (&buf);
 
   // then:
@@ -25,10 +26,12 @@ static char *
 merge_buffers_test ()
 {
   // given:
-  dbuf first = buffer_parse (".........\n"
-                             ".........\n"
-                             ".........\n");
-  dbuf second = buffer_parse ("###");
+  dbuf first;
+  buffer_parse (&first, ".........\n"
+                        ".........\n"
+                        ".........\n");
+  dbuf second;
+  buffer_parse (&second, "###");
   char *expected = ".........\n"
                    "...###...\n"
                    ".........";
@@ -46,12 +49,14 @@ static char *
 merge_bigger_buffer_test ()
 {
   // given:
-  dbuf first = buffer_parse (".......\n"
-                             ".......\n"
-                             ".......");
-  dbuf second = buffer_parse ("###\n"
-                              "######\n"
-                              "###");
+  dbuf first;
+  buffer_parse (&first, ".......\n"
+                        ".......\n"
+                        ".......");
+  dbuf second;
+  buffer_parse (&second, "###\n"
+                         "######\n"
+                         "###");
   char *expected = ".......\n"
                    "...###.\n"
                    "...####";
@@ -71,7 +76,7 @@ empty_laby_test ()
   // given:
   dbuf buf = DBUF_EMPTY;
   level level = LEVEL_EMPTY;
-  level.lab = laby_init_empty (1, 1);
+  laby_init_empty (&level.lab, 1, 1);
 
   char *expected = "┏━━━┓\n"
                    "┃ @ ┃\n"
@@ -90,7 +95,7 @@ simple_laby_test ()
   // given:
   dbuf buf = DBUF_EMPTY;
   level level = LEVEL_EMPTY;
-  level.lab = laby_init_empty (3, 3);
+  laby_init_empty (&level.lab, 3, 3);
   laby_add_border (&level.lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
   laby_add_border (&level.lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
   laby_add_border (&level.lab, 2, 2, UPPER_BORDER);
@@ -131,7 +136,7 @@ generate_eller_test ()
 
   // when:
   level level = LEVEL_EMPTY;
-  level.lab = laby_generate (3, 5, 1);
+  laby_generate (&level.lab, 3, 5, 1);
   render_level (&level, &buf);
 
   // then:

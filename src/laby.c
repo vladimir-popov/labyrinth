@@ -3,21 +3,19 @@
  * field, which includes the size and borders of the labyrinth, information
  * about the visited rooms, items, creatures and so on.
  */
-#include <stdlib.h>
-#include <stdio.h>
 #include "laby.h"
-
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Creates a new labyrinth with cols x rows empty rooms. */
-laby
-laby_init_empty (int rows, int cols)
+void
+laby_init_empty (laby *lab, int rows, int cols)
 {
-  laby l = { cols, rows, NULL };
-  l.rooms = malloc (sizeof (row) * rows);
+  lab->rows_count = rows;
+  lab->cols_count = cols;
+  lab->rooms = malloc (sizeof (row) * rows);
   for (int i = 0; i < rows; i++)
-    l.rooms[i] = calloc (cols, sizeof (room));
-
-  return l;
+    lab->rooms[i] = calloc (cols, sizeof (room));
 }
 
 /* Frees memory of the labyrinth. */
@@ -139,18 +137,18 @@ laby_get_content (laby *lab, int r, int c)
  * https://weblog.jamisbuck.org/2010/12/29/maze-generation-eller-s-algorithm
  * @see http://www.neocomputer.org/projects/eller.html
  */
-laby
-laby_generate (int rows, int cols, int seed)
+void
+laby_generate (laby *lab, int rows, int cols, int seed)
 {
   srand (seed);
 
   /* The final labyrinth */
-  laby lab = laby_init_empty (rows, cols);
+  laby_init_empty (lab, rows, cols);
 
   /* Sets of rooms. The first one is a sets for the current row, the second is
    * for the next row */
-  char *s = malloc(sizeof(char) * cols);
-  char *_s = malloc(sizeof(char) * cols);
+  char *s = malloc (sizeof (char) * cols);
+  char *_s = malloc (sizeof (char) * cols);
 
   int set = 1;
   /* set unique set for every empty room in the first row */
@@ -168,7 +166,7 @@ laby_generate (int rows, int cols, int seed)
       for (int c = 0; c < cols - 1; c++)
         {
           if (s[c] != s[c + 1] && rand () % 2 == 0)
-            laby_add_border (&lab, r, c, RIGHT_BORDER);
+            laby_add_border (lab, r, c, RIGHT_BORDER);
           else
             s[c + 1] = s[c];
         }
@@ -179,7 +177,7 @@ laby_generate (int rows, int cols, int seed)
           int no_bb = 0;
           for (int i = 0; i < cols && no_bb < 2; i++)
             if (s[c] == s[i])
-              no_bb = (laby_get_border (&lab, r, i) & BOTTOM_BORDER)
+              no_bb = (laby_get_border (lab, r, i) & BOTTOM_BORDER)
                           ? no_bb
                           : no_bb + 1;
 
@@ -187,7 +185,7 @@ laby_generate (int rows, int cols, int seed)
            * border in the set */
           if (no_bb > 1 && rand () % 5 > 0)
             {
-              laby_add_border (&lab, r, c, BOTTOM_BORDER);
+              laby_add_border (lab, r, c, BOTTOM_BORDER);
               /* mark the underlining room to change its set */
               _s[c] = set++;
             }
@@ -197,7 +195,5 @@ laby_generate (int rows, int cols, int seed)
     }
   /* remove dead ends */
   for (int c = 0; c < cols - 1; c++)
-    laby_rm_border (&lab, rows - 1, c, RIGHT_BORDER);
-
-  return lab;
+    laby_rm_border (lab, rows - 1, c, RIGHT_BORDER);
 }

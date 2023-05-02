@@ -194,22 +194,23 @@ void
 render_welcome_screen (screen *s, dbuf *buf)
 {
   // double fps = 0.3;
-  dbuf frame = s->frame;
   /* Do nothing if processing happens too often */
   // if (difftime(time(NULL), s->last_update) < fps)
-  for (int i = 0; i < frame.lines_count; i++)
-    buffer_add_line (buf, frame.lines[i].chars, frame.lines[i].length);
+  for (int i = 0; i < s->frame.lines_count; i++)
+    buffer_add_line (buf, s->frame.lines[i].chars, s->frame.lines[i].length);
 }
 
 void
 render (game *game, double time_frame_s)
 {
   /* Put the cursor to the upper left corner */
-  dbuf buf = buffer_init (CUP);
+  dbuf buf;
+  buffer_init (&buf, CUP);
   switch (game->state)
     {
     case ST_MAIN_MENU:
       render_welcome_screen ((screen *)game->menu, &buf);
+      break;
     default:
       render_level (&game->level, &buf);
     }
@@ -225,7 +226,7 @@ create_menu (const game *game, enum game_state state)
   //   case ST_MAIN_MENU:
   screen *welcome_screen = malloc (sizeof (screen));
   welcome_screen->state = 1;
-  welcome_screen->frame = buffer_parse (WELCOME_SCREEN);
+  buffer_parse (&welcome_screen->frame, WELCOME_SCREEN);
   return welcome_screen;
   // }
 }

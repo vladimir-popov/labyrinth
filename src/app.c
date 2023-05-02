@@ -65,7 +65,8 @@ main (int argc, char *argv[])
   clear_screen();
   hide_cursor ();
 
-  game game = game_init(rows, cols, seed);
+  game game;
+  game_init(&game, rows, cols, seed);
   game_loop (&game);
 
   clear_screen ();

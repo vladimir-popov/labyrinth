@@ -57,7 +57,7 @@ typedef struct
   void *menu;
 } game;
 
-game game_init (int rows, int cols, int seed);
+void game_init (game *game, int rows, int cols, int seed);
 
 void game_loop (game *game);
 

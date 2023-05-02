@@ -51,7 +51,7 @@ typedef struct
   }
 
 /* Creates a new labyrinth with cols x rows empty rooms. */
-laby laby_init_empty (int rows, int cols);
+void laby_init_empty (laby *lab, int rows, int cols);
 
 /* Frees memory of the labyrinth. */
 void laby_free (laby *lab);
@@ -73,6 +73,6 @@ void laby_set_content (laby *lab, int r, int c, unsigned char value);
 
 unsigned char laby_get_content (laby *lab, int r, int c);
 
-laby laby_generate (int rows, int cols, int seed);
+void laby_generate (laby *lab, int rows, int cols, int seed);
 
 #endif /* __LABY__ */

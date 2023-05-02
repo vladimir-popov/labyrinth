@@ -34,12 +34,12 @@ typedef struct
 /**
  * Creates a new buffer with single line `str`.
  */
-dbuf buffer_init (const char *str);
+void buffer_init (dbuf *buf, const char *str);
 
 /**
  * Splits the string to lines by the '\n' character.
  */
-dbuf buffer_parse (const char *str);
+void buffer_parse (dbuf *buf, const char *str);
 
 /**
  * Appends the string to the last line in the buffer. The string should not

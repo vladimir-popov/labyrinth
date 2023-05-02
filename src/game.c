@@ -5,15 +5,12 @@
 #include "game.h"
 #include <stdio.h>
 
-static level
-generate_new_level (int rows, int cols, int seed)
+static void
+generate_new_level (level *level, int rows, int cols, int seed)
 {
-  level level;
-  level.lab = laby_generate (rows, cols, seed);
-  level.player.r = 0;
-  level.player.c = 0;
-
-  return level;
+  laby_generate (&level->lab, rows, cols, seed);
+  level->player.r = 0;
+  level->player.c = 0;
 }
 
 static int
@@ -22,7 +19,7 @@ handle_cmd_in_main_menu (game *game, enum command cmd)
   switch (cmd)
     {
     case CMD_NEW_GAME:
-      game->level = generate_new_level (game->rows, game->cols, game->seed);
+      generate_new_level (&game->level, game->rows, game->cols, game->seed);
       game->state = ST_GAME;
       close_menu (game->menu, ST_MAIN_MENU);
       game->menu = NULL;
@@ -86,12 +83,14 @@ handle_command (game *game, enum command cmd)
     }
 }
 
-game
-game_init (int rows, int cols, int seed)
+void
+game_init (game *game, int rows, int cols, int seed)
 {
-  void *menu = create_menu (NULL, ST_MAIN_MENU);
-  game g = { seed, rows, cols, ST_MAIN_MENU, LEVEL_EMPTY, menu };
-  return g;
+  game->seed = seed;
+  game->rows = rows;
+  game->cols = cols;
+  game->state = ST_MAIN_MENU;
+  game->menu = create_menu (NULL, ST_MAIN_MENU);
 }
 
 void

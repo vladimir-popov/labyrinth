@@ -4,13 +4,12 @@
 #include <string.h>
 #include <unistd.h>
 
-static dstr
-dstr_init (const char *template, int len)
+static void
+dstr_init (dstr *str, const char *template, int len)
 {
-  char *str = malloc (len);
-  strncpy (str, template, len);
-  dstr new = { len, str };
-  return new;
+  str->chars = malloc (len);
+  strncpy (str->chars, template, len);
+  str->length = len;
 }
 
 static void
@@ -30,13 +29,14 @@ dstr_free (const dstr *str)
   free (str->chars);
 }
 
-dbuf
-buffer_init (const char *str)
+void
+buffer_init (dbuf *buf, const char *str)
 {
   dstr *lines = malloc (sizeof (dstr));
-  lines[0] = dstr_init (str, strlen (str));
-  dbuf new = { 1, 0, lines };
-  return new;
+  dstr_init (&lines[0], str, strlen (str));
+  buf->lines = lines;
+  buf->lines_count = 1;
+  buf->last_line_ended = 0;
 }
 
 void
@@ -57,7 +57,7 @@ buffer_add_line (dbuf *buf, const char *str, int len)
   if (more_rows == NULL)
     return;
 
-  more_rows[buf->lines_count] = dstr_init (str, len);
+  dstr_init (&more_rows[buf->lines_count], str, len);
 
   buf->lines = more_rows;
   buf->lines_count++;
@@ -79,20 +79,22 @@ buffer_end_line (dbuf *buf)
   buf->last_line_ended = 1;
 }
 
-dbuf
-buffer_parse (const char *str)
+void
+buffer_parse (dbuf *buf, const char *str)
 {
-  dbuf buf = DBUF_EMPTY;
+  buf->lines = NULL;
+  buf->lines_count = 0;
+  buf->last_line_ended = 0;
+
   char *s = malloc (sizeof (char) * strlen (str));
   strcpy (s, str);
 
   char *next = strtok (s, "\r\n");
   while (next != NULL)
     {
-      buffer_add_line (&buf, next, strlen (next));
+      buffer_add_line (buf, next, strlen (next));
       next = strtok (NULL, "\r\n");
     }
-  return buf;
 }
 
 dstr
