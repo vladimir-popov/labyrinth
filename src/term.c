@@ -21,20 +21,17 @@ fatal (char *message)
 key_p
 read_key ()
 {
-  int nread;
   char chars[3];
-  key_p k = { 1, chars };
-  while ((nread = read (STDIN_FILENO, &chars[0], 1)) != 1)
-    {
+  key_p k = { 0, chars };
+  k.len = read (STDIN_FILENO, chars, 1);
 #ifndef DEBUG
-      if (nread == -1 && errno != EAGAIN)
-        {
-          char str[30];
-          sprintf (str, "read key: errno=%d", errno);
-          fatal (str);
-        }
-#endif
+  if (k.len < 0 && errno != EAGAIN)
+    {
+      char str[30];
+      sprintf (str, "read key: errno=%d", errno);
+      fatal (str);
     }
+#endif
 
   if (chars[0] == ESC)
     {
@@ -163,12 +160,6 @@ get_cursor_position (int *rows, int *cols)
   if (sscanf (&buf[2], "%d;%d", rows, cols) != 2)
     return -1;
   return 0;
-}
-
-void
-str_set_cursor_position (char* str, int row, int col)
-{
-  sprintf(str, CSI "%d;%dH", row, col);
 }
 
 int

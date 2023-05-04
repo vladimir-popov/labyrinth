@@ -72,8 +72,6 @@ void show_cursor ();
 
 int get_cursor_position (int *rows, int *cols);
 
-void str_set_cursor_position (char *str, int row, int col);
-
 int get_window_size (int *rows, int *cols);
 
 #endif /* __TERM_H__ */
