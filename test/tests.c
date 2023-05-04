@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "dbuf.h"
 #include "game.h"
 #include "minunit.h"
 #include "rtmterm.c"
@@ -22,6 +23,7 @@ parse_string_to_buffer_test ()
   mu_dstr_eq_to_str (res, template);
   return 0;
 }
+
 static char *
 merge_buffers_test ()
 {
@@ -46,6 +48,27 @@ merge_buffers_test ()
 }
 
 static char *
+merge_to_empty_buffers_test ()
+{
+  /* It should add empty rows and fill padding by spaces */
+
+  // given:
+  dbuf first = DBUF_EMPTY;
+  dbuf second;
+  buffer_parse (&second, "###");
+  char *expected = "\n"
+                   "   ###";
+
+  // when:
+  buffer_merge (&first, &second, 1, 3);
+  dstr actual = buffer_to_dstr (&first);
+
+  // then:
+  mu_dstr_eq_to_str (actual, expected);
+  return 0;
+}
+
+static char *
 merge_bigger_buffer_test ()
 {
   // given:
@@ -59,7 +82,8 @@ merge_bigger_buffer_test ()
                          "###");
   char *expected = ".......\n"
                    "...###.\n"
-                   "...####";
+                   "...######\n"
+                   "   ###";
 
   // when:
   buffer_merge (&first, &second, 1, 3);
@@ -150,6 +174,7 @@ all_tests ()
 {
   mu_run_test (parse_string_to_buffer_test);
   mu_run_test (merge_buffers_test);
+  mu_run_test (merge_to_empty_buffers_test);
   mu_run_test (merge_bigger_buffer_test);
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
@@ -169,41 +194,4 @@ main (void)
   printf ("Tests run: %d\n", tests_run);
 
   return result != 0;
-}
-
-/* ========== DEBUG FUNCTIONS ========== */
-void
-laby_print_raw (laby *lab)
-{
-  for (int r = 0; r < lab->height; r++)
-    {
-      for (int c = 0; c < lab->width; c++)
-        printf ("%d ", lab->rooms[r][c]);
-
-      printf ("\n");
-    }
-}
-
-void
-laby_print_borders (laby *lab)
-{
-  for (int r = -1; r <= lab->height; r++)
-    {
-      for (int c = -1; c <= lab->width; c++)
-        printf ("%2d ", laby_get_border (lab, r, c));
-
-      printf ("\n");
-    }
-}
-
-void
-laby_print_contents (laby *lab)
-{
-  for (int r = 0; r < lab->height; r++)
-    {
-      for (int c = 0; c < lab->width; c++)
-        printf ("%2d ", laby_get_content (lab, r, c));
-
-      printf ("\n");
-    }
 }

@@ -24,6 +24,15 @@ dstr_append (dstr *this, const char *prefix, int len)
 }
 
 static void
+dstr_repeate (dstr *ds, const char ch, int count)
+{
+  ds->chars = malloc (sizeof (char) * count);
+  ds->length = count;
+  for (int i = 0; i < count; i++)
+    ds->chars[i] = ch;
+}
+
+static void
 dstr_free (const dstr *str)
 {
   free (str->chars);
@@ -48,20 +57,27 @@ buffer_free (dbuf *buf)
     }
 }
 
-void
-buffer_add_line (dbuf *buf, const char *str, int len)
+static void
+buffer_add_dstr_line (dbuf *buf, const dstr str)
 {
   dstr *more_rows
       = realloc (buf->lines, sizeof (dstr) * (buf->lines_count + 1));
-
   if (more_rows == NULL)
     return;
 
-  dstr_init (&more_rows[buf->lines_count], str, len);
+  more_rows[buf->lines_count] = str;
 
   buf->lines = more_rows;
   buf->lines_count++;
   buf->last_line_ended = 0;
+}
+
+void
+buffer_add_line (dbuf *buf, const char *str, int len)
+{
+  dstr ds;
+  dstr_init (&ds, str, len);
+  buffer_add_dstr_line (buf, ds);
 }
 
 void
@@ -104,7 +120,9 @@ buffer_to_dstr (const dbuf *buf)
   for (int i = 0; i < buf->lines_count; i++)
     {
       dstr line = buf->lines[i];
-      dstr_append (&res, line.chars, line.length);
+      if (line.length > 0)
+        dstr_append (&res, line.chars, line.length);
+
       if (i < buf->lines_count - 1)
         dstr_append (&res, "\n", 1);
     }
@@ -125,19 +143,49 @@ buffer_write (int fildes, const dbuf *buf)
 }
 
 void
-buffer_merge (dbuf *first, const dbuf *second, int rowpad, int colpad)
+buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
 {
-  /* Iterate over intersected lines and merge them */
-  for (int i = rowpad, j = 0;
-       i < first->lines_count && j < second->lines_count; i++, j++)
+  /* Add empty lines if rowpad great than lines_count */
+  while (dest->lines_count <= rowpad)
     {
-      int n = (second->lines[j].length + colpad > first->lines[i].length)
-                  ? first->lines[i].length - colpad
-                  : second->lines[j].length;
+      dstr ds = DSTR_EMPTY;
+      buffer_add_dstr_line (dest, ds);
+    }
+  /* Iterate over intersected lines and merge them */
+  int i = rowpad, j = 0;
+  for (; i < dest->lines_count && j < source->lines_count; i++, j++)
+    {
+      dstr *l1 = &dest->lines[i];
+      dstr *l2 = &source->lines[j];
+
+      /* Add space till colpad, if line's length less then colpad */
+      if (l1->length < colpad)
+        {
+          int len = colpad - l1->length;
+          dstr ds;
+          dstr_repeate (&ds, ' ', len);
+          dstr_append (&dest->lines[i], ds.chars, len);
+          dstr_free (&ds);
+        }
+
+      /* Add memory if it's not enough to apply the line
+       * from the second buffer */
+      if (l1->length < (l2->length + colpad))
+        {
+          l1->chars = realloc (l1->chars, l2->length + colpad);
+          l1->length = l2->length + colpad;
+        }
 
       /* Copy chars from line to line */
-      char *ptr = &first->lines[i].chars[colpad];
-      for (int k = 0; k < n; k++, ptr++)
-        *ptr = second->lines[j].chars[k];
+      memcpy (&l1->chars[colpad], l2->chars, l2->length);
+    }
+
+  /* Just copy extra lines from the second buffer */
+  for (; j < source->lines_count; j++)
+    {
+      dstr ds;
+      dstr_repeate (&ds, ' ', colpad);
+      dstr_append (&ds, source->lines[j].chars, source->lines[j].length);
+      buffer_add_dstr_line (dest, ds);
     }
 }

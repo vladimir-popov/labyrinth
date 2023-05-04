@@ -1,7 +1,7 @@
 /**
  *  This is terminal runtime for the game.
  *  Here we have implementations of all runtime-depended
- *  functions of the game, such render or handling key pressing.
+ *  functions of the game, such as rendering or handling key pressing.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +33,10 @@
 "░░━━━━━━━    ┃   ┗━━━┓       ┗━━━┳━━━━━━━━━━━    ┗━━━━━━━┳━━━━━━━━━━━━   ░░\n" \
 "░░           ┃       ┃           ┃                       ┃               ░░\n" \
 "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░" 
+
+#define WELCOME_SCREEN_ROWS 17
+#define WELCOME_SCREEN_COLS 74
+#define WELCOME_SCREEN_LEN 3177
 
 #define NEW_GAME \
 "█▄░█ █▀▀ █░█░█   █▀▀ ▄▀█ █▀▄▀█ █▀▀\n" \
@@ -228,9 +232,21 @@ create_menu (const game *game, enum game_state state)
   // switch (state)
   //   {
   //   case ST_MAIN_MENU:
+
+  int r = (screen_rows - WELCOME_SCREEN_ROWS) / 2;
+  r = (r < 0) ? 0 : r;
+  int c = (screen_cols - WELCOME_SCREEN_COLS) / 2;
+  c = (c < 0) ? 0 : c;
+  char *str = malloc(sizeof(char) * 32);
+  str_set_cursor_position(str, r, c);
+  int len = strlen(str);
+  str = realloc(str, len + WELCOME_SCREEN_LEN);
+  memcpy(&str[len], WELCOME_SCREEN, WELCOME_SCREEN_LEN);
+
   screen *welcome_screen = malloc (sizeof (screen));
   welcome_screen->state = 1;
-  buffer_parse (&welcome_screen->frame, WELCOME_SCREEN);
+  buffer_parse (&welcome_screen->frame, str);
+  free(str);
   return welcome_screen;
   // }
 }

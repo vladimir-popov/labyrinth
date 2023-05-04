@@ -165,6 +165,12 @@ get_cursor_position (int *rows, int *cols)
   return 0;
 }
 
+void
+str_set_cursor_position (char* str, int row, int col)
+{
+  sprintf(str, CSI "%d;%dH", row, col);
+}
+
 int
 get_window_size (int *rows, int *cols)
 {

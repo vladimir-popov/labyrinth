@@ -71,9 +71,9 @@ dstr buffer_to_dstr (const dbuf *buf);
 void buffer_write (int fildes, const dbuf *buf);
 
 /**
- * Writes the second buffer uppon the first with specified padding.
+ * Writes the source buffer upon the dest with specified padding.
  */
-void buffer_merge (dbuf *first, const dbuf *second, int rowpad, int colpad);
+void buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad);
 
 void buffer_free (dbuf *buf);
 
