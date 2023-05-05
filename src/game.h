@@ -74,6 +74,6 @@ void* create_menu (const game *game, enum game_state state);
 
 void close_menu (void *menu, enum game_state state);
 
-void render (game *game, double time_frame_s);
+void render (game *game);
 
 #endif /* __LABYRINTH_GAME__ */

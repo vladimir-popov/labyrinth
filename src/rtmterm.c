@@ -9,21 +9,22 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "art.h"
 #include "dbuf.h"
 #include "game.h"
 #include "term.h"
-#include "art.h"
-
 
 typedef struct
 {
+  /* last update time */
+  time_t lut;
   int state;
   dbuf frame;
 } screen;
 
 #define SCREEN_EMPTY                                                          \
   {                                                                           \
-    0, 0, DBUF_EMPTY                                                          \
+    0.0, 0, 0, DBUF_EMPTY                                                     \
   }
 
 /* The count of symbols by vertical of one room.  */
@@ -169,18 +170,35 @@ render_level (level *level, dbuf *buf)
     }
 }
 
-void
+static void
 render_welcome_screen (screen *s, dbuf *buf)
 {
-  // double fps = 0.3;
-  /* Do nothing if processing happens too often */
-  // if (difftime(time(NULL), s->last_update) < fps)
-  for (int i = 0; i < s->frame.lines_count; i++)
-    buffer_add_line (buf, s->frame.lines[i].chars, s->frame.lines[i].length);
+  int rowpad = (screen_rows - WELCOME_SCREEN_ROWS) / 2;
+  rowpad = (rowpad < 0) ? 0 : rowpad;
+  int colpad = (screen_cols - WELCOME_SCREEN_COLS) / 2;
+  colpad = (colpad < 0) ? 0 : colpad;
+
+  buffer_merge (buf, &s->frame, rowpad, colpad);
+
+  /* Blink menu option */
+  time_t now = time (NULL);
+  if ((now - s->lut) > 0.7)
+    {
+      s->state ^= 1;
+      s->lut = now;
+    }
+
+  if (s->state)
+    {
+      dbuf label;
+      buffer_parse (&label, LB_NEW_GAME);
+      buffer_merge (buf, &label, rowpad + 12, colpad + 24);
+      buffer_free (&label);
+    }
 }
 
 void
-render (game *game, double time_frame_s)
+render (game *game)
 {
   /* Put the cursor to the upper left corner */
   dbuf buf;
@@ -204,20 +222,9 @@ create_menu (const game *game, enum game_state state)
   //   {
   //   case ST_MAIN_MENU:
 
-  int r = (screen_rows - WELCOME_SCREEN_ROWS) / 2;
-  r = (r < 0) ? 0 : r;
-  int c = (screen_cols - WELCOME_SCREEN_COLS) / 2;
-  c = (c < 0) ? 0 : c;
-  char *str = malloc(sizeof(char) * 32);
-  str_set_cursor_position(str, r, c);
-  int len = strlen(str);
-  str = realloc(str, len + WELCOME_SCREEN_LEN);
-  memcpy(&str[len], WELCOME_SCREEN, WELCOME_SCREEN_LEN);
-
   screen *welcome_screen = malloc (sizeof (screen));
   welcome_screen->state = 1;
-  buffer_parse (&welcome_screen->frame, str);
-  free(str);
+  buffer_parse (&welcome_screen->frame, WELCOME_SCREEN);
   return welcome_screen;
   // }
 }

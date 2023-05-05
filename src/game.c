@@ -97,13 +97,9 @@ void
 game_loop (game *game)
 {
   enum command cmd;
-  time_t prev_render_at = time (NULL);
   do
     {
-      time_t now = time (NULL);
-      render (game, difftime (now, prev_render_at));
-      prev_render_at = now;
-
+      render (game);
       cmd = read_command (game);
     }
   while (handle_command (game, cmd));

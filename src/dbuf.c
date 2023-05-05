@@ -151,6 +151,7 @@ buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
       dstr ds = DSTR_EMPTY;
       buffer_add_dstr_line (dest, ds);
     }
+
   /* Iterate over intersected lines and merge them */
   int i = rowpad, j = 0;
   for (; i < dest->lines_count && j < source->lines_count; i++, j++)
@@ -177,7 +178,9 @@ buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
         }
 
       /* Copy chars from line to line */
-      memcpy (&l1->chars[colpad], l2->chars, l2->length);
+      char *ptr = &l1->chars[colpad];
+      for (int c = 0; c < l2->length; ptr++, c ++)
+        *ptr = l2->chars[c];
     }
 
   /* Just copy extra lines from the second buffer */

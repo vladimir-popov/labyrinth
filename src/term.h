@@ -58,6 +58,8 @@ typedef struct
 
 void fatal (char *message);
 
+int is_key_pressed ();
+
 key_p read_key ();
 
 void disable_raw_mode ();

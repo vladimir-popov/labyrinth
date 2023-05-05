@@ -18,31 +18,6 @@ fatal (char *message)
   exit (FATAL_EXIT_CODE);
 }
 
-key_p
-read_key ()
-{
-  char chars[3];
-  key_p k = { 0, chars };
-  k.len = read (STDIN_FILENO, chars, 1);
-#ifndef DEBUG
-  if (k.len < 0 && errno != EAGAIN)
-    {
-      char str[30];
-      sprintf (str, "read key: errno=%d", errno);
-      fatal (str);
-    }
-#endif
-
-  if (chars[0] == ESC)
-    {
-      if (read (STDIN_FILENO, &chars[1], 1) == 1)
-        k.len = 2;
-      if (read (STDIN_FILENO, &chars[2], 1) == 1)
-        k.len = 3;
-    }
-  return k;
-}
-
 void
 disable_raw_mode ()
 {
@@ -112,6 +87,41 @@ enter_safe_raw_mode ()
 
   if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &raw) == -1)
     fatal ("tcsetattr");
+}
+
+key_p
+read_key ()
+{
+  char chars[3];
+  key_p k = { 0, chars };
+  k.len = read (STDIN_FILENO, chars, 1);
+#ifndef DEBUG
+  if (k.len < 0 && errno != EAGAIN)
+    {
+      char str[30];
+      sprintf (str, "read key: errno=%d", errno);
+      fatal (str);
+    }
+#endif
+
+  if (chars[0] == ESC)
+    {
+      if (read (STDIN_FILENO, &chars[1], 1) == 1)
+        k.len = 2;
+      if (read (STDIN_FILENO, &chars[2], 1) == 1)
+        k.len = 3;
+    }
+  return k;
+}
+
+int
+is_key_pressed ()
+{
+  struct timeval tv = { 0L, 0L };
+  fd_set fds;
+  FD_ZERO (&fds);
+  FD_SET (0, &fds);
+  return select (1, &fds, NULL, NULL, &tv) > 0;
 }
 
 void
