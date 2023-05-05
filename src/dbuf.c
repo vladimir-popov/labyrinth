@@ -177,10 +177,24 @@ buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
           l1->length = l2->length + colpad;
         }
 
-      /* Copy chars from line to line */
+      /* Copy chars from line to line according to utf-8 encoding */
       char *ptr = &l1->chars[colpad];
-      for (int c = 0; c < l2->length; ptr++, c ++)
-        *ptr = l2->chars[c];
+      int c = 0;
+      while (c < l2->length)
+        {
+          /* we should not copy a byte to the middle of a symbol */
+          while ((*ptr & 0xC0) == 0x80)
+            ptr++;
+
+          do
+            {
+              *ptr = l2->chars[c];
+              ptr++;
+              c++;
+            }
+          /* now, we should copy the full symbol from the source */
+          while ((c < l2->length) && (l2->chars[c] & 0xC0) == 0x80);
+        }
     }
 
   /* Just copy extra lines from the second buffer */

@@ -181,12 +181,12 @@ render_welcome_screen (screen *s, dbuf *buf)
   buffer_merge (buf, &s->frame, rowpad, colpad);
 
   /* Blink menu option */
-  time_t now = time (NULL);
-  if ((now - s->lut) > 0.7)
-    {
-      s->state ^= 1;
-      s->lut = now;
-    }
+  // time_t now = time (NULL);
+  // if ((now - s->lut) > 0.7)
+  //   {
+  //     s->state ^= 1;
+  //     s->lut = now;
+  //   }
 
   if (s->state)
     {
