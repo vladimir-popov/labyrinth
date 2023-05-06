@@ -36,6 +36,24 @@ typedef struct
     0, 0, NULL                                                                \
   }
 
+/*
+ * Finds the nearest symbol to the bix-th byte and returns the count of bytes
+ * of this symbol.
+ *
+ * @source the string with in utf-8 encoding.
+ * @len the size in bytes of the source.
+ * @bix byte index which will be increased to the beginning of the nearest
+ *      utf-8 symbol in the source.
+ * @return count of bytes of the symbol, or 0 if a symbol was not found.
+ */
+int u8_find_symbol (const char *source, int len, int *bix);
+
+/* Returns the index of the n-th symbol (1-based), or -1 if symbols are not enough. */
+int u8_find_index (const char *source, int len, int n);
+
+int
+u8_symbols_count (const char *source, int len);
+
 /**
  * Creates a new buffer with a single line `str`.
  */
@@ -88,9 +106,8 @@ void buffer_write (int fildes, const dbuf *buf);
  * @rowpad the number of lines from the upper border of the `dest` buffer,
  *         after which the lines from the `source` should be inserted to
  *         the `dest` buffer.
- * @colpad the count of __bytes__ from the left border of the `dest` buffer,
- *         after which the symbols from the `source` line should be inserted to
- *         the line from the `dest` buffer.
+ * @colpad the count of symbols from the left border of the `dest` buffer,
+ *         after which the symbols from the `source` line should be inserted.
  */
 void buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad);
 

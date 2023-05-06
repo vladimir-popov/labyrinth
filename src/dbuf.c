@@ -4,6 +4,50 @@
 #include <string.h>
 #include <unistd.h>
 
+int
+u8_find_symbol (const char *source, int len, int *bix)
+{
+  /* move to the nearest symbol beginning */
+  while ((*bix < len) && (source[*bix] & 0xC0) == 0x80)
+    (*bix)++;
+
+  /* looks like no one full symbol till the end */
+  if (*bix == len)
+    return 0;
+
+  /* count symbol's bytes */
+  int n = 1;
+  while ((*bix + n) < len && (source[*bix + n] & 0xC0) == 0x80)
+    n++;
+
+  return n;
+}
+
+int
+u8_find_index (const char *source, int len, int n)
+{
+  int found = 0;
+  int i = 0;
+  while (found < n && u8_find_symbol (source, len, &i))
+    {
+      found++;
+      i++;
+    }
+  return i - 1;
+}
+
+int
+u8_symbols_count (const char *source, int len)
+{
+  int i = 0, n = 0;
+  while (i < len && u8_find_symbol (source, len, &i))
+    {
+      n++;
+      i++;
+    }
+  return n;
+}
+
 static void
 dstr_init (dstr *str, const char *template, int len)
 {
@@ -119,9 +163,9 @@ buffer_to_dstr (const dbuf *buf)
   dstr res = DSTR_EMPTY;
   for (int i = 0; i < buf->lines_count; i++)
     {
-      dstr line = buf->lines[i];
-      if (line.length > 0)
-        dstr_append (&res, line.chars, line.length);
+      dstr *line = &buf->lines[i];
+      if (line->length > 0)
+        dstr_append (&res, line->chars, line->length);
 
       if (i < buf->lines_count - 1)
         dstr_append (&res, "\n", 1);
@@ -160,40 +204,45 @@ buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
       dstr *l2 = &source->lines[j];
 
       /* Add space till colpad, if line's length less then colpad */
-      if (l1->length < colpad)
+      int slen1 = u8_symbols_count (l1->chars, l1->length);
+      if (slen1 < colpad)
         {
-          int len = colpad - l1->length;
+          int len = colpad - slen1;
           dstr ds;
           dstr_repeate (&ds, ' ', len);
           dstr_append (&dest->lines[i], ds.chars, len);
           dstr_free (&ds);
         }
 
-      /* Add memory if it's not enough to apply the line
-       * from the second buffer */
-      if (l1->length < (l2->length + colpad))
-        {
-          l1->chars = realloc (l1->chars, l2->length + colpad);
-          l1->length = l2->length + colpad;
-        }
-
       /* Copy chars from line to line according to utf-8 encoding */
-      char *ptr = &l1->chars[colpad];
-      int c = 0;
-      while (c < l2->length)
-        {
-          /* we should not copy a byte to the middle of a symbol */
-          while ((*ptr & 0xC0) == 0x80)
-            ptr++;
 
-          do
+      int s1 = slen1 - colpad;
+      int s2 = u8_symbols_count (l2->chars, l2->length);
+      if (s1 > s2)
+        { /* insert l2 into l1 */
+
+          /* index of the byte in the l1 to which l2 should be inserted */
+          int idx_from = u8_find_index (l1->chars, l1->length, colpad + 1);
+          /* index of the byte from the l1 which should follow l2 */
+          int idx_to = u8_find_index (l1->chars, l1->length, s2 + colpad + 1);
+          /* add memory for the skipped bytes */
+          if (l2->length > l1->length - idx_from)
             {
-              *ptr = l2->chars[c];
-              ptr++;
-              c++;
+              l1->length = (idx_from + l1->length);
+              l1->chars = realloc (l1->chars, l1->length);
             }
-          /* now, we should copy the full symbol from the source */
-          while ((c < l2->length) && (l2->chars[c] & 0xC0) == 0x80);
+          memcpy (&l1->chars[idx_to], &l1->chars[idx_from],
+                  (l1->length - idx_from));
+          memcpy (&l1->chars[idx_from], l2->chars, l2->length);
+        }
+      else
+        { /* just replace l1 from colpad till end by the l2 */
+
+          int c1 = colpad;
+          u8_find_symbol (l1->chars, l1->length, &c1);
+          l1->length = l2->length + c1;
+          l1->chars = realloc (l1->chars, l1->length);
+          memcpy (&l1->chars[c1], l2->chars, l2->length);
         }
     }
 
