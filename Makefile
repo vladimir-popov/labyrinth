@@ -23,12 +23,13 @@ run: compile
 	@$(BUILD)/$(APP)
 
 test-compile: compile
-	$(CC) -g -I$(SRC) -o $(BUILD)/tests \
+	$(CC) -g -I$(SRC) -o $(BUILD)/all_tests \
 		$(SRC)/u8.c 		\
-		$(SRC)/laby.c    	\
-		$(TEST)/tests.c
+		$(SRC)/laby.c  	\
+		$(SRC)/term.c  	\
+		$(TEST)/all_tests.c
 
 test: test-compile
-	@$(BUILD)/tests
+	@$(BUILD)/all_tests
 
 build: test
