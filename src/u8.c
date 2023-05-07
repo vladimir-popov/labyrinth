@@ -1,4 +1,4 @@
-#include "dbuf.h"
+#include "u8.h"
 #include "term.h"
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +49,7 @@ u8_symbols_count (const char *source, int len)
 }
 
 static void
-dstr_init (dstr *str, const char *template, int len)
+dstr_init (u8str *str, const char *template, int len)
 {
   str->chars = malloc (len);
   strncpy (str->chars, template, len);
@@ -57,7 +57,7 @@ dstr_init (dstr *str, const char *template, int len)
 }
 
 static void
-dstr_append (dstr *this, const char *prefix, int len)
+dstr_append (u8str *this, const char *prefix, int len)
 {
   char *new = realloc (this->chars, this->length + len);
   if (new == NULL)
@@ -68,7 +68,7 @@ dstr_append (dstr *this, const char *prefix, int len)
 }
 
 static void
-dstr_repeate (dstr *ds, const char ch, int count)
+dstr_repeate (u8str *ds, const char ch, int count)
 {
   ds->chars = malloc (sizeof (char) * count);
   ds->length = count;
@@ -77,15 +77,15 @@ dstr_repeate (dstr *ds, const char ch, int count)
 }
 
 static void
-dstr_free (const dstr *str)
+dstr_free (const u8str *str)
 {
   free (str->chars);
 }
 
 void
-buffer_init (dbuf *buf, const char *str)
+u8_buffer_init (u8buf *buf, const char *str)
 {
-  dstr *lines = malloc (sizeof (dstr));
+  u8str *lines = malloc (sizeof (u8str));
   dstr_init (&lines[0], str, strlen (str));
   buf->lines = lines;
   buf->lines_count = 1;
@@ -93,7 +93,7 @@ buffer_init (dbuf *buf, const char *str)
 }
 
 void
-buffer_free (dbuf *buf)
+u8_buffer_free (u8buf *buf)
 {
   for (int i = 0; i < buf->lines_count; i++)
     {
@@ -102,10 +102,10 @@ buffer_free (dbuf *buf)
 }
 
 static void
-buffer_add_dstr_line (dbuf *buf, const dstr str)
+buffer_add_dstr_line (u8buf *buf, const u8str str)
 {
-  dstr *more_rows
-      = realloc (buf->lines, sizeof (dstr) * (buf->lines_count + 1));
+  u8str *more_rows
+      = realloc (buf->lines, sizeof (u8str) * (buf->lines_count + 1));
   if (more_rows == NULL)
     return;
 
@@ -117,30 +117,30 @@ buffer_add_dstr_line (dbuf *buf, const dstr str)
 }
 
 void
-buffer_add_line (dbuf *buf, const char *str, int len)
+u8_buffer_add_line (u8buf *buf, const char *str, int len)
 {
-  dstr ds;
+  u8str ds;
   dstr_init (&ds, str, len);
   buffer_add_dstr_line (buf, ds);
 }
 
 void
-buffer_append_str (dbuf *buf, const char *str, int len)
+u8_buffer_append_str (u8buf *buf, const char *str, int len)
 {
   if (buf->last_line_ended || buf->lines == NULL)
-    buffer_add_line (buf, str, len);
+    u8_buffer_add_line (buf, str, len);
   else
     dstr_append (&buf->lines[buf->lines_count - 1], str, len);
 }
 
 void
-buffer_end_line (dbuf *buf)
+u8_buffer_end_line (u8buf *buf)
 {
   buf->last_line_ended = 1;
 }
 
 void
-buffer_parse (dbuf *buf, const char *str)
+u8_buffer_parse (u8buf *buf, const char *str)
 {
   buf->lines = NULL;
   buf->lines_count = 0;
@@ -152,18 +152,18 @@ buffer_parse (dbuf *buf, const char *str)
   char *next = strtok (s, "\r\n");
   while (next != NULL)
     {
-      buffer_add_line (buf, next, strlen (next));
+      u8_buffer_add_line (buf, next, strlen (next));
       next = strtok (NULL, "\r\n");
     }
 }
 
-dstr
-buffer_to_dstr (const dbuf *buf)
+u8str
+u8_buffer_to_dstr (const u8buf *buf)
 {
-  dstr res = DSTR_EMPTY;
+  u8str res = U8_STR_EMPTY;
   for (int i = 0; i < buf->lines_count; i++)
     {
-      dstr *line = &buf->lines[i];
+      u8str *line = &buf->lines[i];
       if (line->length > 0)
         dstr_append (&res, line->chars, line->length);
 
@@ -175,11 +175,11 @@ buffer_to_dstr (const dbuf *buf)
 }
 
 void
-buffer_write (int fildes, const dbuf *buf)
+u8_buffer_write (int fildes, const u8buf *buf)
 {
   for (int i = 0; i < buf->lines_count; i++)
     {
-      dstr line = buf->lines[i];
+      u8str line = buf->lines[i];
       write (fildes, line.chars, line.length);
       if (i < buf->lines_count - 1)
         write (fildes, "\n", 1);
@@ -187,12 +187,12 @@ buffer_write (int fildes, const dbuf *buf)
 }
 
 void
-buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
+u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad, int colpad)
 {
   /* Add empty lines if rowpad great than lines_count */
   while (dest->lines_count <= rowpad)
     {
-      dstr ds = DSTR_EMPTY;
+      u8str ds = U8_STR_EMPTY;
       buffer_add_dstr_line (dest, ds);
     }
 
@@ -200,15 +200,15 @@ buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
   int i = rowpad, j = 0;
   for (; i < dest->lines_count && j < source->lines_count; i++, j++)
     {
-      dstr *l1 = &dest->lines[i];
-      dstr *l2 = &source->lines[j];
+      u8str *l1 = &dest->lines[i];
+      u8str *l2 = &source->lines[j];
 
       /* Add space till colpad, if line's length less then colpad */
       int slen1 = u8_symbols_count (l1->chars, l1->length);
       if (slen1 < colpad)
         {
           int len = colpad - slen1;
-          dstr ds;
+          u8str ds;
           dstr_repeate (&ds, ' ', len);
           dstr_append (&dest->lines[i], ds.chars, len);
           dstr_free (&ds);
@@ -249,7 +249,7 @@ buffer_merge (dbuf *dest, const dbuf *source, int rowpad, int colpad)
   /* Just copy extra lines from the second buffer */
   for (; j < source->lines_count; j++)
     {
-      dstr ds;
+      u8str ds;
       dstr_repeate (&ds, ' ', colpad);
       dstr_append (&ds, source->lines[j].chars, source->lines[j].length);
       buffer_add_dstr_line (dest, ds);

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "dbuf.h"
+#include "u8.h"
 #include "game.h"
 #include "minunit.h"
 #include "rtmterm.c"
@@ -62,9 +62,9 @@ parse_string_to_buffer_test ()
   char *template = "This is\n"
                    "a template";
   // when:
-  dbuf buf;
-  buffer_parse (&buf, template);
-  dstr res = buffer_to_dstr (&buf);
+  u8buf buf;
+  u8_buffer_parse (&buf, template);
+  u8str res = u8_buffer_to_dstr (&buf);
 
   // then:
   mu_dstr_eq_to_str (res, template);
@@ -77,15 +77,15 @@ merge_to_empty_buffers_test ()
   /* It should add empty rows and fill padding by spaces */
 
   // given:
-  dbuf first = DBUF_EMPTY;
-  dbuf second;
-  buffer_parse (&second, "###");
+  u8buf first = U8_BUF_EMPTY;
+  u8buf second;
+  u8_buffer_parse (&second, "###");
   char *expected = "\n"
                    "   ###";
 
   // when:
-  buffer_merge (&first, &second, 1, 3);
-  dstr actual = buffer_to_dstr (&first);
+  u8_buffer_merge (&first, &second, 1, 3);
+  u8str actual = u8_buffer_to_dstr (&first);
 
   // then:
   mu_dstr_eq_to_str (actual, expected);
@@ -96,19 +96,19 @@ static char *
 merge_middle_buffer_test ()
 {
   // given:
-  dbuf first;
-  buffer_parse (&first, ".........\n"
+  u8buf first;
+  u8_buffer_parse (&first, ".........\n"
                         ".........\n"
                         ".........\n");
-  dbuf second;
-  buffer_parse (&second, "###");
+  u8buf second;
+  u8_buffer_parse (&second, "###");
   char *expected = ".........\n"
                    "...###...\n"
                    ".........";
 
   // when:
-  buffer_merge (&first, &second, 1, 3);
-  dstr actual = buffer_to_dstr (&first);
+  u8_buffer_merge (&first, &second, 1, 3);
+  u8str actual = u8_buffer_to_dstr (&first);
 
   // then:
   mu_dstr_eq_to_str (actual, expected);
@@ -119,12 +119,12 @@ static char *
 merge_bigger_buffer_test ()
 {
   // given:
-  dbuf first;
-  buffer_parse (&first, ".......\n"
+  u8buf first;
+  u8_buffer_parse (&first, ".......\n"
                         ".......\n"
                         ".......");
-  dbuf second;
-  buffer_parse (&second, "###\n"
+  u8buf second;
+  u8_buffer_parse (&second, "###\n"
                          "######\n"
                          "###");
   char *expected = ".......\n"
@@ -133,8 +133,8 @@ merge_bigger_buffer_test ()
                    "   ###";
 
   // when:
-  buffer_merge (&first, &second, 1, 3);
-  dstr actual = buffer_to_dstr (&first);
+  u8_buffer_merge (&first, &second, 1, 3);
+  u8str actual = u8_buffer_to_dstr (&first);
 
   // then:
   mu_dstr_eq_to_str (actual, expected);
@@ -145,19 +145,19 @@ static char *
 merge_utf_buffer_test ()
 {
   // given:
-  dbuf first;
-  buffer_parse (&first, "███\n"
+  u8buf first;
+  u8_buffer_parse (&first, "███\n"
                         "███\n"
                         "███\n");
-  dbuf second;
-  buffer_parse (&second, "☺");
+  u8buf second;
+  u8_buffer_parse (&second, "☺");
   char *expected = "███\n"
                    "█☺█\n"
                    "███";
 
   // when:
-  buffer_merge (&first, &second, 1, 1);
-  dstr actual = buffer_to_dstr (&first);
+  u8_buffer_merge (&first, &second, 1, 1);
+  u8str actual = u8_buffer_to_dstr (&first);
 
   // then:
   mu_dstr_eq_to_str (actual, expected);
@@ -168,7 +168,7 @@ static char *
 empty_laby_test ()
 {
   // given:
-  dbuf buf = DBUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
   level level = LEVEL_EMPTY;
   laby_init_empty (&level.lab, 1, 1);
 
@@ -178,7 +178,7 @@ empty_laby_test ()
   // when:
   render_level (&level, &buf);
   // then:
-  dstr actual = buffer_to_dstr (&buf);
+  u8str actual = u8_buffer_to_dstr (&buf);
   mu_dstr_eq_to_str (actual, expected);
   return 0;
 }
@@ -187,7 +187,7 @@ static char *
 simple_laby_test ()
 {
   // given:
-  dbuf buf = DBUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
   level level = LEVEL_EMPTY;
   laby_init_empty (&level.lab, 3, 3);
   laby_add_border (&level.lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
@@ -210,7 +210,7 @@ simple_laby_test ()
   render_level (&level, &buf);
 
   // then:
-  dstr actual = buffer_to_dstr (&buf);
+  u8str actual = u8_buffer_to_dstr (&buf);
   mu_dstr_eq_to_str (actual, expected);
   return 0;
 }
@@ -219,7 +219,7 @@ static char *
 generate_eller_test ()
 {
   // given:
-  dbuf buf = DBUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
   char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\n"
                    "┃ @             ┃   ┃\n"
                    "┃   ━━━━━━━━┳━━━┛   ┃\n"
@@ -234,7 +234,7 @@ generate_eller_test ()
   render_level (&level, &buf);
 
   // then:
-  dstr actual = buffer_to_dstr (&buf);
+  u8str actual = u8_buffer_to_dstr (&buf);
   mu_dstr_eq_to_str (actual, expected);
   return 0;
 }

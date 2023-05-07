@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "art.h"
-#include "dbuf.h"
+#include "u8.h"
 #include "game.h"
 #include "term.h"
 
@@ -19,7 +19,7 @@ typedef struct
   /* last update time */
   time_t lut;
   int state;
-  dbuf frame;
+  u8buf frame;
 } screen;
 
 #define SCREEN_EMPTY                                                          \
@@ -102,7 +102,7 @@ get_creature (level *level, int y, int x)
 }
 
 static void
-render_room (level *level, int y, int x, int r, int c, dbuf *buf)
+render_room (level *level, int y, int x, int r, int c, u8buf *buf)
 {
   laby *lab = &level->lab;
 
@@ -134,14 +134,14 @@ render_room (level *level, int y, int x, int r, int c, dbuf *buf)
           : (is_visited)                    ? "·"
                                             : " ";
     }
-  buffer_append_str (buf, s, strlen (s));
+  u8_buffer_append_str (buf, s, strlen (s));
 }
 
 /**
  * Renders the labyrinth `lab` to the buffer `buf`.
  */
 void
-render_level (level *level, dbuf *buf)
+render_level (level *level, u8buf *buf)
 {
   laby *lab = &level->lab;
 
@@ -165,20 +165,20 @@ render_level (level *level, dbuf *buf)
                 }
             }
           if (y < lab->height)
-            buffer_end_line (buf);
+            u8_buffer_end_line (buf);
         }
     }
 }
 
 static void
-render_welcome_screen (screen *s, dbuf *buf)
+render_welcome_screen (screen *s, u8buf *buf)
 {
   int rowpad = (screen_rows - WELCOME_SCREEN_ROWS) / 2;
   rowpad = (rowpad < 0) ? 0 : rowpad;
   int colpad = (screen_cols - WELCOME_SCREEN_COLS) / 2;
   colpad = (colpad < 0) ? 0 : colpad;
 
-  buffer_merge (buf, &s->frame, rowpad, colpad);
+  u8_buffer_merge (buf, &s->frame, rowpad, colpad);
 
   /* Blink menu option */
   time_t now = time (NULL);
@@ -190,10 +190,10 @@ render_welcome_screen (screen *s, dbuf *buf)
 
   if (s->state)
     {
-      dbuf label;
-      buffer_parse (&label, LB_NEW_GAME);
-      buffer_merge (buf, &label, rowpad + 11, colpad + 22);
-      buffer_free (&label);
+      u8buf label;
+      u8_buffer_parse (&label, LB_NEW_GAME);
+      u8_buffer_merge (buf, &label, rowpad + 11, colpad + 22);
+      u8_buffer_free (&label);
     }
 }
 
@@ -201,8 +201,8 @@ void
 render (game *game)
 {
   /* Put the cursor to the upper left corner */
-  dbuf buf;
-  buffer_init (&buf, CUP);
+  u8buf buf;
+  u8_buffer_init (&buf, CUP);
   switch (game->state)
     {
     case ST_MAIN_MENU:
@@ -211,8 +211,8 @@ render (game *game)
     default:
       render_level (&game->level, &buf);
     }
-  buffer_write (STDIN_FILENO, &buf);
-  buffer_free (&buf);
+  u8_buffer_write (STDIN_FILENO, &buf);
+  u8_buffer_free (&buf);
 }
 
 void *
@@ -224,7 +224,7 @@ create_menu (const game *game, enum game_state state)
 
   screen *welcome_screen = malloc (sizeof (screen));
   welcome_screen->state = 1;
-  buffer_parse (&welcome_screen->frame, WELCOME_SCREEN);
+  u8_buffer_parse (&welcome_screen->frame, WELCOME_SCREEN);
   return welcome_screen;
   // }
 }
@@ -233,7 +233,7 @@ void
 close_menu (void *menu, enum game_state state)
 {
   screen *welcome_screen = (screen *)menu;
-  buffer_free (&welcome_screen->frame);
+  u8_buffer_free (&welcome_screen->frame);
   free (welcome_screen);
 }
 

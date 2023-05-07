@@ -13,7 +13,7 @@ clean:
 compile: clean
 	mkdir $(BUILD)
 	$(CC) $(DEBUG) -g -Wall -o $(BUILD)/$(APP) \
-		$(SRC)/dbuf.c \
+		$(SRC)/u8.c \
 		$(SRC)/term.c \
 		$(SRC)/laby.c \
 		$(SRC)/game.c \
@@ -24,7 +24,7 @@ run: compile
 
 test-compile: compile
 	$(CC) -g -I$(SRC) -o $(BUILD)/tests \
-		$(SRC)/dbuf.c 		\
+		$(SRC)/u8.c 		\
 		$(SRC)/laby.c    	\
 		$(TEST)/tests.c
 
