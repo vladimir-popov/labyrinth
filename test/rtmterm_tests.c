@@ -3,7 +3,6 @@
 #include "rtmterm.c"
 #include "u8.h"
 
-
 static char *
 empty_laby_test ()
 {

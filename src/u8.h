@@ -27,8 +27,6 @@ int u8_find_index (const char *source, int len, int n);
  */
 int u8_symbols_count (const char *source, int len);
 
-
-
 /**
  * The representation of the string in utf-8 encoding,
  * which can be dynamically extended by another utf-8 string.
@@ -48,20 +46,13 @@ typedef struct
     0, NULL                                                                   \
   }
 
-void
-u8_str_init (u8str *str, const char *template, int len);
+void u8_str_init (u8str *str, const char *template, int len);
 
-void
-u8_str_append (u8str *dest, const char *prefix, int len);
+void u8_str_append (u8str *dest, const char *prefix, int len);
 
-void
-u8_str_merge (u8str *dest, const u8str *source, int spad);
+void u8_str_merge (u8str *dest, const u8str *source, int spad);
 
-void
-u8_str_free (const u8str *str);
-
-
-
+void u8_str_free (const u8str *str);
 
 /**
  * The buffer of symbols in utf-8 encoding, represented as a list of u8str

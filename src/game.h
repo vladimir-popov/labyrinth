@@ -1,8 +1,8 @@
 #ifndef __LABYRINTH_GAME__
 #define __LABYRINTH_GAME__
 
-#include <time.h>
 #include "laby.h"
+#include <time.h>
 
 enum command
 {
@@ -71,7 +71,7 @@ enum command read_command (game *game);
 
 int handle_command (game *game, enum command cmd);
 
-void* create_menu (const game *game, enum game_state state);
+void *create_menu (const game *game, enum game_state state);
 
 void close_menu (void *menu, enum game_state state);
 

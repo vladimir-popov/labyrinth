@@ -7,6 +7,12 @@ SRC := src
 TEST := test
 BUILD := build
 
+check-fmt:
+	clang-format --dry-run --Werror **/*.c **/*.h
+
+fmt:
+	clang-format -i **/*.c **/*.h
+
 clean:
 	rm -rf $(BUILD)/
 
