@@ -10,17 +10,16 @@
 #include <unistd.h>
 
 #include "art.h"
-#include "u8.h"
 #include "game.h"
 #include "term.h"
+#include "u8.h"
 
 typedef struct
 {
-  /* last update time */
-  time_t lut;
+  time_t last_update_at;
   int state;
-  u8buf frame;
-} screen;
+  u8buf buf;
+} frame;
 
 #define SCREEN_EMPTY                                                          \
   {                                                                           \
@@ -170,29 +169,23 @@ render_level (level *level, u8buf *buf)
     }
 }
 
-static void
-render_welcome_screen (screen *s, u8buf *buf)
+void
+render_welcome_screen (frame *frm, u8buf *buf)
 {
-  int rowpad = (screen_rows - WELCOME_SCREEN_ROWS) / 2;
-  rowpad = (rowpad < 0) ? 0 : rowpad;
-  int colpad = (screen_cols - WELCOME_SCREEN_COLS) / 2;
-  colpad = (colpad < 0) ? 0 : colpad;
-
-  u8_buffer_merge (buf, &s->frame, rowpad, colpad);
-
   /* Blink menu option */
   time_t now = time (NULL);
-  if ((now - s->lut) > 0.7)
+  if ((now - frm->last_update_at) > 0.7)
     {
-      s->state ^= 1;
-      s->lut = now;
+      frm->state ^= 1;
+      frm->last_update_at = now;
     }
 
-  if (s->state)
+  u8_buffer_parse (buf, WELCOME_SCREEN);
+  if (frm->state)
     {
-      u8buf label;
+      u8buf label = U8_BUF_EMPTY;
       u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (buf, &label, rowpad + 11, colpad + 22);
+      u8_buffer_merge (buf, &label, 11, 22);
       u8_buffer_free (&label);
     }
 }
@@ -201,12 +194,12 @@ void
 render (game *game)
 {
   /* Put the cursor to the upper left corner */
-  u8buf buf;
+  u8buf buf = U8_BUF_EMPTY;
   u8_buffer_init (&buf, CUP);
   switch (game->state)
     {
     case ST_MAIN_MENU:
-      render_welcome_screen ((screen *)game->menu, &buf);
+      render_welcome_screen ((frame *)game->menu, &buf);
       break;
     default:
       render_level (&game->level, &buf);
@@ -215,25 +208,29 @@ render (game *game)
   u8_buffer_free (&buf);
 }
 
+frame *
+create_welcome_screen ()
+{
+  frame *welcome_screen = malloc (sizeof (frame));
+  welcome_screen->state = 1;
+  return welcome_screen;
+}
+
 void *
 create_menu (const game *game, enum game_state state)
 {
   // switch (state)
   //   {
   //   case ST_MAIN_MENU:
-
-  screen *welcome_screen = malloc (sizeof (screen));
-  welcome_screen->state = 1;
-  u8_buffer_parse (&welcome_screen->frame, WELCOME_SCREEN);
-  return welcome_screen;
+  return create_welcome_screen ();
   // }
 }
 
 void
 close_menu (void *menu, enum game_state state)
 {
-  screen *welcome_screen = (screen *)menu;
-  u8_buffer_free (&welcome_screen->frame);
+  frame *welcome_screen = (frame *)menu;
+  u8_buffer_free (&welcome_screen->buf);
   free (welcome_screen);
 }
 

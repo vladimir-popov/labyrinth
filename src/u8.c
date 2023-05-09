@@ -33,7 +33,7 @@ u8_find_index (const char *source, int len, int n)
       found++;
       i++;
     }
-  return i - 1;
+  return (found == n) ? i - 1 : -1;
 }
 
 int
@@ -48,27 +48,24 @@ u8_symbols_count (const char *source, int len)
   return n;
 }
 
-static void
-dstr_init (u8str *str, const char *template, int len)
+void
+u8_str_init (u8str *str, const char *template, int len)
 {
   str->chars = malloc (len);
   strncpy (str->chars, template, len);
   str->length = len;
 }
 
-static void
-dstr_append (u8str *this, const char *prefix, int len)
+void
+u8_str_append (u8str *dest, const char *prefix, int len)
 {
-  char *new = realloc (this->chars, this->length + len);
-  if (new == NULL)
-    return;
-  memcpy (&new[this->length], prefix, len);
-  this->chars = new;
-  this->length += len;
+  dest->chars = realloc (dest->chars, dest->length + len);
+  memcpy (&dest->chars[dest->length], prefix, len);
+  dest->length += len;
 }
 
 static void
-dstr_repeate (u8str *ds, const char ch, int count)
+u8_str_repeate (u8str *ds, const char ch, int count)
 {
   ds->chars = malloc (sizeof (char) * count);
   ds->length = count;
@@ -76,8 +73,51 @@ dstr_repeate (u8str *ds, const char ch, int count)
     ds->chars[i] = ch;
 }
 
-static void
-dstr_free (const u8str *str)
+void
+u8_str_merge (u8str *dest, const u8str *source, int spad)
+{
+  /* find an start index of the spad + 1 symbol
+   * from which replacement should become */
+  int sx = u8_find_index (dest->chars, dest->length, spad + 1);
+
+  /* Add space till spad, if dest's length less than spad */
+  if (sx < 0)
+    {
+      int scount = u8_symbols_count (dest->chars, dest->length);
+      for (int i = spad - scount; i > 0; i--)
+        {
+          u8_str_append (dest, " ", 1);
+        }
+      sx = dest->length;
+    }
+
+  /* Now, let's find an end index of a symbol till which
+   * replacement should happened */
+  int slen = u8_symbols_count (source->chars, source->length);
+  int ex = u8_find_index (dest->chars, dest->length, slen + spad + 1);
+
+  if (ex < 0)
+    {
+      /* it means that destination should be completely replaced
+       * right after sx */
+      dest->length = sx + source->length;
+      dest->chars = realloc (dest->chars, dest->length);
+      memcpy (&dest->chars[sx], source->chars, source->length);
+    }
+  else
+    {
+      /* in this case we have a small appendix at the end of the destination,
+       * which should be moved right after the inserted source string */
+      int aplen = dest->length - ex;
+      dest->length = sx + source->length + aplen;
+      dest->chars = realloc (dest->chars, dest->length);
+      memcpy (&dest->chars[sx + source->length], &dest->chars[ex], aplen);
+      memcpy (&dest->chars[sx], source->chars, source->length);
+    }
+}
+
+void
+u8_str_free (const u8str *str)
 {
   free (str->chars);
 }
@@ -86,7 +126,7 @@ void
 u8_buffer_init (u8buf *buf, const char *str)
 {
   u8str *lines = malloc (sizeof (u8str));
-  dstr_init (&lines[0], str, strlen (str));
+  u8_str_init (&lines[0], str, strlen (str));
   buf->lines = lines;
   buf->lines_count = 1;
   buf->last_line_ended = 0;
@@ -97,21 +137,15 @@ u8_buffer_free (u8buf *buf)
 {
   for (int i = 0; i < buf->lines_count; i++)
     {
-      dstr_free (&buf->lines[i]);
+      u8_str_free (&buf->lines[i]);
     }
 }
 
 static void
-buffer_add_dstr_line (u8buf *buf, const u8str str)
+u8_buffer_add_str_line (u8buf *buf, const u8str str)
 {
-  u8str *more_rows
-      = realloc (buf->lines, sizeof (u8str) * (buf->lines_count + 1));
-  if (more_rows == NULL)
-    return;
-
-  more_rows[buf->lines_count] = str;
-
-  buf->lines = more_rows;
+  buf->lines = realloc (buf->lines, sizeof (u8str) * (buf->lines_count + 1));
+  buf->lines[buf->lines_count] = str;
   buf->lines_count++;
   buf->last_line_ended = 0;
 }
@@ -120,8 +154,8 @@ void
 u8_buffer_add_line (u8buf *buf, const char *str, int len)
 {
   u8str ds;
-  dstr_init (&ds, str, len);
-  buffer_add_dstr_line (buf, ds);
+  u8_str_init (&ds, str, len);
+  u8_buffer_add_str_line (buf, ds);
 }
 
 void
@@ -130,7 +164,7 @@ u8_buffer_append_str (u8buf *buf, const char *str, int len)
   if (buf->last_line_ended || buf->lines == NULL)
     u8_buffer_add_line (buf, str, len);
   else
-    dstr_append (&buf->lines[buf->lines_count - 1], str, len);
+    u8_str_append (&buf->lines[buf->lines_count - 1], str, len);
 }
 
 void
@@ -142,10 +176,6 @@ u8_buffer_end_line (u8buf *buf)
 void
 u8_buffer_parse (u8buf *buf, const char *str)
 {
-  buf->lines = NULL;
-  buf->lines_count = 0;
-  buf->last_line_ended = 0;
-
   char *s = malloc (sizeof (char) * strlen (str));
   strcpy (s, str);
 
@@ -155,20 +185,21 @@ u8_buffer_parse (u8buf *buf, const char *str)
       u8_buffer_add_line (buf, next, strlen (next));
       next = strtok (NULL, "\r\n");
     }
+  free (s);
 }
 
 u8str
-u8_buffer_to_dstr (const u8buf *buf)
+u8_buffer_to_u8str (const u8buf *buf)
 {
   u8str res = U8_STR_EMPTY;
   for (int i = 0; i < buf->lines_count; i++)
     {
       u8str *line = &buf->lines[i];
       if (line->length > 0)
-        dstr_append (&res, line->chars, line->length);
+        u8_str_append (&res, line->chars, line->length);
 
       if (i < buf->lines_count - 1)
-        dstr_append (&res, "\n", 1);
+        u8_str_append (&res, "\n", 1);
     }
 
   return res;
@@ -179,8 +210,8 @@ u8_buffer_write (int fildes, const u8buf *buf)
 {
   for (int i = 0; i < buf->lines_count; i++)
     {
-      u8str line = buf->lines[i];
-      write (fildes, line.chars, line.length);
+      u8str *line = &buf->lines[i];
+      write (fildes, line->chars, line->length);
       if (i < buf->lines_count - 1)
         write (fildes, "\n", 1);
     }
@@ -193,65 +224,22 @@ u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad, int colpad)
   while (dest->lines_count <= rowpad)
     {
       u8str ds = U8_STR_EMPTY;
-      buffer_add_dstr_line (dest, ds);
+      u8_buffer_add_str_line (dest, ds);
     }
 
   /* Iterate over intersected lines and merge them */
   int i = rowpad, j = 0;
   for (; i < dest->lines_count && j < source->lines_count; i++, j++)
     {
-      u8str *l1 = &dest->lines[i];
-      u8str *l2 = &source->lines[j];
-
-      /* Add space till colpad, if line's length less then colpad */
-      int slen1 = u8_symbols_count (l1->chars, l1->length);
-      if (slen1 < colpad)
-        {
-          int len = colpad - slen1;
-          u8str ds;
-          dstr_repeate (&ds, ' ', len);
-          dstr_append (&dest->lines[i], ds.chars, len);
-          dstr_free (&ds);
-        }
-
-      /* Copy chars from line to line according to utf-8 encoding */
-
-      int s1 = slen1 - colpad;
-      int s2 = u8_symbols_count (l2->chars, l2->length);
-      if (s1 > s2)
-        { /* insert l2 into l1 */
-
-          /* index of the byte in the l1 to which l2 should be inserted */
-          int idx_from = u8_find_index (l1->chars, l1->length, colpad + 1);
-          /* index of the byte from the l1 which should follow l2 */
-          int idx_to = u8_find_index (l1->chars, l1->length, s2 + colpad + 1);
-          /* add memory for the skipped bytes */
-          if (l2->length > l1->length - idx_from)
-            {
-              l1->length = (idx_from + l1->length);
-              l1->chars = realloc (l1->chars, l1->length);
-            }
-          memcpy (&l1->chars[idx_to], &l1->chars[idx_from],
-                  (l1->length - idx_from));
-          memcpy (&l1->chars[idx_from], l2->chars, l2->length);
-        }
-      else
-        { /* just replace l1 from colpad till end by the l2 */
-
-          int c1 = colpad;
-          u8_find_symbol (l1->chars, l1->length, &c1);
-          l1->length = l2->length + c1;
-          l1->chars = realloc (l1->chars, l1->length);
-          memcpy (&l1->chars[c1], l2->chars, l2->length);
-        }
+      u8_str_merge (&dest->lines[i], &source->lines[j], colpad);
     }
 
   /* Just copy extra lines from the second buffer */
   for (; j < source->lines_count; j++)
     {
       u8str ds;
-      dstr_repeate (&ds, ' ', colpad);
-      dstr_append (&ds, source->lines[j].chars, source->lines[j].length);
-      buffer_add_dstr_line (dest, ds);
+      u8_str_repeate (&ds, ' ', colpad);
+      u8_str_append (&ds, source->lines[j].chars, source->lines[j].length);
+      u8_buffer_add_str_line (dest, ds);
     }
 }

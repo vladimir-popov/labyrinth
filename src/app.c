@@ -3,11 +3,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "term.h"
 #include "rtmterm.c"
+#include "term.h"
 
 time_t seed = 0;
-
 
 static int
 parse_args (int argc, char *argv[])
@@ -59,11 +58,11 @@ main (int argc, char *argv[])
   int width = (screen_cols - 1) / laby_room_cols;
 
   enter_safe_raw_mode ();
-  clear_screen();
+  clear_screen ();
   hide_cursor ();
 
   game game;
-  game_init(&game, height, width, seed);
+  game_init (&game, height, width, seed);
   game_loop (&game);
 
   clear_screen ();

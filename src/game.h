@@ -53,6 +53,7 @@ typedef struct
   int width;
   /* The FSM of the game  */
   enum game_state state;
+  /* The current level */
   level level;
   /* Implementation of a menu depends on runtime.
    * The main logic of the game doesn't depend on a menu

@@ -1,7 +1,8 @@
-#include "minunit.h"
-#include "u8.h"
 #include "game.h"
+#include "minunit.h"
 #include "rtmterm.c"
+#include "u8.h"
+
 
 static char *
 empty_laby_test ()
@@ -17,8 +18,8 @@ empty_laby_test ()
   // when:
   render_level (&level, &buf);
   // then:
-  u8str actual = u8_buffer_to_dstr (&buf);
-  mu_dstr_eq_to_str (actual, expected);
+  u8str actual = u8_buffer_to_u8str (&buf);
+  mu_u8str_eq_to_str (actual, expected);
   return 0;
 }
 
@@ -49,8 +50,8 @@ simple_laby_test ()
   render_level (&level, &buf);
 
   // then:
-  u8str actual = u8_buffer_to_dstr (&buf);
-  mu_dstr_eq_to_str (actual, expected);
+  u8str actual = u8_buffer_to_u8str (&buf);
+  mu_u8str_eq_to_str (actual, expected);
   return 0;
 }
 
@@ -73,16 +74,7 @@ generate_eller_test ()
   render_level (&level, &buf);
 
   // then:
-  u8str actual = u8_buffer_to_dstr (&buf);
-  mu_dstr_eq_to_str (actual, expected);
-  return 0;
-}
-
-static char *
-rtm_all_tests ()
-{
-  mu_run_test (empty_laby_test);
-  mu_run_test (simple_laby_test);
-  mu_run_test (generate_eller_test);
+  u8str actual = u8_buffer_to_u8str (&buf);
+  mu_u8str_eq_to_str (actual, expected);
   return 0;
 }

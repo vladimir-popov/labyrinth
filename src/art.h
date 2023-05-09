@@ -26,7 +26,7 @@
 
 #define LB_NEW_GAME \
 "█▄░█ █▀▀ █░█░█   █▀▀ ▄▀█ █▀▄▀█ █▀▀\n" \
-"█░▀█ ██▄ ▀▄▀▄▀   █▄█ █▀█ █░▀░█ ██▄\n"
+"█░▀█ ██▄ ▀▄▀▄▀   █▄█ █▀█ █░▀░█ ██▄"
 
 #define LB_NEW_GAME_ROWS 2
 #define LB_NEW_GAME_COLS 33

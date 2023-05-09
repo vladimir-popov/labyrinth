@@ -2,44 +2,6 @@
 #ifndef __U8__
 #define __U8__
 
-/**
- * The representation of the string in utf-8 encoding,
- * which can be dynamically extended by another utf-8 string.
- * instead of standard string representation this one doesn't
- * ended by the '\0' symbol.
- */
-typedef struct
-{
-  /* count of bytes in the string */
-  int length;
-  /* bytes array */
-  char *chars;
-} u8str;
-
-#define U8_STR_EMPTY                                                            \
-  {                                                                           \
-    0, NULL                                                                   \
-  }
-
-/**
- * The buffer of symbols in utf-8 encoding, represented as a list of u8str
- * lines.
- */
-typedef struct
-{
-  /* count of lines */
-  int lines_count;
-  /* if true, than on next append a new line must be created */
-  int last_line_ended;
-  /* array of lines */
-  u8str *lines;
-} u8buf;
-
-#define U8_BUF_EMPTY                                                            \
-  {                                                                           \
-    0, 0, NULL                                                                \
-  }
-
 /*
  * Finds the nearest symbol to the n-th byte and returns the count of bytes
  * of this symbol.
@@ -64,6 +26,61 @@ int u8_find_index (const char *source, int len, int n);
  * with length len.
  */
 int u8_symbols_count (const char *source, int len);
+
+
+
+/**
+ * The representation of the string in utf-8 encoding,
+ * which can be dynamically extended by another utf-8 string.
+ * instead of standard string representation this one doesn't
+ * ended by the '\0' symbol.
+ */
+typedef struct
+{
+  /* count of bytes in the string */
+  int length;
+  /* bytes array */
+  char *chars;
+} u8str;
+
+#define U8_STR_EMPTY                                                          \
+  {                                                                           \
+    0, NULL                                                                   \
+  }
+
+void
+u8_str_init (u8str *str, const char *template, int len);
+
+void
+u8_str_append (u8str *dest, const char *prefix, int len);
+
+void
+u8_str_merge (u8str *dest, const u8str *source, int spad);
+
+void
+u8_str_free (const u8str *str);
+
+
+
+
+/**
+ * The buffer of symbols in utf-8 encoding, represented as a list of u8str
+ * lines.
+ */
+typedef struct
+{
+  /* count of lines */
+  int lines_count;
+  /* if true, than on next append a new line must be created */
+  int last_line_ended;
+  /* array of lines */
+  u8str *lines;
+} u8buf;
+
+#define U8_BUF_EMPTY                                                          \
+  {                                                                           \
+    0, 0, NULL                                                                \
+  }
 
 /**
  * Creates a new buffer with a single line `str`.
@@ -97,7 +114,7 @@ void u8_buffer_end_line (u8buf *buf);
 /**
  * Merges all lines to the single string with '\n' separator.
  */
-u8str u8_buffer_to_dstr (const u8buf *buf);
+u8str u8_buffer_to_u8str (const u8buf *buf);
 
 /**
  * Writes the buffer to the object referenced by the descriptor fildes.
@@ -121,7 +138,8 @@ void u8_buffer_write (int fildes, const u8buf *buf);
  * @colpad the count of symbols from the left border of the `dest` buffer,
  *         after which the symbols from the `source` line should be inserted.
  */
-void u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad, int colpad);
+void u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad,
+                      int colpad);
 
 void u8_buffer_free (u8buf *buf);
 

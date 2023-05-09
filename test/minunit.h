@@ -1,5 +1,8 @@
 #include <string.h>
 
+extern int tests_run;
+extern char *test_only;
+
 #define mu_assert(message, test)                                              \
   do                                                                          \
     {                                                                         \
@@ -8,20 +11,25 @@
     }                                                                         \
   while (0)
 
-#define mu_dstr_eq_to_str(actual_dstr, expected_str)                          \
-  mu_assert (actual_dstr.chars, strcmp (expected_str, actual_dstr.chars) == 0)
+#define mu_u8str_eq_to_str(actual_u8str, expected_str)                        \
+  mu_assert (actual_u8str.chars,                                              \
+             memcmp (actual_u8str.chars, expected_str, actual_u8str.length)   \
+                 == 0)
 
 #define mu_run_test(test)                                                     \
   do                                                                          \
     {                                                                         \
-      char *message = test ();                                                \
-      tests_run++;                                                            \
-      if (message)                                                            \
+      if (test_only == NULL || strstr (#test, test_only) != NULL)             \
         {                                                                     \
-          printf ("\x1b[31m - " #test " has been failed:\n");                 \
-          return message;                                                     \
+          char *message = test ();                                            \
+          tests_run++;                                                        \
+          if (message)                                                        \
+            {                                                                 \
+              printf ("\x1b[31m - " #test " has been failed:\n");             \
+              return message;                                                 \
+            }                                                                 \
+          else                                                                \
+            printf ("\x1b[32m + " #test " has been passed.\x1b[m\n");         \
         }                                                                     \
     }                                                                         \
   while (0)
-
-extern int tests_run;
