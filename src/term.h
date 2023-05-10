@@ -74,6 +74,13 @@ void show_cursor ();
 
 int get_cursor_position (int *rows, int *cols);
 
+/**
+ * Writes the string "CSI rows ; cols H" to the dest and returns
+ * the actual length of the string. The minimal size of the dest
+ * is 6, but  recommended is 10. 
+ */
+int set_cursor_position (char *dest, int rows, int cols);
+
 int get_window_size (int *rows, int *cols);
 
 #endif /* __TERM_H__ */

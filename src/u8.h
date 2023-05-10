@@ -108,17 +108,12 @@ void u8_buffer_end_line (u8buf *buf);
 u8str u8_buffer_to_u8str (const u8buf *buf);
 
 /**
- * Writes the buffer to the object referenced by the descriptor fildes.
- * Similar to:
- * ```
- * u8buf *buf = ...
- * u8str s;
- * buffer_to_str(buf, &s);
- * write(fields, s.chars, s.length);
- * ```
- * , but more effective.
+ * Writes the buffer to the object referenced by the descriptor fildes
+ * with a padding rowpad & colpad, and max width and heights. All values
+ * are numbers of symbols, not bytes.
  */
-void u8_buffer_write (int fildes, const u8buf *buf);
+void u8_buffer_write (int fildes, const u8buf *buf, int rowpad, int colpad,
+                      int width, int height);
 
 /**
  * Writes the `source` buffer upon the `dest` with specified padding.
@@ -127,7 +122,8 @@ void u8_buffer_write (int fildes, const u8buf *buf);
  *         after which the lines from the `source` should be inserted to
  *         the `dest` buffer.
  * @colpad the count of symbols from the left border of the `dest` buffer,
- *         after which the symbols from the `source` line should be inserted.
+ *         after which the symbols from the `source` line should be
+ * inserted.
  */
 void u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad,
                       int colpad);

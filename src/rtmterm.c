@@ -32,6 +32,10 @@ static const int laby_room_rows = 2;
 /* The count of symbols by horizontal of one room.  */
 static const int laby_room_cols = 4;
 
+/* visible game screen in chars */
+static const int game_rows = 78;
+static const int game_cols = 25;
+
 /* windows resolution in chars */
 int screen_rows = 0;
 int screen_cols = 0;
@@ -204,7 +208,7 @@ render (game *game)
     default:
       render_level (&game->level, &buf);
     }
-  u8_buffer_write (STDIN_FILENO, &buf);
+  u8_buffer_write (STDIN_FILENO, &buf, 0, 0, game_rows, game_cols);
   u8_buffer_free (&buf);
 }
 

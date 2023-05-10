@@ -206,12 +206,23 @@ u8_buffer_to_u8str (const u8buf *buf)
 }
 
 void
-u8_buffer_write (int fildes, const u8buf *buf)
+u8_buffer_write (int fildes, const u8buf *buf, int rowpad, int colpad,
+                 int width, int height)
 {
-  for (int i = 0; i < buf->lines_count; i++)
+  for (int i = 0; i < buf->lines_count && i < height; i++)
     {
+      int len;
+      char cup[10];
+      /* move cursor according to padding */
+      if (rowpad > 0)
+        {
+          len = set_cursor_position (cup, rowpad + i, colpad);
+          write (fildes, cup, len);
+        }
       u8str *line = &buf->lines[i];
-      write (fildes, line->chars, line->length);
+      len = u8_find_index (line->chars, line->length, width + 1);
+      len = (len < 0) ? line->length : len;
+      write (fildes, line->chars, len);
       if (i < buf->lines_count - 1)
         write (fildes, "\n", 1);
     }

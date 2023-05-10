@@ -1,4 +1,4 @@
-#include "rtmterm_tests.c"
+#include "laby_tests.c"
 #include "u8_tests.c"
 
 int tests_run = 0;
