@@ -1,5 +1,6 @@
 #include "term.h"
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -172,9 +173,10 @@ get_cursor_position (int *rows, int *cols)
   return 0;
 }
 
-int set_cursor_position (char *dest, int rows, int cols)
+int
+set_cursor_position (char **dest, int rows, int cols)
 {
-  return sprintf(dest, CSI "%d;%dH", rows, cols);
+  return asprintf (dest, CSI "%d;%dH", rows, cols);
 }
 
 int
@@ -194,4 +196,14 @@ get_window_size (int *rows, int *cols)
       *rows = ws.ws_row;
       return 0;
     }
+}
+
+int
+handle_windows_resize (void (*handler) (int))
+{
+  struct sigaction sig;
+  sig.sa_handler = handler;
+  sigemptyset (&sig.sa_mask);
+  sig.sa_flags = SA_RESTART;
+  return sigaction (SIGWINCH, &sig, NULL);
 }

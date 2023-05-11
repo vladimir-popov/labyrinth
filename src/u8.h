@@ -108,12 +108,15 @@ void u8_buffer_end_line (u8buf *buf);
 u8str u8_buffer_to_u8str (const u8buf *buf);
 
 /**
- * Writes the buffer to the object referenced by the descriptor fildes
- * with a padding rowpad & colpad, and max width and heights. All values
- * are numbers of symbols, not bytes.
+ * Crops and writes with padding the buffer to the object referenced by the
+ * descriptor fildes.
+ * @rowpad count of symbols padding from top of the screen.
+ * @colpad count of symbols padding from left side of the screen.
+ * @height count of symbols which will be written by vertical after padding.
+ * @width count of symbols which will be written by horizontal after padding.
  */
 void u8_buffer_write (int fildes, const u8buf *buf, int rowpad, int colpad,
-                      int width, int height);
+                      int height, int width);
 
 /**
  * Writes the `source` buffer upon the `dest` with specified padding.

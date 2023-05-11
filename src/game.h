@@ -61,6 +61,9 @@ typedef struct
   void *menu;
 } game;
 
+/**
+* Initializes a game with count of rooms in the labyrinth and seed number. 
+*/
 void game_init (game *game, int height, int width, int seed);
 
 void game_loop (game *game);

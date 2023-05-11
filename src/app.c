@@ -8,12 +8,17 @@
 
 time_t seed = 0;
 
-static int
-parse_args (int argc, char *argv[])
+void
+refresh_screen (int sig)
 {
   if (get_window_size (&screen_rows, &screen_cols) == -1)
     fatal ("Fail on getting the size of the window");
+  clear_screen ();
+}
 
+static int
+parse_args (int argc, char *argv[])
+{
   seed = time (NULL);
 
   int p;
@@ -54,12 +59,13 @@ main (int argc, char *argv[])
   if (parse_args (argc, argv) != 0)
     return -1;
 
-  int height = (screen_rows - 1) / laby_room_rows;
-  int width = (screen_cols - 1) / laby_room_cols;
-
   enter_safe_raw_mode ();
-  clear_screen ();
+  handle_windows_resize (refresh_screen);
+  refresh_screen (0);
   hide_cursor ();
+
+  int height = (game_rows - 1) / laby_room_rows;
+  int width = (game_cols - 1) / laby_room_cols;
 
   game game;
   game_init (&game, height, width, seed);

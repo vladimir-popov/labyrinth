@@ -32,12 +32,14 @@ static const int laby_room_rows = 2;
 /* The count of symbols by horizontal of one room.  */
 static const int laby_room_cols = 4;
 
-/* visible game screen in chars */
-static const int game_rows = 78;
-static const int game_cols = 25;
+/* The count of visible chars by vertical. */
+static const int game_rows = 25;
+/* The count of visible chars by horizontal. */
+static const int game_cols = 78;
 
-/* windows resolution in chars */
+/* The windows resolution in chars by vertical. */
 int screen_rows = 0;
+/* The windows resolution in chars by horizontal. */
 int screen_cols = 0;
 
 static int
@@ -178,7 +180,7 @@ render_welcome_screen (frame *frm, u8buf *buf)
 {
   /* Blink menu option */
   time_t now = time (NULL);
-  if ((now - frm->last_update_at) > 0.7)
+  if ((now - frm->last_update_at) > 0.4)
     {
       frm->state ^= 1;
       frm->last_update_at = now;
@@ -189,7 +191,7 @@ render_welcome_screen (frame *frm, u8buf *buf)
     {
       u8buf label = U8_BUF_EMPTY;
       u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (buf, &label, 11, 22);
+      u8_buffer_merge (buf, &label, 12, 22);
       u8_buffer_free (&label);
     }
 }
@@ -216,7 +218,7 @@ frame *
 create_welcome_screen ()
 {
   frame *welcome_screen = malloc (sizeof (frame));
-  welcome_screen->state = 1;
+  welcome_screen->state = 0;
   return welcome_screen;
 }
 
