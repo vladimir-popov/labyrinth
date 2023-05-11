@@ -3,8 +3,8 @@
 #define __U8__
 
 /*
- * Finds the nearest symbol to the n-th byte and returns the count of bytes
- * of this symbol.
+ * Finds the nearest visible symbol to the n-th byte and returns the count of
+ * bytes of this symbol.
  *
  * @source a string within the utf-8 encoding.
  * @len a count of bytes of the source string.
@@ -16,13 +16,13 @@
 int u8_find_symbol (const char *source, int len, int *n);
 
 /*
- * Returns the index of the n-th symbol (1-based), or -1 if symbols are not
- * enough.
+ * Returns the index of the n-th visible symbol (1-based), or -1 if symbols are
+ * not enough.
  */
 int u8_find_index (const char *source, int len, int n);
 
 /**
- * Returns a count of characters in utf-8 encoding in the string source
+ * Returns a count of visible characters in utf-8 encoding in the string source
  * with length len.
  */
 int u8_symbols_count (const char *source, int len);

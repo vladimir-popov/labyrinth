@@ -106,6 +106,12 @@ get_creature (level *level, int y, int x)
     return 0;
 }
 
+/**
+* @y number of the room by vertical 
+* @x number of the room by horizontal 
+* @r number of the char by vertical 
+* @c number of the char by horizontal 
+*/
 static void
 render_room (level *level, int y, int x, int r, int c, u8buf *buf)
 {
@@ -191,7 +197,7 @@ render_welcome_screen (frame *frm, u8buf *buf)
     {
       u8buf label = U8_BUF_EMPTY;
       u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (buf, &label, 12, 22);
+      u8_buffer_merge (buf, &label, 15, 22);
       u8_buffer_free (&label);
     }
 }

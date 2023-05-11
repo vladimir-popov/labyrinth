@@ -5,19 +5,28 @@
 #include <unistd.h>
 
 int
-u8_find_symbol (const char *source, int len, int *bix)
+u8_find_symbol (const char *source, int len, int *idx)
 {
   /* move to the nearest symbol beginning */
-  while ((*bix < len) && (source[*bix] & 0xC0) == 0x80)
-    (*bix)++;
+  while ((*idx < len) && (source[*idx] & 0xC0) == 0x80)
+    (*idx)++;
 
   /* looks like no one full symbol till the end */
-  if (*bix == len)
+  if (*idx == len)
     return 0;
+
+  /* skip control sequence */
+  // TODO skip CS more generally
+  if (source[*idx] == '\x1b')
+    do
+      {
+        (*idx)++;
+      }
+    while (source[*idx] == '[' || source[*idx] == 'H');
 
   /* count symbol's bytes */
   int n = 1;
-  while ((*bix + n) < len && (source[*bix + n] & 0xC0) == 0x80)
+  while ((*idx + n) < len && (source[*idx + n] & 0xC0) == 0x80)
     n++;
 
   return n;
@@ -182,7 +191,8 @@ u8_buffer_parse (u8buf *buf, const char *str)
   char *next = strtok (s, "\r\n");
   while (next != NULL)
     {
-      u8_buffer_add_line (buf, next, strlen (next));
+      u8_buffer_append_str (buf, next, strlen (next));
+      u8_buffer_end_line (buf);
       next = strtok (NULL, "\r\n");
     }
   free (s);
@@ -212,18 +222,20 @@ u8_buffer_write (int fildes, const u8buf *buf, int rowpad, int colpad,
   for (int i = 0; i < buf->lines_count && i < height; i++)
     {
       int len;
-      char *cup;
       /* move cursor according to padding */
-      if (rowpad > 0)
+      if (rowpad > 0 || colpad > 0)
         {
-          len = set_cursor_position (&cup, rowpad + i, colpad);
+          char *cup;
+          len = set_cursor_position (&cup, rowpad + i + 1, colpad + 1);
           write (fildes, cup, len);
           free (cup);
         }
       u8str *line = &buf->lines[i];
+      /* Cut line */
       len = u8_find_index (line->chars, line->length, width + 1);
       len = (len < 0) ? line->length : len;
       write (fildes, line->chars, len);
+      /* Break line */
       if (i < buf->lines_count - 1)
         write (fildes, "\n", 1);
     }

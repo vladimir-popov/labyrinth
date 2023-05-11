@@ -18,10 +18,11 @@ static char *
 utf8_find_index_test ()
 {
   // given:
-  const char *utf_str = "ⒶⒷⒸⒹ";
+  const char *utf_str = "ⒶⒷ\x1b[HⒸⒹ";
   // when:
   int index1 = u8_find_index (utf_str, strlen (utf_str), 1);
   int index2 = u8_find_index (utf_str, strlen (utf_str), 2);
+  int index3 = u8_find_index (utf_str, strlen (utf_str), 3);
   // then:
   char *msg = malloc (sizeof (char) * 38);
   sprintf (msg, "Wrong index of the first symbol: %3d", index1);
@@ -29,6 +30,9 @@ utf8_find_index_test ()
 
   sprintf (msg, "Wrong index of the second symbol: %3d", index2);
   mu_assert (msg, index2 == 3);
+
+  sprintf (msg, "Wrong index of the third symbol: %3d", index3);
+  mu_assert (msg, index3 == 9);
   return 0;
 }
 
@@ -36,7 +40,7 @@ static char *
 utf8_symbols_count_test ()
 {
   // given:
-  const char *utf_str = "ⒶⒷⒸⒹ";
+  const char *utf_str = "ⒶⒷⒸ\x1bⒹ";
   // when:
   int count = u8_symbols_count (utf_str, strlen (utf_str));
   // then:
@@ -48,12 +52,12 @@ static char *
 utf8_find_symbol_test ()
 {
   // given:
-  const char *utf_str = "ⒶⒷⒸⒹ";
+  const char *utf_str = "Ⓐ\x1b[ⒷⒸⒹ";
   int bix = 1;
   // when:
   int size = u8_find_symbol (utf_str, strlen (utf_str), &bix);
   // then:
-  mu_assert ("Wrong position of the symbol", bix == 3);
+  mu_assert ("Wrong position of the symbol", bix == 5);
   mu_assert ("Wrong size of the symbol", size == 3);
   return 0;
 }
