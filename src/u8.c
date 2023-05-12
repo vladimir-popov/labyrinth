@@ -73,13 +73,14 @@ u8_str_append (u8str *dest, const char *prefix, int len)
   dest->length += len;
 }
 
-static void
-u8_str_repeate (u8str *ds, const char ch, int count)
+void
+u8_str_append_repeate (u8str *ds, const char *str, int len, int count)
 {
-  ds->chars = malloc (sizeof (char) * count);
-  ds->length = count;
-  for (int i = 0; i < count; i++)
-    ds->chars[i] = ch;
+  int i = ds->length;
+  ds->length += sizeof (char) * count * len;
+  ds->chars = realloc (ds->chars, ds->length);
+  for (; i < ds->length; i += len)
+    memcpy (&ds->chars[i], str, len);
 }
 
 void
@@ -261,8 +262,8 @@ u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad, int colpad)
   /* Just copy extra lines from the second buffer */
   for (; j < source->lines_count; j++)
     {
-      u8str ds;
-      u8_str_repeate (&ds, ' ', colpad);
+      u8str ds = U8_STR_EMPTY;
+      u8_str_append_repeate (&ds, " ", 1, colpad);
       u8_str_append (&ds, source->lines[j].chars, source->lines[j].length);
       u8_buffer_add_str_line (dest, ds);
     }

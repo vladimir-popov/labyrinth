@@ -58,9 +58,6 @@ static char *
 get_corner (int border, int neighbor)
 {
   if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
-      && not_expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
-    return "┏";
-  if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
       && expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "╋";
   if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
@@ -197,7 +194,7 @@ render_welcome_screen (frame *frm, u8buf *buf)
     {
       u8buf label = U8_BUF_EMPTY;
       u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (buf, &label, 15, 22);
+      u8_buffer_merge (buf, &label, 14, 22);
       u8_buffer_free (&label);
     }
 }
