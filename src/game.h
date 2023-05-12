@@ -21,16 +21,17 @@ enum game_state
 {
   ST_MAIN_MENU,
   ST_GAME,
-  ST_PAUSE
+  ST_PAUSE,
+  ST_WIN
 };
 
 typedef struct
 {
   int y;
   int x;
-} player;
+} position;
 
-#define PLAYER_EMPTY                                                          \
+#define POSITION_EMPTY                                                        \
   {                                                                           \
     0, 0                                                                      \
   }
@@ -38,12 +39,13 @@ typedef struct
 typedef struct
 {
   laby lab;
-  player player;
+  position player;
+  position exit;
 } level;
 
 #define LEVEL_EMPTY                                                           \
   {                                                                           \
-    LABY_EMPTY, PLAYER_EMPTY                                                  \
+    LABY_EMPTY, POSITION_EMPTY, POSITION_EMPTY                                \
   }
 
 typedef struct

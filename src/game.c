@@ -15,6 +15,8 @@ generate_new_level (level *level, int height, int width, int seed)
   laby_generate (&level->lab, height, width, seed);
   level->player.y = 0;
   level->player.x = 0;
+  level->exit.y = 1;// height - 1;
+  level->exit.x = 1;// width - 1;
 }
 
 static int
@@ -41,7 +43,7 @@ static int
 handle_cmd_in_game (game *game, enum command cmd)
 {
   level *level = &game->level;
-  player *p = &level->player;
+  position *p = &level->player;
   char border = laby_get_border (&game->level.lab, p->y, p->x);
   switch (cmd)
     {
@@ -66,7 +68,12 @@ handle_cmd_in_game (game *game, enum command cmd)
       game->menu = create_menu (game, ST_PAUSE);
       break;
     default:
-      return CONTINUE_LOOP;
+      break;
+    }
+  if (p->y == level->exit.y && p->x == level->exit.x)
+    {
+      game->state = ST_WIN;
+      game->menu = create_menu (game, ST_WIN);
     }
   return CONTINUE_LOOP;
 }
@@ -78,7 +85,7 @@ handle_cmd_in_pause (game *game, enum command cmd)
     {
     case CMD_CONTINUE:
       game->state = ST_GAME;
-      close_menu(game->menu, ST_GAME);
+      close_menu (game->menu, ST_GAME);
       game->menu = NULL;
       return CONTINUE_LOOP;
 
@@ -92,6 +99,18 @@ handle_cmd_in_pause (game *game, enum command cmd)
   return CONTINUE_LOOP;
 }
 
+static int
+handle_cmd_in_win (game *game, enum command cmd)
+{
+  switch (cmd)
+    {
+    case CMD_EXIT:
+      return STOP_LOOP;
+    default:
+      return CONTINUE_LOOP;
+    }
+}
+
 int
 handle_command (game *game, enum command cmd)
 {
@@ -103,6 +122,8 @@ handle_command (game *game, enum command cmd)
       return handle_cmd_in_game (game, cmd);
     case ST_PAUSE:
       return handle_cmd_in_pause (game, cmd);
+    case ST_WIN:
+      return handle_cmd_in_win (game, cmd);
     }
 }
 

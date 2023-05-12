@@ -161,8 +161,15 @@ read_command (game *game)
           return CMD_NOTHING;
         }
 
-    default:
-      return CMD_NOTHING;
+    case ST_WIN:
+      switch (key)
+        {
+        case KEY_CANCEL:
+        case KEY_ENTER:
+          return CMD_EXIT;
+        default:
+          return CMD_NOTHING;
+        }
     }
 }
 
@@ -219,10 +226,12 @@ get_corner (int border, int neighbor)
 }
 
 static char *
-get_creature (level *level, int y, int x)
+get_object (level *level, int y, int x)
 {
   if (level->player.y == y && level->player.x == x)
     return "@";
+  if (level->exit.y == y && level->exit.x == x)
+    return "⛿";
   else
     return 0;
 }
@@ -245,7 +254,7 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
   int neighbor = laby_get_border (lab, y - 1, x - 1);
 
   int is_visited = laby_is_visited (lab, y, x);
-  char *creature = get_creature (level, y, x);
+  char *object = get_object (level, y, x);
 
   char *s;
   /* render the first row of symbols of the room */
@@ -261,10 +270,10 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
     {
       int is_border = (c == 0) && (border & LEFT_BORDER);
 
-      s = (is_border)                       ? "┃"
-          : (creature && (r > 0 && c == 2)) ? creature
-          : (is_visited)                    ? "·"
-                                            : " ";
+      s = (is_border)                     ? "┃"
+          : (object && (r > 0 && c == 2)) ? object
+          : (is_visited)                  ? "·"
+                                          : " ";
     }
   u8_buffer_append_str (buf, s, strlen (s));
 }
@@ -358,22 +367,40 @@ render_pause_menu (menu *m, u8buf *buf)
 }
 
 void
+render_winning (menu *m, u8buf *buf)
+{
+  u8buf frame = U8_BUF_EMPTY;
+  u8buf label = U8_BUF_EMPTY;
+  art_border border = ART_SINGLE_BORDER;
+  art_create_frame (&frame, 10, 60, border);
+  u8_buffer_parse (&label, LB_YOU_WIN);
+  u8_buffer_merge (&frame, &label, 2, 2);
+  u8_buffer_merge (buf, &frame, 6, 8);
+  u8_buffer_free (&frame);
+  u8_buffer_free (&label);
+}
+
+void
 render (game *game)
 {
   /* Put the cursor to the upper left corner */
   u8buf buf = U8_BUF_EMPTY;
   u8_buffer_init (&buf, CUP);
+  if (game->state != ST_MAIN_MENU)
+    render_level (&game->level, &buf);
   switch (game->state)
     {
     case ST_MAIN_MENU:
       render_welcome_screen ((menu *)game->menu, &buf);
       break;
     case ST_PAUSE:
-      render_level (&game->level, &buf);
       render_pause_menu ((menu *)game->menu, &buf);
       break;
-    default:
-      render_level (&game->level, &buf);
+    case ST_WIN:
+      render_winning ((menu *)game->menu, &buf);
+      break;
+    case ST_GAME:
+      break;
     }
   u8_buffer_write (STDIN_FILENO, &buf, 0, 0, game_rows, game_cols);
   u8_buffer_free (&buf);
