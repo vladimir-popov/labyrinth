@@ -91,7 +91,7 @@ enter_safe_raw_mode ()
 }
 
 key_p
-read_key ()
+read_pressed_key ()
 {
   char chars[3];
   key_p k = { 0, chars };
@@ -139,7 +139,7 @@ hide_cursor ()
 {
   write (STDIN_FILENO, RM_HIDE_CU, 6);
   if (atexit (show_cursor) != 0)
-    fatal ("can't register reset visability of the cursor");
+    fatal ("can't register reset visibility of the cursor");
 }
 
 void

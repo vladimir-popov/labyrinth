@@ -4,7 +4,11 @@
 #define FATAL_EXIT_CODE 42
 
 /* Code of some keys */
-#define ENTER_KEY 13
+#define KEY_CODE_ENTER 13
+#define KEY_CODE_UP 'A'
+#define KEY_CODE_DOWN 'B'
+#define KEY_CODE_LEFT 'D'
+#define KEY_CODE_RIGHT 'C'
 
 /* Control Symbol Introducer */
 #define ESC '\x1b'
@@ -60,7 +64,7 @@ void fatal (char *message);
 
 int is_key_pressed ();
 
-key_p read_key ();
+key_p read_pressed_key ();
 
 void disable_raw_mode ();
 

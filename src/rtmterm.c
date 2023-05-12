@@ -18,12 +18,11 @@ typedef struct
 {
   time_t last_update_at;
   int state;
-  u8buf buf;
-} frame;
+} menu;
 
-#define SCREEN_EMPTY                                                          \
+#define MENU_EMPTY                                                            \
   {                                                                           \
-    0.0, 0, 0, DBUF_EMPTY                                                     \
+    0.0, 0                                                                    \
   }
 
 /* The count of symbols by vertical of one room.  */
@@ -41,6 +40,57 @@ static const int game_cols = 78;
 int screen_rows = 0;
 /* The windows resolution in chars by horizontal. */
 int screen_cols = 0;
+
+enum key
+{
+  KEY_UNKNOWN,
+  KEY_ENTER,
+  KEY_CANCEL,
+  KEY_LEFT,
+  KEY_UP,
+  KEY_RIGHT,
+  KEY_DOWN
+};
+
+enum key
+read_key ()
+{
+  key_p kp = read_pressed_key ();
+  if (kp.len == 1)
+    switch (kp.chars[0])
+      {
+      case ESC:
+        return KEY_CANCEL;
+      case KEY_CODE_ENTER:
+        return KEY_ENTER;
+      case 'j':
+        return KEY_DOWN;
+      case 'k':
+        return KEY_UP;
+      case 'h':
+        return KEY_LEFT;
+      case 'l':
+        return KEY_RIGHT;
+      }
+
+  if (kp.len == 2)
+    return KEY_UNKNOWN;
+
+  if (kp.len == 3)
+    switch (kp.chars[2])
+      {
+      case KEY_CODE_DOWN:
+        return KEY_DOWN;
+      case KEY_CODE_UP:
+        return KEY_UP;
+      case KEY_CODE_LEFT:
+        return KEY_LEFT;
+      case KEY_CODE_RIGHT:
+        return KEY_RIGHT;
+      }
+
+  return KEY_UNKNOWN;
+}
 
 static int
 expect_borders (int border, char expected)
@@ -104,11 +154,11 @@ get_creature (level *level, int y, int x)
 }
 
 /**
-* @y number of the room by vertical 
-* @x number of the room by horizontal 
-* @r number of the char by vertical 
-* @c number of the char by horizontal 
-*/
+ * @y number of the room by vertical
+ * @x number of the room by horizontal
+ * @r number of the char by vertical
+ * @c number of the char by horizontal
+ */
 static void
 render_room (level *level, int y, int x, int r, int c, u8buf *buf)
 {
@@ -179,22 +229,33 @@ render_level (level *level, u8buf *buf)
 }
 
 void
-render_welcome_screen (frame *frm, u8buf *buf)
+render_welcome_screen (menu *m, u8buf *buf)
 {
   /* Blink menu option */
   time_t now = time (NULL);
-  if ((now - frm->last_update_at) > 0.4)
+  if ((now - m->last_update_at) > 0.4)
     {
-      frm->state ^= 1;
-      frm->last_update_at = now;
+      // m->state = -m->state;
+      m->last_update_at = now;
     }
 
   u8_buffer_parse (buf, WELCOME_SCREEN);
-  if (frm->state)
+  if (m->state > 0)
     {
       u8buf label = U8_BUF_EMPTY;
-      u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (buf, &label, 14, 22);
+      switch (m->state)
+        {
+          /* New game */
+        case 1:
+          u8_buffer_parse (&label, LB_NEW_GAME);
+          u8_buffer_merge (buf, &label, 14, 22);
+          break;
+          /* Exit */
+        case 2:
+          u8_buffer_parse (&label, LB_EXIT);
+          u8_buffer_merge (buf, &label, 14, 30);
+          break;
+        }
       u8_buffer_free (&label);
     }
 }
@@ -208,7 +269,7 @@ render (game *game)
   switch (game->state)
     {
     case ST_MAIN_MENU:
-      render_welcome_screen ((frame *)game->menu, &buf);
+      render_welcome_screen ((menu *)game->menu, &buf);
       break;
     default:
       render_level (&game->level, &buf);
@@ -217,11 +278,11 @@ render (game *game)
   u8_buffer_free (&buf);
 }
 
-frame *
+menu *
 create_welcome_screen ()
 {
-  frame *welcome_screen = malloc (sizeof (frame));
-  welcome_screen->state = 0;
+  menu *welcome_screen = malloc (sizeof (menu));
+  welcome_screen->state = 1;
   return welcome_screen;
 }
 
@@ -238,39 +299,54 @@ create_menu (const game *game, enum game_state state)
 void
 close_menu (void *menu, enum game_state state)
 {
-  frame *welcome_screen = (frame *)menu;
-  u8_buffer_free (&welcome_screen->buf);
-  free (welcome_screen);
+  free (menu);
 }
 
 enum command
 read_command (game *game)
 {
-  key_p key = read_key ();
+  enum key key = read_key ();
   switch (game->state)
     {
     case ST_MAIN_MENU:
-      if (key.len == 1 && key.chars[0] == ENTER_KEY)
-        return CMD_NEW_GAME;
-      if (key.len == 1 && key.chars[0] == ESC)
-        return CMD_EXIT;
+      {
+        menu *ws = (menu *)game->menu;
+        switch (key)
+          {
+          case KEY_ENTER:
+            return (ws->state == 1) ? CMD_NEW_GAME : CMD_EXIT;
+          case KEY_CANCEL:
+            return CMD_EXIT;
+          case KEY_UP:
+            {
+              ws->state = (ws->state == 2) ? 1 : ws->state;
+              return CMD_NOTHING;
+            }
+          case KEY_DOWN:
+            {
+              ws->state = (ws->state == 1) ? 2 : ws->state;
+              return CMD_NOTHING;
+            }
+          default:
+            return CMD_NOTHING;
+          }
+      }
 
     case ST_GAME:
-      if (key.len == 1 && key.chars[0] == ESC)
-        return CMD_EXIT;
-      if (key.len == 3 && key.chars[1] == '[')
+      switch (key)
         {
-          switch (key.chars[2])
-            {
-            case 'A':
-              return CMD_MV_UP;
-            case 'B':
-              return CMD_MV_DOWN;
-            case 'C':
-              return CMD_MV_RIGHT;
-            case 'D':
-              return CMD_MV_LEFT;
-            }
+        case KEY_UP:
+          return CMD_MV_UP;
+        case KEY_DOWN:
+          return CMD_MV_DOWN;
+        case KEY_RIGHT:
+          return CMD_MV_RIGHT;
+        case KEY_LEFT:
+          return CMD_MV_LEFT;
+        case KEY_CANCEL:
+          return CMD_EXIT;
+        default:
+          return CMD_NOTHING;
         }
 
     default:
