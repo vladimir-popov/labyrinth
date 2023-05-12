@@ -5,6 +5,10 @@
 #include "game.h"
 #include <stdio.h>
 
+static const int CONTINUE_LOOP = 1;
+
+static const int STOP_LOOP = 0;
+
 static void
 generate_new_level (level *level, int height, int width, int seed)
 {
@@ -23,11 +27,13 @@ handle_cmd_in_main_menu (game *game, enum command cmd)
       game->state = ST_GAME;
       close_menu (game->menu, ST_MAIN_MENU);
       game->menu = NULL;
-      return 1;
+      return CONTINUE_LOOP;
+
     case CMD_EXIT:
-      return 0;
+      return STOP_LOOP;
+
     default:
-      return 1;
+      return CONTINUE_LOOP;
     }
 }
 
@@ -55,18 +61,35 @@ handle_cmd_in_game (game *game, enum command cmd)
       if ((p->y < level->lab.height - 1) && !(border & BOTTOM_BORDER))
         p->y++;
       break;
-    case CMD_EXIT:
-      return 0;
+    case CMD_PAUSE:
+      game->state = ST_PAUSE;
+      game->menu = create_menu (game, ST_PAUSE);
+      break;
     default:
-      return 1;
+      return CONTINUE_LOOP;
     }
-  return 1;
+  return CONTINUE_LOOP;
 }
 
 static int
 handle_cmd_in_pause (game *game, enum command cmd)
 {
-  return 1;
+  switch (cmd)
+    {
+    case CMD_CONTINUE:
+      game->state = ST_GAME;
+      close_menu(game->menu, ST_GAME);
+      game->menu = NULL;
+      return CONTINUE_LOOP;
+
+    case CMD_EXIT:
+      return STOP_LOOP;
+
+    default:
+      return CONTINUE_LOOP;
+    }
+
+  return CONTINUE_LOOP;
 }
 
 int

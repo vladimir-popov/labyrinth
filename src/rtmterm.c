@@ -92,6 +92,80 @@ read_key ()
   return KEY_UNKNOWN;
 }
 
+enum command
+read_command (game *game)
+{
+  enum key key = read_key ();
+  menu *m = (menu *)game->menu;
+  switch (game->state)
+    {
+    case ST_MAIN_MENU:
+      {
+        switch (key)
+          {
+          case KEY_ENTER:
+            return (m->state == 1) ? CMD_NEW_GAME : CMD_EXIT;
+          case KEY_CANCEL:
+            return CMD_EXIT;
+          case KEY_UP:
+            m->state = (m->state == 2) ? 1 : m->state;
+            return CMD_NOTHING;
+
+          case KEY_DOWN:
+            m->state = (m->state == 1) ? 2 : m->state;
+            return CMD_NOTHING;
+
+          default:
+            return CMD_NOTHING;
+          }
+      }
+
+    case ST_GAME:
+      switch (key)
+        {
+        case KEY_UP:
+          return CMD_MV_UP;
+        case KEY_DOWN:
+          return CMD_MV_DOWN;
+        case KEY_RIGHT:
+          return CMD_MV_RIGHT;
+        case KEY_LEFT:
+          return CMD_MV_LEFT;
+        case KEY_CANCEL:
+          return CMD_PAUSE;
+        default:
+          return CMD_NOTHING;
+        }
+
+    case ST_PAUSE:
+      switch (key)
+        {
+        case KEY_UP:
+          m->state = (m->state == 0) ? 1 : 0;
+          break;
+
+        case KEY_DOWN:
+          m->state = (m->state == 1) ? 0 : 1;
+          break;
+
+        case KEY_CANCEL:
+          return CMD_CONTINUE;
+
+        case KEY_ENTER:
+          if (m->state)
+            return CMD_EXIT;
+          else
+            return CMD_CONTINUE;
+
+        default:
+          return CMD_NOTHING;
+        }
+
+    default:
+      return CMD_NOTHING;
+    }
+}
+
 static int
 expect_borders (int border, char expected)
 {
@@ -240,24 +314,47 @@ render_welcome_screen (menu *m, u8buf *buf)
     }
 
   u8_buffer_parse (buf, WELCOME_SCREEN);
-  if (m->state > 0)
+  u8buf label = U8_BUF_EMPTY;
+  switch (m->state)
     {
-      u8buf label = U8_BUF_EMPTY;
-      switch (m->state)
-        {
-          /* New game */
-        case 1:
-          u8_buffer_parse (&label, LB_NEW_GAME);
-          u8_buffer_merge (buf, &label, 14, 22);
-          break;
-          /* Exit */
-        case 2:
-          u8_buffer_parse (&label, LB_EXIT);
-          u8_buffer_merge (buf, &label, 14, 30);
-          break;
-        }
-      u8_buffer_free (&label);
+    case 0:
+      m->state = 1;
+      break;
+      /* New game */
+    case 1:
+      u8_buffer_parse (&label, LB_NEW_GAME);
+      u8_buffer_merge (buf, &label, 14, 22);
+      break;
+      /* Exit */
+    case 2:
+      u8_buffer_parse (&label, LB_EXIT);
+      u8_buffer_merge (buf, &label, 14, 30);
+      break;
     }
+  u8_buffer_free (&label);
+}
+
+void
+render_pause_menu (menu *m, u8buf *buf)
+{
+  u8buf frame = U8_BUF_EMPTY;
+  u8buf label = U8_BUF_EMPTY;
+  art_border border = ART_SINGLE_BORDER;
+  art_create_frame (&frame, 8, 40, border);
+  switch (m->state)
+    {
+    case 0:
+      u8_buffer_parse (&label, LB_CONTINUE);
+      u8_buffer_merge (&frame, &label, 3, 4);
+      break;
+    case 1:
+      u8_buffer_parse (&label, LB_EXIT);
+      u8_buffer_merge (&frame, &label, 3, 14);
+      break;
+    }
+  u8_buffer_merge (buf, &frame, 8, 19);
+  u8_buffer_free (&frame);
+  u8_buffer_free (&label);
 }
 
 void
@@ -271,6 +368,10 @@ render (game *game)
     case ST_MAIN_MENU:
       render_welcome_screen ((menu *)game->menu, &buf);
       break;
+    case ST_PAUSE:
+      render_level (&game->level, &buf);
+      render_pause_menu ((menu *)game->menu, &buf);
+      break;
     default:
       render_level (&game->level, &buf);
     }
@@ -278,78 +379,16 @@ render (game *game)
   u8_buffer_free (&buf);
 }
 
-menu *
-create_welcome_screen ()
-{
-  menu *welcome_screen = malloc (sizeof (menu));
-  welcome_screen->state = 1;
-  return welcome_screen;
-}
-
 void *
 create_menu (const game *game, enum game_state state)
 {
-  // switch (state)
-  //   {
-  //   case ST_MAIN_MENU:
-  return create_welcome_screen ();
-  // }
+  menu *m = malloc (sizeof (menu));
+  m->state = 0;
+  return m;
 }
 
 void
 close_menu (void *menu, enum game_state state)
 {
   free (menu);
-}
-
-enum command
-read_command (game *game)
-{
-  enum key key = read_key ();
-  switch (game->state)
-    {
-    case ST_MAIN_MENU:
-      {
-        menu *ws = (menu *)game->menu;
-        switch (key)
-          {
-          case KEY_ENTER:
-            return (ws->state == 1) ? CMD_NEW_GAME : CMD_EXIT;
-          case KEY_CANCEL:
-            return CMD_EXIT;
-          case KEY_UP:
-            {
-              ws->state = (ws->state == 2) ? 1 : ws->state;
-              return CMD_NOTHING;
-            }
-          case KEY_DOWN:
-            {
-              ws->state = (ws->state == 1) ? 2 : ws->state;
-              return CMD_NOTHING;
-            }
-          default:
-            return CMD_NOTHING;
-          }
-      }
-
-    case ST_GAME:
-      switch (key)
-        {
-        case KEY_UP:
-          return CMD_MV_UP;
-        case KEY_DOWN:
-          return CMD_MV_DOWN;
-        case KEY_RIGHT:
-          return CMD_MV_RIGHT;
-        case KEY_LEFT:
-          return CMD_MV_LEFT;
-        case KEY_CANCEL:
-          return CMD_EXIT;
-        default:
-          return CMD_NOTHING;
-        }
-
-    default:
-      return CMD_NOTHING;
-    }
 }

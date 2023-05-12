@@ -12,6 +12,8 @@ enum command
   CMD_MV_UP,
   CMD_MV_RIGHT,
   CMD_MV_DOWN,
+  CMD_PAUSE,
+  CMD_CONTINUE,
   CMD_EXIT,
 };
 
@@ -62,8 +64,8 @@ typedef struct
 } game;
 
 /**
-* Initializes a game with count of rooms in the labyrinth and seed number. 
-*/
+ * Initializes a game with count of rooms in the labyrinth and seed number.
+ */
 void game_init (game *game, int height, int width, int seed);
 
 void game_loop (game *game);
