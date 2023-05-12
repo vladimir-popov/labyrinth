@@ -385,7 +385,6 @@ render (game *game)
 {
   /* Put the cursor to the upper left corner */
   u8buf buf = U8_BUF_EMPTY;
-  u8_buffer_init (&buf, CUP);
   if (game->state != ST_MAIN_MENU)
     render_level (&game->level, &buf);
   switch (game->state)
@@ -402,7 +401,16 @@ render (game *game)
     case ST_GAME:
       break;
     }
-  u8_buffer_write (STDIN_FILENO, &buf, 0, 0, game_rows, game_cols);
+
+  int rowpad = (screen_rows - game_rows) / 2;
+  rowpad = (rowpad > 0) ? rowpad : 0;
+  int colpad = (screen_cols - game_cols) / 2;
+  colpad = (colpad > 0) ? colpad : 0;
+
+  int rows = (screen_rows < game_rows) ? screen_rows : game_rows;
+  int cols = (screen_cols < game_cols) ? screen_cols : game_cols;
+
+  u8_buffer_write (STDIN_FILENO, &buf, rowpad, colpad, rows, cols);
   u8_buffer_free (&buf);
 }
 
