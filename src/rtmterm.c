@@ -141,11 +141,8 @@ read_command (game *game)
       switch (key)
         {
         case KEY_UP:
-          m->state = (m->state == 0) ? 1 : 0;
-          break;
-
         case KEY_DOWN:
-          m->state = (m->state == 1) ? 0 : 1;
+          m->state ^= 1;
           break;
 
         case KEY_CANCEL:
@@ -153,9 +150,9 @@ read_command (game *game)
 
         case KEY_ENTER:
           if (m->state)
-            return CMD_EXIT;
-          else
             return CMD_CONTINUE;
+          else
+            return CMD_EXIT;
 
         default:
           return CMD_NOTHING;
@@ -171,18 +168,6 @@ read_command (game *game)
           return CMD_NOTHING;
         }
     }
-}
-
-static int
-expect_borders (int border, char expected)
-{
-  return (border & expected) == expected;
-}
-
-static int
-not_expect_borders (int border, char expected)
-{
-  return (border & expected) == 0;
 }
 
 static char *
@@ -253,17 +238,16 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
   int border = laby_get_border (lab, y, x);
   int neighbor = laby_get_border (lab, y - 1, x - 1);
 
-  int is_visited = laby_is_visited (lab, y, x);
   char *object = get_object (level, y, x);
 
   char *s;
   /* render the first row of symbols of the room */
   if (r == 0)
     {
-      s = (c == 0)                  ? get_corner (border, neighbor)
-          : (border & UPPER_BORDER) ? "━"
-          : (is_visited || laby_is_visited (lab, y - 1, x)) ? "·"
-                                                            : " ";
+      s = (c == 0)                     ? get_corner (border, neighbor)
+          : (border & UPPER_BORDER)    ? "━"
+          : (lab->rooms[y - 1][x] & 1) ? "·"
+                                       : " ";
     }
   /* render the content of the room (the second row) */
   else
@@ -272,7 +256,7 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
 
       s = (is_border)                     ? "┃"
           : (object && (r > 0 && c == 2)) ? object
-          : (is_visited)                  ? "·"
+          : (lab->rooms[y][x] & 1)        ? "·"
                                           : " ";
     }
   u8_buffer_append_str (buf, s, strlen (s));
@@ -285,6 +269,15 @@ void
 render_level (level *level, u8buf *buf)
 {
   laby *lab = &level->lab;
+  player *p = &level->player;
+
+  /* Find all visible rooms and mark them */
+  if (level->visible_rooms == NULL)
+    level->visible_rooms_count = laby_find_visible_rooms (
+        lab, &level->visible_rooms, p->y, p->x, p->visible_range);
+
+  for (int i = 0; i < level->visible_rooms_count; i++)
+    *level->visible_rooms[i] |= 1;
 
   /* Render rooms from every row, plus one extra row for the bottom borders */
   for (int y = 0; y <= lab->height; y++)
@@ -352,11 +345,11 @@ render_pause_menu (menu *m, u8buf *buf)
   art_create_frame (&frame, 8, 40, border);
   switch (m->state)
     {
-    case 0:
+    case 1:
       u8_buffer_parse (&label, LB_CONTINUE);
       u8_buffer_merge (&frame, &label, 3, 4);
       break;
-    case 1:
+    case 0:
       u8_buffer_parse (&label, LB_EXIT);
       u8_buffer_merge (&frame, &label, 3, 14);
       break;

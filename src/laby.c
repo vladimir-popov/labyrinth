@@ -4,6 +4,7 @@
  * about the visited rooms, items, creatures and so on.
  */
 #include "laby.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,7 +31,7 @@ laby_free (laby *lab)
 
 /*  Returns only 4 first bits, which are about borders of the room. */
 unsigned char
-laby_get_border (laby *lab, int y, int x)
+laby_get_border (const laby *lab, int y, int x)
 {
   int is_x_inside = x >= 0 && x < lab->width;
   int is_y_inside = y >= 0 && y < lab->height;
@@ -102,19 +103,80 @@ laby_rm_border (laby *lab, int y, int x, enum border border)
     if (y > 0)
       lab->rooms[y - 1][x] &= ~BOTTOM_BORDER;
 }
-
-void
-laby_mark_as_visited (laby *lab, int r, int c)
+int
+expect_borders (int border, char expected)
 {
-  lab->rooms[r][c] |= 1;
+  return (border & expected) == expected;
 }
 
-char
-laby_is_visited (laby *lab, int y, int x)
+int
+not_expect_borders (int border, char expected)
 {
-  int is_y_inside = y >= 0 && y < lab->height;
-  int is_x_inside = x >= 0 && x < lab->width;
-  return (is_y_inside && is_x_inside) ? lab->rooms[y][x] & 1 : 0;
+  return (border & expected) == 0;
+}
+
+static int
+is_visible_room (const laby *lab, int fy, int fx, int y, int x)
+{
+  int borders = laby_get_border (lab, fy, fx);
+  int neighbor = laby_get_border (lab, y, x);
+  int result = 1;
+
+  if (x < fx)
+    result &= not_expect_borders (borders, LEFT_BORDER)
+              && not_expect_borders (neighbor, RIGHT_BORDER);
+  if (x > fx && result)
+    result &= not_expect_borders (borders, RIGHT_BORDER)
+              && not_expect_borders (neighbor, LEFT_BORDER);
+  if (y < fy && result)
+    result &= not_expect_borders (borders, UPPER_BORDER)
+              && not_expect_borders (neighbor, BOTTOM_BORDER);
+  if (y > fy && result)
+    result &= not_expect_borders (borders, BOTTOM_BORDER)
+              && not_expect_borders (neighbor, UPPER_BORDER);
+  return result;
+}
+
+static void
+find_visible_rooms_in_direction (const laby *lab, p_room *dest, int fy, int fx,
+                                 int range, int dy, int dx, int *count)
+{
+  int y = fy + dy;
+  int x = fx + dx;
+  if (y < 0 || x < 0)
+    return;
+
+  if (is_visible_room (lab, fy, fx, y, x))
+    {
+      dest[*count] = &lab->rooms[y][x];
+      (*count)++;
+      /* continue search in the same direction */
+      if (range > 0)
+        find_visible_rooms_in_direction (lab, dest, y, x, range - 1, dy, dx,
+                                         count);
+    }
+}
+
+int
+laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
+                         int range)
+{
+  if (range == 0)
+    return 0;
+
+  /* let's get the max needed memory as an area of rooms around */
+  *dest = malloc (sizeof (p_room) * (2 * range + 1) * (2 * range + 1));
+
+  int count = 0;
+  for (int dy = -1; dy <= 1; dy++)
+    for (int dx = -1; dx <= 1; dx++)
+      {
+        find_visible_rooms_in_direction (lab, *dest, fy, fx, range, dy, dx,
+                                         &count);
+      }
+  /* adjustment of the used memory */
+  *dest = realloc (*dest, sizeof (p_room) * count);
+  return count;
 }
 
 void
@@ -125,7 +187,7 @@ laby_set_content (laby *lab, int y, int x, unsigned char value)
 }
 
 unsigned char
-laby_get_content (laby *lab, int r, int c)
+laby_get_content (const laby *lab, int r, int c)
 {
   return lab->rooms[r][c] >> CONTENT_SHIFT;
 }

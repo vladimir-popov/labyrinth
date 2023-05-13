@@ -1,6 +1,20 @@
 #ifndef __LABY__
 #define __LABY__
 
+/**
+ * Coordinates of the room in the labyrinth.
+ */
+typedef struct
+{
+  int y;
+  int x;
+} pos;
+
+#define POSITION_EMPTY                                                        \
+  {                                                                           \
+    0, 0                                                                      \
+  }
+
 /*
  * All information about a single room should be encoded in one byte:
  *
@@ -12,9 +26,11 @@
  * Section U: describes the upper border of the room;
  * Section R: describes the right border of the room;
  * Section B: describes the bottom border of the room;
- * Section V: was room visited by player or not;
+ * Section V: is visible room or not;
  */
 typedef unsigned int room;
+
+typedef room *p_room;
 
 #define BORDERS_BITS_COUNT 4
 #define VISIT_BITS_COUNT 1
@@ -57,7 +73,7 @@ void laby_init_empty (laby *lab, int height, int width);
 void laby_free (laby *lab);
 
 /*  Returns only 4 first bits, which are about borders of the room. */
-unsigned char laby_get_border (laby *lab, int y, int x);
+unsigned char laby_get_border (const laby *lab, int y, int x);
 
 /* Add border flag. */
 void laby_add_border (laby *lab, int y, int x, enum border border);
@@ -65,13 +81,28 @@ void laby_add_border (laby *lab, int y, int x, enum border border);
 /* Remove border flag. */
 void laby_rm_border (laby *lab, int y, int x, enum border border);
 
-void laby_mark_as_visited (laby *lab, int y, int x);
+/**
+ * Checks the flag `expected` in the `border` and returns 0 if the flag is NOT
+ * set, or else a value > 0.
+ */
+int expect_borders (int border, char expected);
 
-char laby_is_visited (laby *lab, int y, int x);
+/**
+ * Checks the flag `expected` in the `border` and returns 0 if the flag IS
+ * set, or else a value > 0.
+ */
+int not_expect_borders (int border, char expected);
+
+/**
+ * Finds all visible rooms from the room on fy:fx in the range and put them to
+ * the dest. Returns a count of the visible rooms (the length of the dest).
+ */
+int laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
+                            int range);
 
 void laby_set_content (laby *lab, int y, int x, unsigned char value);
 
-unsigned char laby_get_content (laby *lab, int y, int x);
+unsigned char laby_get_content (const laby *lab, int y, int x);
 
 void laby_generate (laby *lab, int height, int width, int seed);
 

@@ -15,8 +15,8 @@ generate_new_level (level *level, int height, int width, int seed)
   laby_generate (&level->lab, height, width, seed);
   level->player.y = 0;
   level->player.x = 0;
-  level->exit.y = 1;// height - 1;
-  level->exit.x = 1;// width - 1;
+  level->exit.y = 1; // height - 1;
+  level->exit.x = 1; // width - 1;
 }
 
 static int
@@ -43,7 +43,7 @@ static int
 handle_cmd_in_game (game *game, enum command cmd)
 {
   level *level = &game->level;
-  position *p = &level->player;
+  player *p = &level->player;
   char border = laby_get_border (&game->level.lab, p->y, p->x);
   switch (cmd)
     {

@@ -27,25 +27,31 @@ enum game_state
 
 typedef struct
 {
-  int y;
-  int x;
-} position;
+  unsigned char y;
+  unsigned char x;
+  /* The radius of visible rooms circle including the y:x.
+   * 1 means that only current y:x room is visible. 0 turns off visibility
+   * check completely. */
+  unsigned char visible_range;
+} player;
 
-#define POSITION_EMPTY                                                        \
+#define PLAYER_DEFAULT                                                        \
   {                                                                           \
-    0, 0                                                                      \
+    0, 0, 0                                                                   \
   }
 
 typedef struct
 {
   laby lab;
-  position player;
-  position exit;
+  player player;
+  pos exit;
+  p_room *visible_rooms;
+  unsigned char visible_rooms_count;
 } level;
 
 #define LEVEL_EMPTY                                                           \
   {                                                                           \
-    LABY_EMPTY, POSITION_EMPTY, POSITION_EMPTY                                \
+    LABY_EMPTY, PLAYER_DEFAULT, POSITION_EMPTY, NULL, 0                       \
   }
 
 typedef struct
