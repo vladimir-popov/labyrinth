@@ -61,7 +61,7 @@ laby_get_border (const laby *lab, int y, int x)
   else
     border = 0;
 
-  return border & (0xf << VISIBILITY_BITS);
+  return border & 0xf;
 }
 
 /* Add border flag. */

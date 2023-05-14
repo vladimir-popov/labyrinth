@@ -18,29 +18,38 @@ typedef struct
 /*
  * All information about a single room should be encoded in one byte:
  *
- * |   C   |L U R B|V|
- * |0 ... 0|0 0 0 0|0|
+ * |   C   |M|V|L U R B|
+ * |0 ... 0|0|0|0 0 0 0|
  *
- * Section C: describes a content of the room;
- * Section L: describes the left border of the room;
- * Section U: describes the upper border of the room;
- * Section R: describes the right border of the room;
  * Section B: describes the bottom border of the room;
- * Section V: is visible room or not;
+ * Section R: describes the right border of the room;
+ * Section U: describes the upper border of the room;
+ * Section L: describes the left border of the room;
+ * Section V: is visible the room for player or not;
+ * Section M: is visible the room on map or not;
+ * Section C: describes a content of the room;
  */
 typedef unsigned int room;
 
 typedef room *p_room;
 
-#define ROOM_IS_VISIBLE(P_ROOM) (*P_ROOM & 1)
-#define ROOM_MARK_AS_VISIBLE(P_ROOM) (*P_ROOM |= 1)
-#define ROOM_MARK_AS_NOT_VISIBLE(P_ROOM) (*P_ROOM &= ~1)
+#define VISIBILITY_MASK 0x10
+#define ON_MAP_MASK 0x11
+
+#define VISIBILITY_SHIFT 4
+#define ON_MAP_SHIFT 5
+#define CONTENT_SHIFT 6
+
+#define ROOM_IS_VISIBLE(P_ROOM) (*P_ROOM & VISIBILITY_MASK)
+#define ROOM_MARK_AS_VISIBLE(P_ROOM) (*P_ROOM |= VISIBILITY_MASK)
+#define ROOM_MARK_AS_NOT_VISIBLE(P_ROOM) (*P_ROOM &= ~VISIBILITY_MASK)
 
 /**
  * Checks the flag `expected` in the `border` and returns 0 if the flag is NOT
  * set, or else a value > 0.
  */
-#define EXPECT_BORDERS(BORDERS, EXPECTED) ((BORDERS & (EXPECTED)) == (EXPECTED))
+#define EXPECT_BORDERS(BORDERS, EXPECTED)                                     \
+  ((BORDERS & (EXPECTED)) == (EXPECTED))
 
 /**
  * Checks the flag `unexpected` in the `borders` and returns 0 if the flag IS
@@ -48,16 +57,12 @@ typedef room *p_room;
  */
 #define NOT_EXPECT_BORDERS(BORDERS, UNEXPECTED) ((BORDERS & (UNEXPECTED)) == 0)
 
-#define BORDERS_BITS 4
-#define VISIBILITY_BITS 1
-#define CONTENT_SHIFT 5
-
 enum border
 {
-  BOTTOM_BORDER = 1 << VISIBILITY_BITS,
-  RIGHT_BORDER = 2 << VISIBILITY_BITS,
-  UPPER_BORDER = 4 << VISIBILITY_BITS,
-  LEFT_BORDER = 8 << VISIBILITY_BITS,
+  BOTTOM_BORDER = 1,
+  RIGHT_BORDER = 2,
+  UPPER_BORDER = 4,
+  LEFT_BORDER = 8,
 };
 
 /* The single horizontal line of rooms. */
