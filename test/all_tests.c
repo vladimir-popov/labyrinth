@@ -33,9 +33,9 @@ int
 main (void)
 {
   if (test_only == NULL)
-    printf (SGR_GREEN "Run tests...\n" SGR_RESET);
+    printf (SGR_GREEN "Run tests...\n" SGR_RED);
   else
-    printf (SGR_GREEN "Run only %s...\n" SGR_RESET, test_only);
+    printf (SGR_GREEN "Run only %s...\n" SGR_RED, test_only);
 
   char *result = all_tests ();
   if (result != 0)

@@ -143,22 +143,31 @@ is_visible_room (const laby *lab, int fy, int fx, int y, int x)
 }
 
 static void
-find_visible_rooms_in_direction (const laby *lab, p_room *dest, int fy, int fx,
-                                 int range, int dy, int dx, int *count)
+find_visible_rooms_in_direction (const laby *lab, p_room *dest, float fy,
+                                 float fx, int range, float dy, float dx,
+                                 int *count)
 {
-  int y = fy + dy;
-  int x = fx + dx;
-  if (y < 0 || x < 0)
+  float y = fy + dy;
+  float x = fx + dx;
+  if (y < 0 || x < 0 || range == 0)
     return;
 
   if (is_visible_room (lab, fy, fx, y, x))
     {
-      dest[*count] = &lab->rooms[(int)y][(int)x];
-      (*count)++;
+      p_room pr = &lab->rooms[(int)y][(int)x];
+      int c = 0;
+      /* skip already found rooms */
+      for (; c < *count; c++)
+        if (dest[c] == pr)
+          break;
+      if (c == *count)
+        {
+          dest[*count] = pr;
+          (*count)++;
+        }
       /* continue search in the same direction */
-      if (range > 0)
-        find_visible_rooms_in_direction (lab, dest, y, x, range - 1, dy, dx,
-                                         count);
+      find_visible_rooms_in_direction (lab, dest, y, x, range - 1, dy, dx,
+                                       count);
     }
 }
 
@@ -178,10 +187,10 @@ laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
    * - marks all visible rooms in the direction till the end of the range,
    *   or meeting the first not visible room   */
   int count = 0;
-  for (int dy = -1; dy <= 1; dy++)
-    for (int dx = -1; dx <= 1; dx++)
+  for (float dy = -1; dy <= 1; dy += 0.5f)
+    for (float dx = -1; dx <= 1; dx += 0.5f)
       {
-        find_visible_rooms_in_direction (lab, *dest, fy, fx, range - 1, dy, dx,
+        find_visible_rooms_in_direction (lab, *dest, fy, fx, range, dy, dx,
                                          &count);
       }
   /* adjustment of the used memory */
