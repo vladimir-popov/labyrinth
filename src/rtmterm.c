@@ -74,7 +74,7 @@ enum key
 enum key
 read_key ()
 {
-  key_p kp = read_pressed_key ();
+  key_code kp = read_pressed_key ();
   if (kp.len == 1)
     switch (kp.chars[0])
       {
@@ -416,8 +416,11 @@ render (game *game)
 {
   /* Put the cursor to the upper left corner */
   u8buf buf = U8_BUF_EMPTY;
+
+  /* only the main screen overlaps the level completely */
   if (game->state != ST_MAIN_MENU)
     render_level (&game->level, &buf);
+
   switch (game->state)
     {
     case ST_MAIN_MENU:

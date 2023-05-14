@@ -67,7 +67,7 @@ main (int argc, char *argv[])
   int height = (game_rows - 1) / laby_room_rows;
   int width = (game_cols - 1) / laby_room_cols;
 
-  game game;
+  game game = GAME_EMPTY;
   game_init (&game, height, width, seed);
   game_loop (&game);
 

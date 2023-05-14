@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
 /* Creates a new labyrinth with height x width empty rooms. */
 void
 laby_init_empty (laby *lab, int height, int width)
@@ -122,8 +120,6 @@ laby_set_visible (laby *lab, int y, int x)
   ROOM_MARK_AS_VISIBLE (&lab->rooms[y][x]);
 }
 
-void laby_set_visible (laby *lab, int y, int x);
-
 static int
 is_visible_room (const laby *lab, int fy, int fx, int y, int x)
 {
@@ -180,7 +176,7 @@ laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
   for (int dy = -1; dy <= 1; dy++)
     for (int dx = -1; dx <= 1; dx++)
       {
-        find_visible_rooms_in_direction (lab, *dest, fy, fx, range, dy, dx,
+        find_visible_rooms_in_direction (lab, *dest, fy, fx, range - 1, dy, dx,
                                          &count);
       }
   /* adjustment of the used memory */

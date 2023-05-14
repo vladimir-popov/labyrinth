@@ -4,6 +4,7 @@
  */
 #include "game.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static const int CONTINUE_LOOP = 1;
 
@@ -15,21 +16,9 @@ generate_new_level (level *level, int height, int width, int seed)
   laby_generate (&level->lab, height, width, seed);
   level->player.y = 0;
   level->player.x = 0;
+  level->player.visible_range = 2;
   level->exit.y = 1; // height - 1;
   level->exit.x = 1; // width - 1;
-}
-
-void
-mark_visible_rooms (level *level)
-{
-  player *p = &level->player;
-
-  if (level->visible_rooms == NULL)
-    level->visible_rooms_count = laby_find_visible_rooms (
-        &level->lab, &level->visible_rooms, p->y, p->x, p->visible_range);
-
-  for (int i = 0; i < level->visible_rooms_count; i++)
-    ROOM_MARK_AS_VISIBLE (level->visible_rooms[i]);
 }
 
 static int
@@ -52,6 +41,19 @@ handle_cmd_in_main_menu (game *game, enum command cmd)
     }
 }
 
+static void
+move_player (game *game, int dy, int dx)
+{
+  game->level.player.y += dy;
+  game->level.player.x += dx;
+  for (int i = 0; i < game->level.visible_rooms_count; i++)
+    ROOM_MARK_AS_NOT_VISIBLE (game->level.visible_rooms[i]);
+
+  game->level.visible_rooms_count = 0;
+  free (game->level.visible_rooms);
+  game->level.visible_rooms = NULL;
+}
+
 static int
 handle_cmd_in_game (game *game, enum command cmd)
 {
@@ -62,19 +64,19 @@ handle_cmd_in_game (game *game, enum command cmd)
     {
     case CMD_MV_LEFT:
       if ((p->x > 0) && !(border & LEFT_BORDER))
-        MOVE_PLAYER (game, 0, -1);
+        move_player (game, 0, -1);
       break;
     case CMD_MV_UP:
       if ((p->y > 0) && !(border & UPPER_BORDER))
-        MOVE_PLAYER (game, -1, 0);
+        move_player (game, -1, 0);
       break;
     case CMD_MV_RIGHT:
       if ((p->x < level->lab.width - 1) && !(border & RIGHT_BORDER))
-        MOVE_PLAYER (game, 0, 1);
+        move_player (game, 0, 1);
       break;
     case CMD_MV_DOWN:
       if ((p->y < level->lab.height - 1) && !(border & BOTTOM_BORDER))
-        MOVE_PLAYER (game, 1, 0);
+        move_player (game, 1, 0);
       break;
     case CMD_PAUSE:
       game->state = ST_PAUSE;
@@ -151,12 +153,26 @@ game_init (game *game, int height, int width, int seed)
 }
 
 void
+mark_visible_rooms (level *level)
+{
+  player *p = &level->player;
+
+  if (level->visible_rooms == NULL)
+    level->visible_rooms_count = laby_find_visible_rooms (
+        &level->lab, &level->visible_rooms, p->y, p->x, p->visible_range);
+
+  for (int i = 0; i < level->visible_rooms_count; i++)
+    ROOM_MARK_AS_VISIBLE (level->visible_rooms[i]);
+}
+
+void
 game_loop (game *game)
 {
   enum command cmd;
   do
     {
-      mark_visible_rooms (&game->level);
+      if (game->state == ST_GAME)
+        mark_visible_rooms (&game->level);
       render (game);
       cmd = read_command (game);
     }
