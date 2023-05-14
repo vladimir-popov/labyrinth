@@ -19,6 +19,19 @@ generate_new_level (level *level, int height, int width, int seed)
   level->exit.x = 1; // width - 1;
 }
 
+void
+mark_visible_rooms (level *level)
+{
+  player *p = &level->player;
+
+  if (level->visible_rooms == NULL)
+    level->visible_rooms_count = laby_find_visible_rooms (
+        &level->lab, &level->visible_rooms, p->y, p->x, p->visible_range);
+
+  for (int i = 0; i < level->visible_rooms_count; i++)
+    ROOM_MARK_AS_VISIBLE (level->visible_rooms[i]);
+}
+
 static int
 handle_cmd_in_main_menu (game *game, enum command cmd)
 {
@@ -44,24 +57,24 @@ handle_cmd_in_game (game *game, enum command cmd)
 {
   level *level = &game->level;
   player *p = &level->player;
-  char border = laby_get_border (&game->level.lab, p->y, p->x);
+  char border = laby_get_border (&level->lab, p->y, p->x);
   switch (cmd)
     {
     case CMD_MV_LEFT:
       if ((p->x > 0) && !(border & LEFT_BORDER))
-        p->x--;
+        MOVE_PLAYER (game, 0, -1);
       break;
     case CMD_MV_UP:
       if ((p->y > 0) && !(border & UPPER_BORDER))
-        p->y--;
+        MOVE_PLAYER (game, -1, 0);
       break;
     case CMD_MV_RIGHT:
       if ((p->x < level->lab.width - 1) && !(border & RIGHT_BORDER))
-        p->x++;
+        MOVE_PLAYER (game, 0, 1);
       break;
     case CMD_MV_DOWN:
       if ((p->y < level->lab.height - 1) && !(border & BOTTOM_BORDER))
-        p->y++;
+        MOVE_PLAYER (game, 1, 0);
       break;
     case CMD_PAUSE:
       game->state = ST_PAUSE;
@@ -143,6 +156,7 @@ game_loop (game *game)
   enum command cmd;
   do
     {
+      mark_visible_rooms (&game->level);
       render (game);
       cmd = read_command (game);
     }

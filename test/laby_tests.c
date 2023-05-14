@@ -62,12 +62,13 @@ laby_visibility_test_1 ()
   laby_init_empty (&level.lab, 3, 3);
   laby_add_border (&level.lab, 0, 1, BOTTOM_BORDER);
   laby_add_border (&level.lab, 2, 2, UPPER_BORDER);
+  mark_visible_rooms (&level);
 
   char *expected = "┏━━━━━━━━━━━┓\n"
                    "┃ ⛿         ┃\n"
                    "┃   ━━━━    ┃\n"
                    "┃·····@·····┃\n"
-                   "┃··· ···━━━━┫\n"
+                   "┃·······━━━━┫\n"
                    "┃·······    ┃\n"
                    "┗━━━━━━━━━━━┛";
 
@@ -88,6 +89,7 @@ laby_visibility_test_2 ()
   level level = LEVEL_EMPTY;
   level.player.visible_range = 2;
   laby_init_empty (&level.lab, 4, 4);
+  mark_visible_rooms (&level);
   char *expected = "┏━━━━━━━━━━━━━━━┓\n"
                    "┃·@·········    ┃\n"
                    "┃···········    ┃\n"

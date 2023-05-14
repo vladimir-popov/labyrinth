@@ -32,17 +32,32 @@ typedef unsigned int room;
 
 typedef room *p_room;
 
-#define BORDERS_BITS_COUNT 4
-#define VISIT_BITS_COUNT 1
+#define ROOM_IS_VISIBLE(P_ROOM) (*P_ROOM & 1)
+#define ROOM_MARK_AS_VISIBLE(P_ROOM) (*P_ROOM |= 1)
+#define ROOM_MARK_AS_NOT_VISIBLE(P_ROOM) (*P_ROOM &= ~1)
 
-#define CONTENT_SHIFT (BORDERS_BITS_COUNT + VISIT_BITS_COUNT)
+/**
+ * Checks the flag `expected` in the `border` and returns 0 if the flag is NOT
+ * set, or else a value > 0.
+ */
+#define EXPECT_BORDERS(BORDERS, EXPECTED) ((BORDERS & (EXPECTED)) == (EXPECTED))
+
+/**
+ * Checks the flag `unexpected` in the `borders` and returns 0 if the flag IS
+ * set, or else a value > 0.
+ */
+#define NOT_EXPECT_BORDERS(BORDERS, UNEXPECTED) ((BORDERS & (UNEXPECTED)) == 0)
+
+#define BORDERS_BITS 4
+#define VISIBILITY_BITS 1
+#define CONTENT_SHIFT 5
 
 enum border
 {
-  BOTTOM_BORDER = 1 << VISIT_BITS_COUNT,
-  RIGHT_BORDER = 2 << VISIT_BITS_COUNT,
-  UPPER_BORDER = 4 << VISIT_BITS_COUNT,
-  LEFT_BORDER = 8 << VISIT_BITS_COUNT,
+  BOTTOM_BORDER = 1 << VISIBILITY_BITS,
+  RIGHT_BORDER = 2 << VISIBILITY_BITS,
+  UPPER_BORDER = 4 << VISIBILITY_BITS,
+  LEFT_BORDER = 8 << VISIBILITY_BITS,
 };
 
 /* The single horizontal line of rooms. */
@@ -82,23 +97,15 @@ void laby_add_border (laby *lab, int y, int x, enum border border);
 void laby_rm_border (laby *lab, int y, int x, enum border border);
 
 /**
- * Checks the flag `expected` in the `border` and returns 0 if the flag is NOT
- * set, or else a value > 0.
- */
-int expect_borders (int border, char expected);
-
-/**
- * Checks the flag `expected` in the `border` and returns 0 if the flag IS
- * set, or else a value > 0.
- */
-int not_expect_borders (int border, char expected);
-
-/**
  * Finds all visible rooms from the room on fy:fx in the range and put them to
  * the dest. Returns a count of the visible rooms (the length of the dest).
  */
 int laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
-                            int range);
+                             int range);
+
+int laby_is_visible (const laby *lab, int y, int x);
+
+void laby_set_visible (laby *lab, int y, int x);
 
 void laby_set_content (laby *lab, int y, int x, unsigned char value);
 

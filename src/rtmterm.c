@@ -171,43 +171,43 @@ read_command (game *game)
 }
 
 static char *
-get_corner (int border, int neighbor)
+get_corner (int border, int neighbor, char *no_corner)
 {
-  if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
-      && expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
+  if (EXPECT_BORDERS (border, LEFT_BORDER | UPPER_BORDER)
+      && EXPECT_BORDERS (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "╋";
-  if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
-      && expect_borders (neighbor, RIGHT_BORDER))
+  if (EXPECT_BORDERS (border, LEFT_BORDER | UPPER_BORDER)
+      && EXPECT_BORDERS (neighbor, RIGHT_BORDER))
     return "┣";
-  if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
-      && expect_borders (neighbor, BOTTOM_BORDER))
+  if (EXPECT_BORDERS (border, LEFT_BORDER | UPPER_BORDER)
+      && EXPECT_BORDERS (neighbor, BOTTOM_BORDER))
     return "┳";
-  if (expect_borders (border, LEFT_BORDER)
-      && expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
+  if (EXPECT_BORDERS (border, LEFT_BORDER)
+      && EXPECT_BORDERS (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "┫";
-  if (expect_borders (border, UPPER_BORDER)
-      && expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
+  if (EXPECT_BORDERS (border, UPPER_BORDER)
+      && EXPECT_BORDERS (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "┻";
-  if (expect_borders (border, LEFT_BORDER | UPPER_BORDER)
-      && not_expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
+  if (EXPECT_BORDERS (border, LEFT_BORDER | UPPER_BORDER)
+      && NOT_EXPECT_BORDERS (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "┏";
-  if (not_expect_borders (border, LEFT_BORDER | UPPER_BORDER)
-      && expect_borders (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
+  if (NOT_EXPECT_BORDERS (border, LEFT_BORDER | UPPER_BORDER)
+      && EXPECT_BORDERS (neighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return "┛";
-  if (expect_borders (border, UPPER_BORDER)
-      && expect_borders (neighbor, RIGHT_BORDER))
+  if (EXPECT_BORDERS (border, UPPER_BORDER)
+      && EXPECT_BORDERS (neighbor, RIGHT_BORDER))
     return "┗";
-  if (expect_borders (border, LEFT_BORDER)
-      && expect_borders (neighbor, BOTTOM_BORDER))
+  if (EXPECT_BORDERS (border, LEFT_BORDER)
+      && EXPECT_BORDERS (neighbor, BOTTOM_BORDER))
     return "┓";
-  if (expect_borders (border, UPPER_BORDER)
-      && not_expect_borders (neighbor, RIGHT_BORDER))
+  if (EXPECT_BORDERS (border, UPPER_BORDER)
+      && NOT_EXPECT_BORDERS (neighbor, RIGHT_BORDER))
     return "━";
-  if (expect_borders (border, LEFT_BORDER)
-      && not_expect_borders (neighbor, BOTTOM_BORDER))
+  if (EXPECT_BORDERS (border, LEFT_BORDER)
+      && NOT_EXPECT_BORDERS (neighbor, BOTTOM_BORDER))
     return "┃";
 
-  return " ";
+  return no_corner;
 }
 
 static char *
@@ -244,10 +244,10 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
   /* render the first row of symbols of the room */
   if (r == 0)
     {
-      s = (c == 0)                     ? get_corner (border, neighbor)
-          : (border & UPPER_BORDER)    ? "━"
-          : (lab->rooms[y - 1][x] & 1) ? "·"
-                                       : " ";
+      s = (laby_is_visible (lab, y - 1, x)) ? "·" : " ";
+      s = (c == 0)                  ? get_corner (border, neighbor, s)
+          : (border & UPPER_BORDER) ? "━"
+                                    : s;
     }
   /* render the content of the room (the second row) */
   else
@@ -256,7 +256,7 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
 
       s = (is_border)                     ? "┃"
           : (object && (r > 0 && c == 2)) ? object
-          : (lab->rooms[y][x] & 1)        ? "·"
+          : (laby_is_visible (lab, y, x)) ? "·"
                                           : " ";
     }
   u8_buffer_append_str (buf, s, strlen (s));
@@ -269,15 +269,6 @@ void
 render_level (level *level, u8buf *buf)
 {
   laby *lab = &level->lab;
-  player *p = &level->player;
-
-  /* Find all visible rooms and mark them */
-  if (level->visible_rooms == NULL)
-    level->visible_rooms_count = laby_find_visible_rooms (
-        lab, &level->visible_rooms, p->y, p->x, p->visible_range);
-
-  for (int i = 0; i < level->visible_rooms_count; i++)
-    *level->visible_rooms[i] |= 1;
 
   /* Render rooms from every row, plus one extra row for the bottom borders */
   for (int y = 0; y <= lab->height; y++)

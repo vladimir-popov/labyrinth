@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
 /* Creates a new labyrinth with height x width empty rooms. */
 void
 laby_init_empty (laby *lab, int height, int width)
@@ -61,7 +63,7 @@ laby_get_border (const laby *lab, int y, int x)
   else
     border = 0;
 
-  return border & (0xf << VISIT_BITS_COUNT);
+  return border & (0xf << VISIBILITY_BITS);
 }
 
 /* Add border flag. */
@@ -103,17 +105,24 @@ laby_rm_border (laby *lab, int y, int x, enum border border)
     if (y > 0)
       lab->rooms[y - 1][x] &= ~BOTTOM_BORDER;
 }
-int
-expect_borders (int border, char expected)
-{
-  return (border & expected) == expected;
-}
 
 int
-not_expect_borders (int border, char expected)
+laby_is_visible (const laby *lab, int y, int x)
 {
-  return (border & expected) == 0;
+  int is_x_inside = x >= 0 && x < lab->width;
+  int is_y_inside = y >= 0 && y < lab->height;
+
+  return (is_y_inside && is_x_inside) ? ROOM_IS_VISIBLE (&lab->rooms[y][x])
+                                      : 0;
 }
+
+void
+laby_set_visible (laby *lab, int y, int x)
+{
+  ROOM_MARK_AS_VISIBLE (&lab->rooms[y][x]);
+}
+
+void laby_set_visible (laby *lab, int y, int x);
 
 static int
 is_visible_room (const laby *lab, int fy, int fx, int y, int x)
@@ -123,17 +132,17 @@ is_visible_room (const laby *lab, int fy, int fx, int y, int x)
   int result = 1;
 
   if (x < fx)
-    result &= not_expect_borders (borders, LEFT_BORDER)
-              && not_expect_borders (neighbor, RIGHT_BORDER);
+    result &= NOT_EXPECT_BORDERS (borders, LEFT_BORDER)
+              && NOT_EXPECT_BORDERS (neighbor, RIGHT_BORDER);
   if (x > fx && result)
-    result &= not_expect_borders (borders, RIGHT_BORDER)
-              && not_expect_borders (neighbor, LEFT_BORDER);
+    result &= NOT_EXPECT_BORDERS (borders, RIGHT_BORDER)
+              && NOT_EXPECT_BORDERS (neighbor, LEFT_BORDER);
   if (y < fy && result)
-    result &= not_expect_borders (borders, UPPER_BORDER)
-              && not_expect_borders (neighbor, BOTTOM_BORDER);
+    result &= NOT_EXPECT_BORDERS (borders, UPPER_BORDER)
+              && NOT_EXPECT_BORDERS (neighbor, BOTTOM_BORDER);
   if (y > fy && result)
-    result &= not_expect_borders (borders, BOTTOM_BORDER)
-              && not_expect_borders (neighbor, UPPER_BORDER);
+    result &= NOT_EXPECT_BORDERS (borders, BOTTOM_BORDER)
+              && NOT_EXPECT_BORDERS (neighbor, UPPER_BORDER);
   return result;
 }
 

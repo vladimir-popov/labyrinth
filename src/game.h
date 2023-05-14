@@ -71,10 +71,23 @@ typedef struct
   void *menu;
 } game;
 
+#define MOVE_PLAYER(P_GAME, DY, DX)                                           \
+  do                                                                          \
+    {                                                                         \
+      P_GAME->level.player.y += DY;                                           \
+      P_GAME->level.player.x += DX;                                           \
+      for (int i = 0; i < P_GAME->level.visible_rooms_count; i++)             \
+        ROOM_MARK_AS_NOT_VISIBLE (P_GAME->level.visible_rooms[i]);            \
+    }                                                                         \
+  while (0)
+
 /**
  * Initializes a game with count of rooms in the labyrinth and seed number.
  */
 void game_init (game *game, int height, int width, int seed);
+
+/* Finds all visible rooms and marks them. */
+void mark_visible_rooms (level *level);
 
 void game_loop (game *game);
 

@@ -35,6 +35,7 @@ test-compile: compile
 		$(SRC)/art.c \
 		$(SRC)/laby.c  	\
 		$(SRC)/term.c  	\
+		$(SRC)/game.c  	\
 		$(TEST)/all_tests.c
 
 test: test-compile
