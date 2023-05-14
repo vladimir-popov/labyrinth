@@ -1,8 +1,6 @@
 #ifndef __ART__
 #define __ART__
 
-#include "u8.h"
-
 // clang-format off
 
 #define WELCOME_SCREEN  \
@@ -67,22 +65,4 @@
 
 // clang-format on
 
-typedef struct
-{
-  char *vert;
-  char *hor;
-  char *luc;
-  char *ruc;
-  char *lbc;
-  char *rbc;
-  char *bg;
-} art_border;
-
-#define ART_SINGLE_BORDER                                                     \
-  {                                                                           \
-    "┃", "━", "┏", "┓", "┗", "┛", " "                                         \
-  }
-
-void art_create_frame (u8buf *buf, int height, int width,
-                       const art_border border);
 #endif

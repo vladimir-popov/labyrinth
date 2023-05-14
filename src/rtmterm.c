@@ -14,6 +14,25 @@
 #include "term.h"
 #include "u8.h"
 
+#ifndef __FRAME_BORDERS__
+typedef struct
+{
+  char *vert;
+  char *hor;
+  char *luc;
+  char *ruc;
+  char *lbc;
+  char *rbc;
+  char *bg;
+} art_border;
+
+#define ART_SINGLE_BORDER                                                     \
+  {                                                                           \
+    "┃", "━", "┏", "┓", "┗", "┛", " "                                         \
+  }
+
+#endif // __FRAME_BORDERS__
+
 typedef struct
 {
   time_t last_update_at;
@@ -295,6 +314,34 @@ render_level (level *level, u8buf *buf)
     }
 }
 
+static void
+create_frame (u8buf *buf, int height, int width, const art_border b)
+{
+  for (int i = 0; i < height; i++)
+    {
+      u8str str = U8_STR_EMPTY;
+      if (i == 0)
+        {
+          u8_str_append (&str, b.luc, strlen (b.luc));
+          u8_str_append_repeate (&str, b.hor, strlen (b.hor), width - 2);
+          u8_str_append (&str, b.ruc, strlen (b.ruc));
+        }
+      else if (i == height - 1)
+        {
+          u8_str_append (&str, b.lbc, strlen (b.lbc));
+          u8_str_append_repeate (&str, b.hor, strlen (b.hor), width - 2);
+          u8_str_append (&str, b.rbc, strlen (b.rbc));
+        }
+      else
+        {
+          u8_str_append (&str, b.vert, strlen (b.vert));
+          u8_str_append_repeate (&str, b.bg, strlen (b.bg), width - 2);
+          u8_str_append (&str, b.vert, strlen (b.vert));
+        }
+      u8_buffer_add_line (buf, str.chars, str.length);
+    }
+}
+
 void
 render_welcome_screen (menu *m, u8buf *buf)
 {
@@ -333,7 +380,7 @@ render_pause_menu (menu *m, u8buf *buf)
   u8buf frame = U8_BUF_EMPTY;
   u8buf label = U8_BUF_EMPTY;
   art_border border = ART_SINGLE_BORDER;
-  art_create_frame (&frame, 8, 40, border);
+  create_frame (&frame, 8, 40, border);
   switch (m->state)
     {
     case 1:
@@ -356,7 +403,7 @@ render_winning (menu *m, u8buf *buf)
   u8buf frame = U8_BUF_EMPTY;
   u8buf label = U8_BUF_EMPTY;
   art_border border = ART_SINGLE_BORDER;
-  art_create_frame (&frame, 10, 60, border);
+  create_frame (&frame, 10, 60, border);
   u8_buffer_parse (&label, LB_YOU_WIN);
   u8_buffer_merge (&frame, &label, 2, 2);
   u8_buffer_merge (buf, &frame, 6, 8);

@@ -20,7 +20,6 @@ compile: clean
 	mkdir $(BUILD)
 	$(CC) $(DEBUG) -g -Wall -o $(BUILD)/$(APP) \
 		$(SRC)/u8.c \
-		$(SRC)/art.c \
 		$(SRC)/term.c \
 		$(SRC)/laby.c \
 		$(SRC)/game.c \
@@ -32,7 +31,6 @@ run: compile
 test-compile: compile
 	$(CC) -g -I$(SRC) -o $(BUILD)/all_tests \
 		$(SRC)/u8.c 		\
-		$(SRC)/art.c \
 		$(SRC)/laby.c  	\
 		$(SRC)/term.c  	\
 		$(SRC)/game.c  	\
