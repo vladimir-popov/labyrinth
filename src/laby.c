@@ -153,7 +153,7 @@ find_visible_rooms_in_direction (const laby *lab, p_room *dest, int fy, int fx,
 
   if (is_visible_room (lab, fy, fx, y, x))
     {
-      dest[*count] = &lab->rooms[y][x];
+      dest[*count] = &lab->rooms[(int)y][(int)x];
       (*count)++;
       /* continue search in the same direction */
       if (range > 0)
@@ -172,6 +172,11 @@ laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
   /* let's get the max needed memory as an area of rooms around */
   *dest = malloc (sizeof (p_room) * (2 * range + 1) * (2 * range + 1));
 
+  /* The similar to ray-trace idea:
+   * - cast a glance in the one of the 8 directions (to see every room in 3x3
+   *   open space)
+   * - marks all visible rooms in the direction till the end of the range,
+   *   or meeting the first not visible room   */
   int count = 0;
   for (int dy = -1; dy <= 1; dy++)
     for (int dx = -1; dx <= 1; dx++)

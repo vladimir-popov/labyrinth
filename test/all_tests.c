@@ -39,11 +39,11 @@ main (void)
 
   char *result = all_tests ();
   if (result != 0)
-    printf (SGR_RED "%s\n" SGR_RESET, result);
+    printf (SGR_RED "%s\n", result);
   else
-    printf (SGR_GREEN "\nAll tests have been passed.\n" SGR_RESET);
+    printf (SGR_GREEN "\nAll tests have been passed.\n");
 
-  printf ("Tests run: %d\n", tests_run);
+  printf ("Tests run: %d\n" SGR_RESET, tests_run);
 
   return result != 0;
 }

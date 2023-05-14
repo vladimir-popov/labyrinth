@@ -29,7 +29,7 @@ extern char *test_only;
               return message;                                                 \
             }                                                                 \
           else                                                                \
-            printf ("\x1b[32m + " #test " has been passed.\x1b[m\n");         \
+            printf ("\x1b[32m + " #test " has been passed.\x1b[31m\n");       \
         }                                                                     \
     }                                                                         \
   while (0)
