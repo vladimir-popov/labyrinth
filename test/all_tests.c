@@ -23,9 +23,16 @@ all_tests ()
   /* laby tests */
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
+  mu_run_test (generate_eller_test);
   mu_run_test (laby_visibility_test_1);
   mu_run_test (laby_visibility_test_2);
-  mu_run_test (generate_eller_test);
+  mu_run_test (laby_visibility_test_2);
+  mu_run_test (laby_visibility_test_3);
+  mu_run_test (laby_visibility_test_4);
+  mu_run_test (laby_visibility_test_5);
+  mu_run_test (laby_visibility_test_6);
+  mu_run_test (laby_visibility_test_7);
+  mu_run_test (laby_visibility_test_8);
   return 0;
 }
 

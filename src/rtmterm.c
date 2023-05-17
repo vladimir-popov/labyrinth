@@ -263,7 +263,7 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
   /* render the first row of symbols of the room */
   if (r == 0)
     {
-      s = (laby_is_visible (lab, y - 1, x)) ? "·" : " ";
+      s = (laby_is_visible (lab, y, x)) ? "·" : " ";
       s = (c == 0)                  ? get_corner (border, neighbor, s)
           : (border & UPPER_BORDER) ? "━"
                                     : s;
@@ -273,7 +273,7 @@ render_room (level *level, int y, int x, int r, int c, u8buf *buf)
     {
       int is_border = (c == 0) && (border & LEFT_BORDER);
 
-      s = (is_border)                     ? "┃"
+      s = (is_border) ? "┃"
           : (object && (r > 0 && c == 2)) ? object
           : (laby_is_visible (lab, y, x)) ? "·"
                                           : " ";

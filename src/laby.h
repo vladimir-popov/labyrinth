@@ -45,15 +45,15 @@ typedef room *p_room;
 #define ROOM_MARK_AS_NOT_VISIBLE(P_ROOM) (*P_ROOM &= ~VISIBILITY_MASK)
 
 /**
- * Checks the flag `expected` in the `border` and returns 0 if the flag is NOT
- * set, or else a value > 0.
+ * Checks the flag `expected` in the `border` and returns TRUE
+ * if the flag IS set, or else FALSE.
  */
 #define EXPECT_BORDERS(BORDERS, EXPECTED)                                     \
   ((BORDERS & (EXPECTED)) == (EXPECTED))
 
 /**
- * Checks the flag `unexpected` in the `borders` and returns 0 if the flag IS
- * set, or else a value > 0.
+ * Checks the flag `unexpected` in the `borders` and returns TRUE
+ * if the flag is NOT set, or else FALSE.
  */
 #define NOT_EXPECT_BORDERS(BORDERS, UNEXPECTED) ((BORDERS & (UNEXPECTED)) == 0)
 

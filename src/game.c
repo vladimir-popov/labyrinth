@@ -17,8 +17,8 @@ generate_new_level (level *level, int height, int width, int seed)
   level->player.y = 0;
   level->player.x = 0;
   level->player.visible_range = 2;
-  level->exit.y = 1; // height - 1;
-  level->exit.x = 1; // width - 1;
+  level->exit.y = height - 1;
+  level->exit.x = width - 1;
 }
 
 static int

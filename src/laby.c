@@ -121,25 +121,66 @@ laby_set_visible (laby *lab, int y, int x)
 }
 
 static int
-is_visible_room (const laby *lab, int fy, int fx, int y, int x)
+is_visible_room_from (const laby *lab, int fy, int fx, int y, int x)
 {
-  int borders = laby_get_border (lab, fy, fx);
-  int neighbor = laby_get_border (lab, y, x);
-  int result = 1;
+  /* 0 | 1 | 2
+   * 3 | f | 4
+   * 5 | 6 | 7
+   */
 
-  if (x < fx)
-    result &= NOT_EXPECT_BORDERS (borders, LEFT_BORDER)
-              && NOT_EXPECT_BORDERS (neighbor, RIGHT_BORDER);
-  if (x > fx && result)
-    result &= NOT_EXPECT_BORDERS (borders, RIGHT_BORDER)
-              && NOT_EXPECT_BORDERS (neighbor, LEFT_BORDER);
-  if (y < fy && result)
-    result &= NOT_EXPECT_BORDERS (borders, UPPER_BORDER)
-              && NOT_EXPECT_BORDERS (neighbor, BOTTOM_BORDER);
-  if (y > fy && result)
-    result &= NOT_EXPECT_BORDERS (borders, BOTTOM_BORDER)
-              && NOT_EXPECT_BORDERS (neighbor, UPPER_BORDER);
-  return result;
+  int from_room = laby_get_border (lab, fy, fx);
+  int neighbor = laby_get_border (lab, y, x);
+  int is_hidden = 0;
+
+  if (y < fy)
+    {
+      if (x < fx)
+        is_hidden = (EXPECT_BORDERS (from_room, LEFT_BORDER)
+                     && EXPECT_BORDERS (neighbor, RIGHT_BORDER))
+                    || (EXPECT_BORDERS (from_room, UPPER_BORDER)
+                        && EXPECT_BORDERS (neighbor, BOTTOM_BORDER))
+                    || EXPECT_BORDERS (from_room, LEFT_BORDER | UPPER_BORDER)
+                    || EXPECT_BORDERS (neighbor, BOTTOM_BORDER | RIGHT_BORDER);
+      if (x == fx)
+        is_hidden = EXPECT_BORDERS (from_room, UPPER_BORDER);
+
+      if (x > fx)
+        is_hidden = (EXPECT_BORDERS (from_room, RIGHT_BORDER)
+                     && EXPECT_BORDERS (neighbor, LEFT_BORDER))
+                    || (EXPECT_BORDERS (from_room, UPPER_BORDER)
+                        && EXPECT_BORDERS (neighbor, BOTTOM_BORDER))
+                    || EXPECT_BORDERS (from_room, RIGHT_BORDER | UPPER_BORDER)
+                    || EXPECT_BORDERS (neighbor, BOTTOM_BORDER | LEFT_BORDER);
+    }
+  if (y == fy)
+    {
+      if (x < fx)
+        is_hidden = EXPECT_BORDERS (from_room, LEFT_BORDER);
+
+      if (x > fx)
+        is_hidden = EXPECT_BORDERS (from_room, RIGHT_BORDER);
+    }
+  if (y > fy)
+    {
+      if (x < fx)
+        is_hidden = (EXPECT_BORDERS (from_room, LEFT_BORDER)
+                     && EXPECT_BORDERS (neighbor, RIGHT_BORDER))
+                    || (EXPECT_BORDERS (from_room, BOTTOM_BORDER)
+                        && EXPECT_BORDERS (neighbor, UPPER_BORDER))
+                    || EXPECT_BORDERS (from_room, LEFT_BORDER | BOTTOM_BORDER)
+                    || EXPECT_BORDERS (neighbor, UPPER_BORDER | RIGHT_BORDER);
+      if (x == fx)
+        is_hidden = EXPECT_BORDERS (from_room, BOTTOM_BORDER);
+      if (x > fx)
+        is_hidden = (EXPECT_BORDERS (from_room, RIGHT_BORDER)
+                     && EXPECT_BORDERS (neighbor, LEFT_BORDER))
+                    || (EXPECT_BORDERS (from_room, BOTTOM_BORDER)
+                        && EXPECT_BORDERS (neighbor, UPPER_BORDER))
+                    || EXPECT_BORDERS (from_room, RIGHT_BORDER | BOTTOM_BORDER)
+                    || EXPECT_BORDERS (neighbor, UPPER_BORDER | LEFT_BORDER);
+    }
+
+  return !is_hidden;
 }
 
 static void
@@ -152,7 +193,7 @@ find_visible_rooms_in_direction (const laby *lab, p_room *dest, float fy,
   if (y < 0 || x < 0 || range == 0)
     return;
 
-  if (is_visible_room (lab, fy, fx, y, x))
+  if (is_visible_room_from (lab, fy, fx, y, x))
     {
       p_room pr = &lab->rooms[(int)y][(int)x];
       int c = 0;
@@ -182,8 +223,8 @@ laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
   *dest = malloc (sizeof (p_room) * (2 * range + 1) * (2 * range + 1));
 
   /* The similar to ray-trace idea:
-   * - cast a glance in the one of the 8 directions (to see every room in 3x3
-   *   open space)
+   * - cast a glance in the one of the 25 directions (to see every room in
+   *   the MAX 5x5 open space)
    * - marks all visible rooms in the direction till the end of the range,
    *   or meeting the first not visible room   */
   int count = 0;
