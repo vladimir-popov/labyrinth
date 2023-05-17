@@ -4,19 +4,40 @@
 #include "rtmterm.c"
 #include "u8.h"
 
+static void
+render_laby (laby *lab, u8buf *buf)
+{
+  bbuf bb = BBUF_EMPTY;
+  bbuf_init (&bb, lab->height, lab->width, laby_room_rows, laby_room_cols);
+  prepare_laby (lab, &bb);
+  bbuf_to_u8buf (&bb, buf);
+  bbuf_free (&bb);
+}
+
+static void
+render_level (level *level, u8buf *buf)
+{
+  bbuf bb = BBUF_EMPTY;
+  bbuf_init (&bb, level->lab.height, level->lab.width, laby_room_rows,
+             laby_room_cols);
+  prepare_level (level, &bb);
+  bbuf_to_u8buf (&bb, buf);
+  bbuf_free (&bb);
+}
+
 static char *
 empty_laby_test ()
 {
   // given:
   u8buf buf = U8_BUF_EMPTY;
-  level level = LEVEL_EMPTY;
-  laby_init_empty (&level.lab, 1, 1);
+  laby lab = LABY_EMPTY;
+  laby_init_empty (&lab, 1, 1);
 
   char *expected = "┏━━━┓\n"
-                   "┃ @ ┃\n"
+                   "┃   ┃\n"
                    "┗━━━┛";
   // when:
-  render_level (&level, &buf);
+  render_laby (&lab, &buf);
   // then:
   u8str actual = u8_buffer_to_u8str (&buf);
   mu_u8str_eq_to_str (actual, expected);
@@ -28,14 +49,14 @@ simple_laby_test ()
 {
   // given:
   u8buf buf = U8_BUF_EMPTY;
-  level level = LEVEL_EMPTY;
-  laby_init_empty (&level.lab, 3, 3);
-  laby_add_border (&level.lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
-  laby_add_border (&level.lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
-  laby_add_border (&level.lab, 2, 2, UPPER_BORDER);
+  laby lab = LABY_EMPTY;
+  laby_init_empty (&lab, 3, 3);
+  laby_add_border (&lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
+  laby_add_border (&lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
+  laby_add_border (&lab, 2, 2, UPPER_BORDER);
 
   char *expected = "┏━━━━━━━┳━━━┓\n"
-                   "┃ @     ┃   ┃\n"
+                   "┃       ┃   ┃\n"
                    "┃   ┏━━━┛   ┃\n"
                    "┃   ┃       ┃\n"
                    "┃   ┗━━━━━━━┫\n"
@@ -43,7 +64,7 @@ simple_laby_test ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  render_level (&level, &buf);
+  render_laby (&lab, &buf);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&buf);
@@ -57,7 +78,7 @@ generate_eller_test ()
   // given:
   u8buf buf = U8_BUF_EMPTY;
   char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\n"
-                   "┃ @             ┃   ┃\n"
+                   "┃               ┃   ┃\n"
                    "┃   ━━━━━━━━┳━━━┛   ┃\n"
                    "┃           ┃       ┃\n"
                    "┣━━━━━━━    ┗━━━    ┃\n"
@@ -65,9 +86,9 @@ generate_eller_test ()
                    "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
-  level level = LEVEL_EMPTY;
-  laby_generate (&level.lab, 3, 5, 1);
-  render_level (&level, &buf);
+  laby lab = LABY_EMPTY;
+  laby_generate (&lab, 3, 5, 1);
+  render_laby (&lab, &buf);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&buf);

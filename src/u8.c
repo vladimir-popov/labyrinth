@@ -74,6 +74,12 @@ u8_str_append (u8str *dest, const char *prefix, int len)
 }
 
 void
+u8_str_append_str (u8str *dest, const char *prefix)
+{
+  u8_str_append (dest, prefix, strlen (prefix));
+}
+
+void
 u8_str_append_repeate (u8str *ds, const char *str, int len, int count)
 {
   int i = ds->length;
@@ -81,6 +87,12 @@ u8_str_append_repeate (u8str *ds, const char *str, int len, int count)
   ds->chars = realloc (ds->chars, ds->length);
   for (; i < ds->length; i += len)
     memcpy (&ds->chars[i], str, len);
+}
+
+void
+u8_str_append_repeate_str (u8str *ds, const char *str, int count)
+{
+  u8_str_append_repeate(ds, str, strlen(str), count);
 }
 
 void

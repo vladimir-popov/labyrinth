@@ -50,7 +50,11 @@ void u8_str_init (u8str *str, const char *template, int len);
 
 void u8_str_append (u8str *dest, const char *prefix, int len);
 
+void u8_str_append_str (u8str *dest, const char *prefix);
+
 void u8_str_append_repeate (u8str *ds, const char *str, int len, int count);
+
+void u8_str_append_repeate_str (u8str *ds, const char *str, int count);
 
 void u8_str_merge (u8str *dest, const u8str *source, int spad);
 
