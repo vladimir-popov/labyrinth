@@ -10,10 +10,10 @@
 
 /* Creates a new labyrinth with height x width empty rooms. */
 void
-laby_init_empty (laby *lab, int height, int width)
+laby_init_empty (Laby *lab, int height, int width)
 {
-  lab->height = height;
-  lab->width = width;
+  lab->rows = height;
+  lab->cols = width;
   lab->rooms = malloc (sizeof (row) * height);
   for (int i = 0; i < height; i++)
     lab->rooms[i] = calloc (width, sizeof (room));
@@ -21,9 +21,9 @@ laby_init_empty (laby *lab, int height, int width)
 
 /* Frees memory of the labyrinth. */
 void
-laby_free (laby *lab)
+laby_free (Laby *lab)
 {
-  for (int i = 0; i < lab->height; i++)
+  for (int i = 0; i < lab->rows; i++)
     free (lab->rooms[i]);
 
   free (lab->rooms);
@@ -31,10 +31,10 @@ laby_free (laby *lab)
 
 /*  Returns only 4 first bits, which are about borders of the room. */
 unsigned char
-laby_get_border (const laby *lab, int y, int x)
+laby_get_border (const Laby *lab, int y, int x)
 {
-  int is_x_inside = x >= 0 && x < lab->width;
-  int is_y_inside = y >= 0 && y < lab->height;
+  int is_x_inside = x >= 0 && x < lab->cols;
+  int is_y_inside = y >= 0 && y < lab->rows;
 
   int border = 0;
 
@@ -45,18 +45,18 @@ laby_get_border (const laby *lab, int y, int x)
         border |= UPPER_BORDER;
       if (x == 0)
         border |= LEFT_BORDER;
-      if (y == lab->height - 1)
+      if (y == lab->rows - 1)
         border |= BOTTOM_BORDER;
-      if (x == lab->width - 1)
+      if (x == lab->cols - 1)
         border |= RIGHT_BORDER;
     }
   else if (is_x_inside && y == -1)
     border = BOTTOM_BORDER;
-  else if (is_x_inside && y == lab->height)
+  else if (is_x_inside && y == lab->rows)
     border = UPPER_BORDER;
   else if (is_y_inside && x == -1)
     border = RIGHT_BORDER;
-  else if (is_y_inside && x == lab->width)
+  else if (is_y_inside && x == lab->cols)
     border = LEFT_BORDER;
   else
     border = 0;
@@ -66,15 +66,15 @@ laby_get_border (const laby *lab, int y, int x)
 
 /* Add border flag. */
 void
-laby_add_border (laby *lab, int y, int x, enum border border)
+laby_add_border (Laby *lab, int y, int x, enum border border)
 {
   lab->rooms[y][x] |= border;
   /* also, we should set appropriate borders for neighbors */
   if (border & RIGHT_BORDER)
-    if (x < lab->width - 1)
+    if (x < lab->cols - 1)
       lab->rooms[y][x + 1] |= LEFT_BORDER;
   if (border & BOTTOM_BORDER)
-    if (y < lab->height - 1)
+    if (y < lab->rows - 1)
       lab->rooms[y + 1][x] |= UPPER_BORDER;
   if (border & LEFT_BORDER)
     if (x > 0)
@@ -86,15 +86,15 @@ laby_add_border (laby *lab, int y, int x, enum border border)
 
 /* Remove border flag. */
 void
-laby_rm_border (laby *lab, int y, int x, enum border border)
+laby_rm_border (Laby *lab, int y, int x, enum border border)
 {
   lab->rooms[y][x] &= ~border;
   /* also, we should set appropriate borders for neighbors */
   if (border & RIGHT_BORDER)
-    if (x < lab->width - 1)
+    if (x < lab->cols - 1)
       lab->rooms[y][x + 1] &= ~LEFT_BORDER;
   if (border & BOTTOM_BORDER)
-    if (y < lab->height - 1)
+    if (y < lab->rows - 1)
       lab->rooms[y + 1][x] &= ~UPPER_BORDER;
   if (border & LEFT_BORDER)
     if (x > 0)
@@ -105,149 +105,31 @@ laby_rm_border (laby *lab, int y, int x, enum border border)
 }
 
 int
-laby_is_visible (const laby *lab, int y, int x)
+laby_is_visited (const Laby *lab, int y, int x)
 {
-  int is_x_inside = x >= 0 && x < lab->width;
-  int is_y_inside = y >= 0 && y < lab->height;
+  int is_x_inside = x >= 0 && x < lab->cols;
+  int is_y_inside = y >= 0 && y < lab->rows;
 
-  return (is_y_inside && is_x_inside) ? ROOM_IS_VISIBLE (&lab->rooms[y][x])
+  return (is_y_inside && is_x_inside) ? ROOM_IS_VISITED (&lab->rooms[y][x])
                                       : 0;
 }
 
 void
-laby_set_visible (laby *lab, int y, int x)
+laby_set_visited (Laby *lab, int y, int x)
 {
-  ROOM_MARK_AS_VISIBLE (&lab->rooms[y][x]);
+  ROOM_MARK_AS_VISITED (&lab->rooms[y][x]);
 }
 
-static int
-is_visible_room_from (const laby *lab, int fy, int fx, int y, int x)
-{
-  /* 0 | 1 | 2
-   * 3 | f | 4
-   * 5 | 6 | 7
-   */
-
-  int from_room = laby_get_border (lab, fy, fx);
-  int neighbor = laby_get_border (lab, y, x);
-  int is_hidden = 0;
-
-  if (y < fy)
-    {
-      if (x < fx)
-        is_hidden = (EXPECT_BORDERS (from_room, LEFT_BORDER)
-                     && EXPECT_BORDERS (neighbor, RIGHT_BORDER))
-                    || (EXPECT_BORDERS (from_room, UPPER_BORDER)
-                        && EXPECT_BORDERS (neighbor, BOTTOM_BORDER))
-                    || EXPECT_BORDERS (from_room, LEFT_BORDER | UPPER_BORDER)
-                    || EXPECT_BORDERS (neighbor, BOTTOM_BORDER | RIGHT_BORDER);
-      if (x == fx)
-        is_hidden = EXPECT_BORDERS (from_room, UPPER_BORDER);
-
-      if (x > fx)
-        is_hidden = (EXPECT_BORDERS (from_room, RIGHT_BORDER)
-                     && EXPECT_BORDERS (neighbor, LEFT_BORDER))
-                    || (EXPECT_BORDERS (from_room, UPPER_BORDER)
-                        && EXPECT_BORDERS (neighbor, BOTTOM_BORDER))
-                    || EXPECT_BORDERS (from_room, RIGHT_BORDER | UPPER_BORDER)
-                    || EXPECT_BORDERS (neighbor, BOTTOM_BORDER | LEFT_BORDER);
-    }
-  if (y == fy)
-    {
-      if (x < fx)
-        is_hidden = EXPECT_BORDERS (from_room, LEFT_BORDER);
-
-      if (x > fx)
-        is_hidden = EXPECT_BORDERS (from_room, RIGHT_BORDER);
-    }
-  if (y > fy)
-    {
-      if (x < fx)
-        is_hidden = (EXPECT_BORDERS (from_room, LEFT_BORDER)
-                     && EXPECT_BORDERS (neighbor, RIGHT_BORDER))
-                    || (EXPECT_BORDERS (from_room, BOTTOM_BORDER)
-                        && EXPECT_BORDERS (neighbor, UPPER_BORDER))
-                    || EXPECT_BORDERS (from_room, LEFT_BORDER | BOTTOM_BORDER)
-                    || EXPECT_BORDERS (neighbor, UPPER_BORDER | RIGHT_BORDER);
-      if (x == fx)
-        is_hidden = EXPECT_BORDERS (from_room, BOTTOM_BORDER);
-      if (x > fx)
-        is_hidden = (EXPECT_BORDERS (from_room, RIGHT_BORDER)
-                     && EXPECT_BORDERS (neighbor, LEFT_BORDER))
-                    || (EXPECT_BORDERS (from_room, BOTTOM_BORDER)
-                        && EXPECT_BORDERS (neighbor, UPPER_BORDER))
-                    || EXPECT_BORDERS (from_room, RIGHT_BORDER | BOTTOM_BORDER)
-                    || EXPECT_BORDERS (neighbor, UPPER_BORDER | LEFT_BORDER);
-    }
-
-  return !is_hidden;
-}
-
-static void
-find_visible_rooms_in_direction (const laby *lab, p_room *dest, float fy,
-                                 float fx, int range, float dy, float dx,
-                                 int *count)
-{
-  float y = fy + dy;
-  float x = fx + dx;
-  if (y < 0 || x < 0 || range == 0)
-    return;
-
-  if (is_visible_room_from (lab, fy, fx, y, x))
-    {
-      p_room pr = &lab->rooms[(int)y][(int)x];
-      int c = 0;
-      /* skip already found rooms */
-      for (; c < *count; c++)
-        if (dest[c] == pr)
-          break;
-      if (c == *count)
-        {
-          dest[*count] = pr;
-          (*count)++;
-        }
-      /* continue search in the same direction */
-      find_visible_rooms_in_direction (lab, dest, y, x, range - 1, dy, dx,
-                                       count);
-    }
-}
-
-int
-laby_find_visible_rooms (const laby *lab, p_room **dest, int fy, int fx,
-                         int range)
-{
-  if (range == 0)
-    return 0;
-
-  /* let's get the max needed memory as an area of rooms around */
-  *dest = malloc (sizeof (p_room) * (2 * range + 1) * (2 * range + 1));
-
-  /* The similar to ray-trace idea:
-   * - cast a glance in the one of the 25 directions (to see every room in
-   *   the MAX 5x5 open space)
-   * - marks all visible rooms in the direction till the end of the range,
-   *   or meeting the first not visible room   */
-  int count = 0;
-  for (float dy = -1; dy <= 1; dy += 0.5f)
-    for (float dx = -1; dx <= 1; dx += 0.5f)
-      {
-        find_visible_rooms_in_direction (lab, *dest, fy, fx, range, dy, dx,
-                                         &count);
-      }
-  /* adjustment of the used memory */
-  *dest = realloc (*dest, sizeof (p_room) * count);
-  return count;
-}
 
 void
-laby_set_content (laby *lab, int y, int x, unsigned char value)
+laby_set_content (Laby *lab, int y, int x, unsigned char value)
 {
   int mask = (1 << CONTENT_SHIFT) - 1;
   lab->rooms[y][x] = (value << CONTENT_SHIFT) | (lab->rooms[y][x] & mask);
 }
 
 unsigned char
-laby_get_content (const laby *lab, int r, int c)
+laby_get_content (const Laby *lab, int r, int c)
 {
   return lab->rooms[r][c] >> CONTENT_SHIFT;
 }
@@ -260,7 +142,7 @@ laby_get_content (const laby *lab, int r, int c)
  * @see http://www.neocomputer.org/projects/eller.html
  */
 void
-laby_generate (laby *lab, int height, int width, int seed)
+laby_generate (Laby *lab, int height, int width, int seed)
 {
   srand (seed);
 

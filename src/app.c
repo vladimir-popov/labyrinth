@@ -1,12 +1,26 @@
-#include <errno.h>
+#include "game.h"
+#include "render.h"
+#include "term.h"
+#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 
-#include "rtmterm.c"
-#include "term.h"
-
 time_t seed = 0;
+
+/* The terminal resolution in chars by vertical. */
+int screen_rows = 0;
+/* The terminal resolution in chars by horizontal. */
+int screen_cols = 0;
+
+/* The count of symbols by vertical of one room.  */
+const int laby_room_height = 2;
+/* The count of symbols by horizontal of one room.  */
+const int laby_room_width = 4;
+
+/* The count of visible chars by vertical. */
+const int game_window_rows = 25;
+/* The count of visible chars by horizontal. */
+const int game_window_cols = 78;
 
 void
 refresh_screen (int sig)
@@ -64,12 +78,12 @@ main (int argc, char *argv[])
   refresh_screen (0);
   hide_cursor ();
 
-  int height = (game_rows - 1) / laby_room_rows;
-  int width = (game_cols - 1) / laby_room_cols;
+  int height = (game_window_rows - 1) / laby_room_height;
+  int width = (game_window_cols - 1) / laby_room_width;
 
-  game game = GAME_EMPTY;
+  Game game;
   game_init (&game, height, width, seed);
-  game_loop (&game);
+  game_run_loop (&game);
 
   clear_screen ();
   return 0;

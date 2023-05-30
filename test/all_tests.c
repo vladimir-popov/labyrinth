@@ -1,5 +1,7 @@
-#include "laby_tests.c"
+#include "render_tests.c"
 #include "u8_tests.c"
+#include "term.h"
+#include <stdio.h>
 
 int tests_run = 0;
 char *test_only = NULL;
@@ -20,19 +22,19 @@ all_tests ()
   mu_run_test (merge_middle_buffer_test);
   mu_run_test (merge_bigger_buffer_test);
   mu_run_test (merge_utf_buffer_test);
-  /* laby tests */
+  // /* laby tests */
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
   mu_run_test (generate_eller_test);
-  mu_run_test (laby_visibility_test_1);
-  mu_run_test (laby_visibility_test_2);
-  mu_run_test (laby_visibility_test_2);
-  mu_run_test (laby_visibility_test_3);
-  mu_run_test (laby_visibility_test_4);
-  mu_run_test (laby_visibility_test_5);
-  mu_run_test (laby_visibility_test_6);
-  mu_run_test (laby_visibility_test_7);
-  mu_run_test (laby_visibility_test_8);
+  // mu_run_test (laby_visibility_test_1);
+  // mu_run_test (laby_visibility_test_2);
+  // mu_run_test (laby_visibility_test_2);
+  // mu_run_test (laby_visibility_test_3);
+  // mu_run_test (laby_visibility_test_4);
+  // mu_run_test (laby_visibility_test_5);
+  // mu_run_test (laby_visibility_test_6);
+  // mu_run_test (laby_visibility_test_7);
+  // mu_run_test (laby_visibility_test_8);
   return 0;
 }
 

@@ -58,13 +58,13 @@ typedef struct
 {
   int len;
   char *chars;
-} key_code;
+} Key_Code;
 
 void fatal (char *message);
 
 int is_key_pressed ();
 
-key_code read_pressed_key ();
+Key_Code read_pressed_key ();
 
 void disable_raw_mode ();
 

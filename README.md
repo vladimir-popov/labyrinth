@@ -28,5 +28,6 @@ make test
 
 To generate `compile_flags.txt` for `clangd`:
 ```
-bear -- make test-compile
+bear -- make test
 ```
+
