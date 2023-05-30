@@ -14,8 +14,17 @@ const int laby_room_width = 4;
 const int game_window_rows = 25;
 const int game_window_cols = 78;
 
+#define RENDER(DRAW)                                                          \
+  {                                                                           \
+    symbols_map_init (&sm, lab.rows, lab.cols, laby_room_height,              \
+                      laby_room_width);                                       \
+    DRAW;                                                                     \
+    render_symbols_map (&buf, &sm);                                           \
+    symbols_map_free (&sm);                                                   \
+  }
+
 static void
-render_laby (Laby *lab, U8_Buf *buf)
+render_laby (u8buf *buf, Laby *lab)
 {
   smap sm;
   symbols_map_init (&sm, lab->rows, lab->cols, laby_room_height,
@@ -29,7 +38,8 @@ static char *
 empty_laby_test ()
 {
   // given:
-  U8_Buf buf = U8_BUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
+  smap sm;
   Laby lab;
   laby_init_empty (&lab, 1, 1);
 
@@ -37,9 +47,9 @@ empty_laby_test ()
                    "┃   ┃\n"
                    "┗━━━┛";
   // when:
-  render_laby (&lab, &buf);
+  RENDER(draw_laby(&sm, &lab))
   // then:
-  U8_Str actual = u8_buffer_to_u8str (&buf);
+  u8str actual = u8_buffer_to_u8str (&buf);
   mu_u8str_eq_to_str (actual, expected);
   return 0;
 }
@@ -48,7 +58,7 @@ static char *
 simple_laby_test ()
 {
   // given:
-  U8_Buf buf = U8_BUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
   Laby lab;
   laby_init_empty (&lab, 3, 3);
   laby_add_border (&lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
@@ -64,10 +74,10 @@ simple_laby_test ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  render_laby (&lab, &buf);
+  render_laby (&buf, &lab);
 
   // then:
-  U8_Str actual = u8_buffer_to_u8str (&buf);
+  u8str actual = u8_buffer_to_u8str (&buf);
   mu_u8str_eq_to_str (actual, expected);
   return 0;
 }
@@ -76,7 +86,7 @@ static char *
 generate_eller_test ()
 {
   // given:
-  U8_Buf buf = U8_BUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
   char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\n"
                    "┃               ┃   ┃\n"
                    "┃   ━━━━━━━━┳━━━┛   ┃\n"
@@ -88,40 +98,41 @@ generate_eller_test ()
   // when:
   Laby lab;
   laby_generate (&lab, 3, 5, 1);
-  render_laby (&lab, &buf);
+  render_laby (&buf, &lab);
 
   // then:
-  U8_Str actual = u8_buffer_to_u8str (&buf);
+  u8str actual = u8_buffer_to_u8str (&buf);
   mu_u8str_eq_to_str (actual, expected);
   return 0;
 }
-//
-// char *
-// laby_visibility_test_1 ()
-// {
-//   // given:
-//   U8_Buf buf = U8_BUF_EMPTY;
-//   Laby lab;
-//   laby_init_empty (&lab, 4, 4);
-//   char *expected = "┏━━━━━━━━━━━━━━━┓\n"
-//                    "┃·@·········    ┃\n"
-//                    "┃···········    ┃\n"
-//                    "┃···········    ┃\n"
-//                    "┃···········    ┃\n"
-//                    "┃···········    ┃\n"
-//                    "┃               ┃\n"
-//                    "┃               ┃\n"
-//                    "┗━━━━━━━━━━━━━━━┛";
-//
-//   // when:
-//   draw_laby (&level, &buf);
-//
-//   // then:
-//   U8_Str actual = u8_buffer_to_u8str (&buf);
-//   mu_u8str_eq_to_str (actual, expected);
-//   return 0;
-// }
-//
+
+char *
+laby_visibility_test_1 ()
+{
+  // given:
+  u8buf buf = U8_BUF_EMPTY;
+  smap sm;
+  Laby lab;
+  laby_init_empty (&lab, 4, 4);
+  char *expected = "┏━━━━━━━━━━━━━━━┓\n"
+                   "┃·@·········    ┃\n"
+                   "┃···········    ┃\n"
+                   "┃···········    ┃\n"
+                   "┃···········    ┃\n"
+                   "┃···········    ┃\n"
+                   "┃               ┃\n"
+                   "┃               ┃\n"
+                   "┗━━━━━━━━━━━━━━━┛";
+
+  // when:
+  RENDER (draw_laby (&sm, &lab));
+
+  // then:
+  u8str actual = u8_buffer_to_u8str (&buf);
+  mu_u8str_eq_to_str (actual, expected);
+  return 0;
+}
+
 // char *
 // laby_visibility_test_2 ()
 // {

@@ -51,11 +51,11 @@ symbols_map_free (smap *sm)
 }
 
 static void
-create_frame (U8_Buf *buf, int height, int width)
+create_frame (u8buf *buf, int height, int width)
 {
   for (int i = 0; i < height; i++)
     {
-      U8_Str str = U8_STR_EMPTY;
+      u8str str = U8_STR_EMPTY;
       if (i == 0)
         {
           u8_str_append_str (&str, symbols[4]);
@@ -230,7 +230,7 @@ draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
 }
 
 void
-render_symbols_map (U8_Buf *dest, const smap *source)
+render_symbols_map (u8buf *dest, const smap *source)
 {
   for (int i = 0; i < source->height; i++)
     {
@@ -244,7 +244,7 @@ render_symbols_map (U8_Buf *dest, const smap *source)
 }
 
 void
-render_game (U8_Buf *buf, Game *game)
+render_game (u8buf *buf, Game *game)
 {
   smap sm;
   symbols_map_init (&sm, game->lab.rows, game->lab.cols, laby_room_height,
@@ -260,7 +260,7 @@ render_game (U8_Buf *buf, Game *game)
 }
 
 void
-render_welcome_screen (U8_Buf *buf, void *menu)
+render_welcome_screen (u8buf *buf, void *menu)
 {
   Menu *m = (Menu *)menu;
   /* Blink menu option */
@@ -272,7 +272,7 @@ render_welcome_screen (U8_Buf *buf, void *menu)
     }
 
   u8_buffer_parse (buf, WELCOME_SCREEN);
-  U8_Buf label = U8_BUF_EMPTY;
+  u8buf label = U8_BUF_EMPTY;
   switch (m->state)
     {
     case 0:
@@ -293,11 +293,11 @@ render_welcome_screen (U8_Buf *buf, void *menu)
 }
 
 void
-render_pause_menu (U8_Buf *buf, void *menu)
+render_pause_menu (u8buf *buf, void *menu)
 {
   Menu *m = (Menu *)menu;
-  U8_Buf frame = U8_BUF_EMPTY;
-  U8_Buf label = U8_BUF_EMPTY;
+  u8buf frame = U8_BUF_EMPTY;
+  u8buf label = U8_BUF_EMPTY;
   create_frame (&frame, 8, 40);
   switch (m->state)
     {
@@ -316,10 +316,10 @@ render_pause_menu (U8_Buf *buf, void *menu)
 }
 
 void
-render_winning (U8_Buf *buf, void *menu)
+render_winning (u8buf *buf, void *menu)
 {
-  U8_Buf frame = U8_BUF_EMPTY;
-  U8_Buf label = U8_BUF_EMPTY;
+  u8buf frame = U8_BUF_EMPTY;
+  u8buf label = U8_BUF_EMPTY;
   create_frame (&frame, 10, 60);
   u8_buffer_parse (&label, LB_YOU_WIN);
   u8_buffer_merge (&frame, &label, 2, 2);
@@ -331,7 +331,7 @@ render_winning (U8_Buf *buf, void *menu)
 void
 render (Game *game)
 {
-  U8_Buf buf = U8_BUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
 
   /* only the main screen overlaps the level completely,
    * in all other cases we should render the laby before anything else. */

@@ -35,14 +35,17 @@ $(BUILD_DIR)/%.c.o: %.c
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $< -o $@
 
 # Build the game
+.PHONY: clean
 compile: $(OBJS)
 	$(CC) $(OBJS) -o $(BUILD_DIR)/$(APP_EXEC) 
 
 # Build tests
+.PHONY: clean
 test: $(TEST_OBJS)
 	$(CC) $(TEST_OBJS) -o $(BUILD_DIR)/$(TEST_EXEC) 
 	$(BUILD_DIR)/$(TEST_EXEC)
 
+.PHONY: clean
 run: compile
 	$(BUILD_DIR)/$(APP_EXEC)
 

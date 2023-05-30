@@ -5,6 +5,7 @@
 
 int tests_run = 0;
 char *test_only = NULL;
+// char *test_only = "laby_visibility_test_1";
 
 char *
 all_tests ()
@@ -26,7 +27,7 @@ all_tests ()
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
   mu_run_test (generate_eller_test);
-  // mu_run_test (laby_visibility_test_1);
+  mu_run_test (laby_visibility_test_1);
   // mu_run_test (laby_visibility_test_2);
   // mu_run_test (laby_visibility_test_2);
   // mu_run_test (laby_visibility_test_3);

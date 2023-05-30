@@ -82,11 +82,11 @@ void draw_laby (smap *sm, Laby *lab);
  */
 void draw_visible_area (smap *sm, Laby *lab, int y, int x, int range);
 
-void render_symbols_map (U8_Buf *dest, const smap *source);
+void render_symbols_map (u8buf *dest, const smap *source);
 
-void render_welcome_screen (U8_Buf *buf, void *menu);
+void render_welcome_screen (u8buf *buf, void *menu);
 
-void render_pause_menu (U8_Buf *buf, void *menu);
+void render_pause_menu (u8buf *buf, void *menu);
 
-void render_winning (U8_Buf *buf, void *menu);
+void render_winning (u8buf *buf, void *menu);
 #endif // __RENDER__

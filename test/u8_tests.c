@@ -69,9 +69,9 @@ utf8_str_merge_1_test ()
    * has more symbols, but less bytes than the source */
 
   // given:
-  U8_Str dest;
+  u8str dest;
   u8_str_init (&dest, "!   !", 5);
-  U8_Str source;
+  u8str source;
   u8_str_init (&source, "███", 9);
   char *expected = "!███!";
   // when:
@@ -89,9 +89,9 @@ utf8_str_merge_2_test ()
    * has more symbols, and more bytes than the source */
 
   // given:
-  U8_Str dest;
+  u8str dest;
   u8_str_init (&dest, "███", 9);
-  U8_Str source;
+  u8str source;
   u8_str_init (&source, "☺", 3);
   char *expected = "█☺█";
   // when:
@@ -106,8 +106,8 @@ static char *
 utf8_merge_into_empty_str_test ()
 {
   // given:
-  U8_Str dest = U8_STR_EMPTY;
-  U8_Str source;
+  u8str dest = U8_STR_EMPTY;
+  u8str source;
   u8_str_init (&source, "☺", 3);
   char *expected = " ☺";
   // when:
@@ -131,9 +131,9 @@ parse_string_to_buffer_test ()
   char *template = "This is\n"
                    "a template";
   // when:
-  U8_Buf buf = U8_BUF_EMPTY;
+  u8buf buf = U8_BUF_EMPTY;
   u8_buffer_parse (&buf, template);
-  U8_Str res = u8_buffer_to_u8str (&buf);
+  u8str res = u8_buffer_to_u8str (&buf);
 
   // then:
   mu_u8str_eq_to_str (res, template);
@@ -146,15 +146,15 @@ merge_into_empty_buffers_test ()
   /* It should add empty rows and fill padding by spaces */
 
   // given:
-  U8_Buf first = U8_BUF_EMPTY;
-  U8_Buf second = U8_BUF_EMPTY;
+  u8buf first = U8_BUF_EMPTY;
+  u8buf second = U8_BUF_EMPTY;
   u8_buffer_parse (&second, "###");
   char *expected = "\n"
                    "   ###";
 
   // when:
   u8_buffer_merge (&first, &second, 1, 3);
-  U8_Str actual = u8_buffer_to_u8str (&first);
+  u8str actual = u8_buffer_to_u8str (&first);
 
   // then:
   mu_u8str_eq_to_str (actual, expected);
@@ -165,11 +165,11 @@ static char *
 merge_middle_buffer_test ()
 {
   // given:
-  U8_Buf first = U8_BUF_EMPTY;
+  u8buf first = U8_BUF_EMPTY;
   u8_buffer_parse (&first, ".........\n"
                            ".........\n"
                            ".........\n");
-  U8_Buf second = U8_BUF_EMPTY;
+  u8buf second = U8_BUF_EMPTY;
   u8_buffer_parse (&second, "###");
   char *expected = ".........\n"
                    "...###...\n"
@@ -177,7 +177,7 @@ merge_middle_buffer_test ()
 
   // when:
   u8_buffer_merge (&first, &second, 1, 3);
-  U8_Str actual = u8_buffer_to_u8str (&first);
+  u8str actual = u8_buffer_to_u8str (&first);
 
   // then:
   mu_u8str_eq_to_str (actual, expected);
@@ -188,11 +188,11 @@ static char *
 merge_bigger_buffer_test ()
 {
   // given:
-  U8_Buf first = U8_BUF_EMPTY;
+  u8buf first = U8_BUF_EMPTY;
   u8_buffer_parse (&first, ".......\n"
                            ".......\n"
                            ".......");
-  U8_Buf second = U8_BUF_EMPTY;
+  u8buf second = U8_BUF_EMPTY;
   u8_buffer_parse (&second, "###\n"
                             "######\n"
                             "###");
@@ -203,7 +203,7 @@ merge_bigger_buffer_test ()
 
   // when:
   u8_buffer_merge (&first, &second, 1, 3);
-  U8_Str actual = u8_buffer_to_u8str (&first);
+  u8str actual = u8_buffer_to_u8str (&first);
 
   // then:
   mu_u8str_eq_to_str (actual, expected);
@@ -214,11 +214,11 @@ static char *
 merge_utf_buffer_test ()
 {
   // given:
-  U8_Buf first = U8_BUF_EMPTY;
+  u8buf first = U8_BUF_EMPTY;
   u8_buffer_parse (&first, "███\n"
                            "███\n"
                            "███\n");
-  U8_Buf second = U8_BUF_EMPTY;
+  u8buf second = U8_BUF_EMPTY;
   u8_buffer_parse (&second, "☺");
   char *expected = "███\n"
                    "█☺█\n"
@@ -226,7 +226,7 @@ merge_utf_buffer_test ()
 
   // when:
   u8_buffer_merge (&first, &second, 1, 1);
-  U8_Str actual = u8_buffer_to_u8str (&first);
+  u8str actual = u8_buffer_to_u8str (&first);
 
   // then:
   mu_u8str_eq_to_str (actual, expected);
