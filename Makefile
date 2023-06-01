@@ -1,5 +1,4 @@
-APP_EXEC := labyrinth
-TEST_EXEC := run_tests
+.DEFAULT_GOAL = compile
 
 CC = gcc
 CFLAGS = -g # Turn on debug info
@@ -11,10 +10,14 @@ TEST_DIR := ./test
 APP_MAIN := app.c
 TEST_MAIN := all_tests.c
 
-# Find all the C files we want to compile, except src witn main function
+APP_EXEC := labyrinth
+TEST_EXEC := run_tests
+
+# Find all the C files we want to compile, except the source with main function
 SRCS := $(shell find $(SRC_DIR) -name '*.c' -and -not -name $(APP_MAIN))
-# All tests should be included to the single test file
-TEST_SRCS := $(TEST_DIR)/$(TEST_MAIN).c
+
+# Find all C files with tests except the final one
+TEST_SRCS := $(shell find $(TEST_DIR) -name '*.c' -and -not -name $(TEST_MAIN))
 
 # Prepends BUILD_DIR and appends .o to every src file
 # As an example, ./src/hello.c turns into ./build/./src/hello.c.o
@@ -30,26 +33,33 @@ OBJS += $(BUILD_DIR)/$(SRC_DIR)/$(APP_MAIN).o
 TEST_OBJS += $(BUILD_DIR)/$(TEST_DIR)/$(TEST_MAIN).o
 
 # Build step for C source
-$(BUILD_DIR)/%.c.o: %.c
-	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $< -o $@
+# Changes in Makefile should trigger compilation too
+$(BUILD_DIR)/$(SRC_DIR)/%.c.o: $(SRC_DIR)/%.c Makefile
+	@[ -d $(BUILD_DIR)/$(SRC_DIR)/ ] || mkdir $(BUILD_DIR)/$(SRC_DIR)/
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# TEST_MAIN should be recompile on changes in any TEST_SRCS or Makefile
+$(BUILD_DIR)/$(TEST_DIR)/$(TEST_MAIN).o: $(TEST_SRCS) Makefile
+	@echo "Compile tests..."
+	@[ -d $(BUILD_DIR)/$(TEST_DIR)/ ] || mkdir $(BUILD_DIR)/$(TEST_DIR)/
+	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $(TEST_DIR)/$(TEST_MAIN) -o $@
 
 # Build the game
-.PHONY: clean
 compile: $(OBJS)
+	@echo "Build application..."
 	$(CC) $(OBJS) -o $(BUILD_DIR)/$(APP_EXEC) 
 
 # Build tests
-.PHONY: clean
 test: $(TEST_OBJS)
+	@echo "Build and run tests..."
 	$(CC) $(TEST_OBJS) -o $(BUILD_DIR)/$(TEST_EXEC) 
 	$(BUILD_DIR)/$(TEST_EXEC)
 
-.PHONY: clean
 run: compile
 	$(BUILD_DIR)/$(APP_EXEC)
 
 
-.PHONY: clean
 clean:
 	rm -r $(BUILD_DIR)
+
+.PHONY: clean compile test run

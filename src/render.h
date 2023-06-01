@@ -12,6 +12,11 @@
 #include "laby.h"
 #include <time.h>
 
+#define SIDX_NOTHING 0
+#define SIDX_EMPTY 1
+#define SIDX_PLAYER 13
+#define SIDX_EXIT 14
+#define SIDX_LIGHT 15
 
 /* The terminal resolution in chars by vertical. */
 extern int screen_rows;
@@ -63,6 +68,11 @@ void symbols_map_init (smap *sm, int rows, int cols, int room_height,
 
 void symbols_map_free (smap *sm);
 
+/**
+* Puts the symbol `s` to the middle of the room r:c. 
+* @r zero-based number of the row of rooms in the labyrinth.
+* @c zero-based number of the column of rooms in the labyrinth.
+*/
 void draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s);
 
 /**
@@ -76,7 +86,7 @@ void draw_laby (smap *sm, Laby *lab);
  * - marks all visible symbols in the direction till the end of the range,
  *   or meeting the first not visible symbol
  *
- * "y zero based vertical position of the view point in the symbols map.
+ * @y zero based vertical position of the view point in the symbols map.
  * @x zero based horizontal position of the view point in the symbols map.
  * @range the maximum count of the visible symbols in single direction.
  */

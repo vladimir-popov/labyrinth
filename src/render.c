@@ -25,12 +25,6 @@ static const char *symbols[] =
   };
 // clang-format on
 
-#define SIDX_NOTHING 0
-#define SIDX_EMPTY 1
-#define SIDX_PLAYER 13
-#define SIDX_EXIT 14
-#define SIDX_LIGHT 15
-
 void
 symbols_map_init (smap *sm, int rows, int cols, int room_height,
                   int room_width)
@@ -40,6 +34,12 @@ symbols_map_init (smap *sm, int rows, int cols, int room_height,
   sm->symbols = malloc (sizeof (symbol *) * sm->height);
   for (int i = 0; i < sm->height; i++)
     sm->symbols[i] = malloc (sizeof (symbol) * sm->width);
+}
+
+static inline void
+symbols_map_draw (smap *sm, int y, int x, symbol s)
+{
+  sm->symbols[y][x] = s;
 }
 
 void
@@ -123,7 +123,7 @@ draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s)
 {
   int y = r * laby_room_height + (laby_room_height / 2);
   int x = c * laby_room_width + (laby_room_width / 2);
-  sm->symbols[y][x] = s;
+  symbols_map_draw (sm, y, x, s);
 }
 
 /**
@@ -186,47 +186,35 @@ static void
 draw_visible_in_direction (smap *sm, double x, double y, double dx, double dy,
                            int length)
 {
-  while (length > 0)
+  int in_bounds_y = y >= 0 && y < sm->height;
+  int in_bounds_x = x >= 0 && x < sm->width;
+
+  while (in_bounds_y && in_bounds_x && length > 0)
     {
-      draw_in_the_middle_of_room (sm, x, y, SIDX_LIGHT);
+      symbols_map_draw (sm, round(y), round(x), SIDX_LIGHT);
       x += dx;
       y += dy;
       length--;
+      in_bounds_y = y >= 0 && y < sm->height;
+      in_bounds_x = x >= 0 && x < sm->width;
     }
 }
 
 void
 draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
 {
-
-  int dy = 0;
-  while (dy < range)
+  double l = 0.0;
+  double dl = M_PI / (4 * range);
+  while (l <= M_PI_2)
     {
-      double l = tan ((double)dy / range);
-
       double fdx = cos (l);
       double fdy = sin (l);
       draw_visible_in_direction (sm, x, y, fdx, fdy, range);
-      // mark_visible_in_direction (bb, p->x, p->y, fdx, -fdy,
-      // radius); mark_visible_in_direction (bb, p->x, p->y, -fdx,
-      // fdy, radius); mark_visible_in_direction (bb, p->x, p->y,
-      // -fdx, -fdy, radius);
-      dy++;
+      draw_visible_in_direction (sm, x, y, fdx, -fdy, range);
+      draw_visible_in_direction (sm, x, y, -fdx, fdy, range);
+      draw_visible_in_direction (sm, x, y, -fdx, -fdy, range);
+      l += dl;
     }
-
-  // int dx = 0;
-  // while (dx < radius)
-  //   {
-  //     double l = tan ((double)radius / dx);
-  //
-  //     double fdx = cos (l);
-  //     double fdy = sin (l);
-  //     mark_visible_in_direction (bb, p->x, p->y, fdx, fdy,
-  //     radius); mark_visible_in_direction (bb, p->x, p->y, -fdx,
-  //     fdy, radius); mark_visible_in_direction (bb, p->x, p->y,
-  //     fdx, -fdy, radius); mark_visible_in_direction (bb, p->x,
-  //     p->y, -fdx, -fdy, radius); dx++;
-  //   }
 }
 
 void

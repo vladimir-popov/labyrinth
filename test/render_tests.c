@@ -14,32 +14,31 @@ const int laby_room_width = 4;
 const int game_window_rows = 25;
 const int game_window_cols = 78;
 
+/*
+ * This macros must follow after the code:
+ * ```
+ * smap sm;
+ * u8buf buf = U8_BUF_EMPTY;
+ * Laby lab;
+ * ```
+ */
 #define RENDER(DRAW)                                                          \
-  {                                                                           \
-    symbols_map_init (&sm, lab.rows, lab.cols, laby_room_height,              \
-                      laby_room_width);                                       \
-    DRAW;                                                                     \
-    render_symbols_map (&buf, &sm);                                           \
-    symbols_map_free (&sm);                                                   \
-  }
-
-static void
-render_laby (u8buf *buf, Laby *lab)
-{
-  smap sm;
-  symbols_map_init (&sm, lab->rows, lab->cols, laby_room_height,
-                    laby_room_width);
-  draw_laby (&sm, lab);
-  render_symbols_map (buf, &sm);
-  symbols_map_free (&sm);
-}
+  do                                                                          \
+    {                                                                         \
+      symbols_map_init (&sm, lab.rows, lab.cols, laby_room_height,            \
+                        laby_room_width);                                     \
+      DRAW;                                                                   \
+      render_symbols_map (&buf, &sm);                                         \
+      symbols_map_free (&sm);                                                 \
+    }                                                                         \
+  while (0)
 
 static char *
 empty_laby_test ()
 {
   // given:
-  u8buf buf = U8_BUF_EMPTY;
   smap sm;
+  u8buf buf = U8_BUF_EMPTY;
   Laby lab;
   laby_init_empty (&lab, 1, 1);
 
@@ -47,7 +46,7 @@ empty_laby_test ()
                    "┃   ┃\n"
                    "┗━━━┛";
   // when:
-  RENDER(draw_laby(&sm, &lab))
+  RENDER (draw_laby (&sm, &lab));
   // then:
   u8str actual = u8_buffer_to_u8str (&buf);
   mu_u8str_eq_to_str (actual, expected);
@@ -58,6 +57,7 @@ static char *
 simple_laby_test ()
 {
   // given:
+  smap sm;
   u8buf buf = U8_BUF_EMPTY;
   Laby lab;
   laby_init_empty (&lab, 3, 3);
@@ -74,7 +74,7 @@ simple_laby_test ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  render_laby (&buf, &lab);
+  RENDER (draw_laby (&sm, &lab));
 
   // then:
   u8str actual = u8_buffer_to_u8str (&buf);
@@ -86,6 +86,7 @@ static char *
 generate_eller_test ()
 {
   // given:
+  smap sm;
   u8buf buf = U8_BUF_EMPTY;
   char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\n"
                    "┃               ┃   ┃\n"
@@ -98,7 +99,7 @@ generate_eller_test ()
   // when:
   Laby lab;
   laby_generate (&lab, 3, 5, 1);
-  render_laby (&buf, &lab);
+  RENDER (draw_laby (&sm, &lab));
 
   // then:
   u8str actual = u8_buffer_to_u8str (&buf);
@@ -113,19 +114,19 @@ laby_visibility_test_1 ()
   u8buf buf = U8_BUF_EMPTY;
   smap sm;
   Laby lab;
-  laby_init_empty (&lab, 4, 4);
-  char *expected = "┏━━━━━━━━━━━━━━━┓\n"
-                   "┃·@·········    ┃\n"
-                   "┃···········    ┃\n"
-                   "┃···········    ┃\n"
-                   "┃···········    ┃\n"
-                   "┃···········    ┃\n"
-                   "┃               ┃\n"
-                   "┃               ┃\n"
-                   "┗━━━━━━━━━━━━━━━┛";
+  laby_init_empty (&lab, 5, 5);
+  int r = 2;
+  int c = 2;
+  int y = r * laby_room_height + (laby_room_height / 2);
+  int x = c * laby_room_width + (laby_room_width / 2);
+  char *expected = "";
 
   // when:
-  RENDER (draw_laby (&sm, &lab));
+  RENDER ({
+    draw_laby (&sm, &lab);
+    draw_visible_area (&sm, &lab, y, x, 5);
+    draw_in_the_middle_of_room(&sm, r, c, SIDX_PLAYER);
+  });
 
   // then:
   u8str actual = u8_buffer_to_u8str (&buf);
