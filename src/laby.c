@@ -31,32 +31,32 @@ laby_free (Laby *lab)
 
 /*  Returns only 4 first bits, which are about borders of the room. */
 unsigned char
-laby_get_border (const Laby *lab, int y, int x)
+laby_get_border (const Laby *lab, int r, int c)
 {
-  int is_x_inside = x >= 0 && x < lab->cols;
-  int is_y_inside = y >= 0 && y < lab->rows;
+  int is_x_inside = c >= 0 && c < lab->cols;
+  int is_y_inside = r >= 0 && r < lab->rows;
 
   int border = 0;
 
   if (is_y_inside && is_x_inside)
     {
-      border = lab->rooms[y][x];
-      if (y == 0)
+      border = lab->rooms[r][c];
+      if (r == 0)
         border |= UPPER_BORDER;
-      if (x == 0)
+      if (c == 0)
         border |= LEFT_BORDER;
-      if (y == lab->rows - 1)
+      if (r == lab->rows - 1)
         border |= BOTTOM_BORDER;
-      if (x == lab->cols - 1)
+      if (c == lab->cols - 1)
         border |= RIGHT_BORDER;
     }
-  else if (is_x_inside && y == -1)
+  else if (is_x_inside && r == -1)
     border = BOTTOM_BORDER;
-  else if (is_x_inside && y == lab->rows)
+  else if (is_x_inside && r == lab->rows)
     border = UPPER_BORDER;
-  else if (is_y_inside && x == -1)
+  else if (is_y_inside && c == -1)
     border = RIGHT_BORDER;
-  else if (is_y_inside && x == lab->cols)
+  else if (is_y_inside && c == lab->cols)
     border = LEFT_BORDER;
   else
     border = 0;

@@ -37,9 +37,15 @@ symbols_map_init (smap *sm, int rows, int cols, int room_height,
 }
 
 static inline void
-symbols_map_draw (smap *sm, int y, int x, symbol s)
+symbols_map_draw (smap *sm, double y, double x, symbol s)
 {
-  sm->symbols[y][x] = s;
+  int ix = round (x);
+  int iy = round (y);
+  if (ix < 0 || iy < 0)
+    return;
+  if (ix >= sm->width || iy >= sm->height)
+    return;
+  sm->symbols[iy][ix] = s;
 }
 
 void
@@ -182,37 +188,84 @@ draw_laby (smap *sm, Laby *lab)
     }
 }
 
-static void
-draw_visible_in_direction (smap *sm, double x, double y, double dx, double dy,
-                           int length)
+static inline void
+draw_inside_border (smap *sm, double y, double x, symbol s)
 {
-  int in_bounds_y = y >= 0 && y < sm->height;
-  int in_bounds_x = x >= 0 && x < sm->width;
+  int ix = round (x);
+  int iy = round (y);
+  if (ix < 1 || iy < 1)
+    return;
+  if (ix >= (sm->width - 1) || iy >= (sm->height - 1))
+    return;
+  sm->symbols[iy][ix] = s;
+}
 
-  while (in_bounds_y && in_bounds_x && length > 0)
+/**
+ * @dx increment
+ * @x0 a current coordinate
+ * @x1 a target coordinate
+ * @return 0 if the current coordinate is out of range
+ */
+static inline _Bool
+is_in_range (double dx, double x0, double x1)
+{
+  /* the first condition is a hack to avoid infinite loop
+   * in case of dx == ~0 */
+  return ((x0 + dx) != x0) && ((dx > 0) ? x0 <= x1 : x0 >= x1);
+}
+
+static inline _Bool
+is_border (Laby *lab, double y, double x)
+{
+  int iy = round (y);
+  int ix = round (x);
+  int r = iy / laby_room_height;
+  int c = ix / laby_room_width;
+  int b = laby_get_border (lab, r, c);
+
+  return ((iy == r * laby_room_height) && (b & UPPER_BORDER))
+         || ((ix == c * laby_room_width) && (b & LEFT_BORDER));
+}
+
+static void
+draw_visible_in_direction (smap *sm, Laby *lab, double y0, double x0,
+                           double dy, double dx, double y1, double x1)
+{
+  while (!is_border (lab, y0, x0)
+         && (is_in_range (dy, y0, y1) || is_in_range (dx, x0, x1)))
     {
-      symbols_map_draw (sm, round(y), round(x), SIDX_LIGHT);
-      x += dx;
-      y += dy;
-      length--;
-      in_bounds_y = y >= 0 && y < sm->height;
-      in_bounds_x = x >= 0 && x < sm->width;
+      draw_inside_border (sm, y0, x0, SIDX_LIGHT);
+      if (is_in_range (dx, x0, x1))
+        x0 += dx;
+      if (is_in_range (dy, y0, y1))
+        y0 += dy;
     }
 }
 
 void
 draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
 {
-  double l = 0.0;
-  double dl = M_PI / (4 * range);
+  double l = 0;
+  /* Than bigger denominator - better result, but more computations */
+  double dl = M_PI / (range * range * 10);
+  /* Coz the room has sides with different length, we should draw the visible
+   * area not as a circle, but as an ellipse */
+  double h = range;
+  double w = ((double)laby_room_width / laby_room_height) * range;
   while (l <= M_PI_2)
     {
+      /* Calculate deltas as sides of triangle with hypotenuse == 1 */
       double fdx = cos (l);
       double fdy = sin (l);
-      draw_visible_in_direction (sm, x, y, fdx, fdy, range);
-      draw_visible_in_direction (sm, x, y, fdx, -fdy, range);
-      draw_visible_in_direction (sm, x, y, -fdx, fdy, range);
-      draw_visible_in_direction (sm, x, y, -fdx, -fdy, range);
+      /* Now, count a coordinates of the point on the border of visible ellipse
+       * area */
+      double y1 = h * fdy;
+      double x1 = w * fdx;
+      /* Mark visible symbols in 4 directions: */
+      draw_visible_in_direction (sm, lab, y, x, fdy, fdx, y + y1, x + x1);
+      draw_visible_in_direction (sm, lab, y, x, -fdy, fdx, y - y1, x + x1);
+      draw_visible_in_direction (sm, lab, y, x, fdy, -fdx, y + y1, x - x1);
+      draw_visible_in_direction (sm, lab, y, x, -fdy, -fdx, y - y1, x - x1);
       l += dl;
     }
 }
