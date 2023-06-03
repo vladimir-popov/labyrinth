@@ -16,8 +16,8 @@ TEST_EXEC := run_tests
 # Find all the C files we want to compile, except the source with main function
 SRCS := $(shell find $(SRC_DIR) -name '*.c' -and -not -name $(APP_MAIN))
 
-# Find all C files with tests except the final one
-TEST_SRCS := $(shell find $(TEST_DIR) -name '*.c' -and -not -name $(TEST_MAIN))
+# Find all C files with tests
+TEST_SRCS := $(shell find $(TEST_DIR) -name '*.c')
 
 # Prepends BUILD_DIR and appends .o to every src file
 # As an example, ./src/hello.c turns into ./build/./src/hello.c.o
