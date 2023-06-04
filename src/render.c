@@ -10,8 +10,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "2d_math.h"
 #include "art.h"
 #include "game.h"
+#include "laby.h"
 #include "render.h"
 #include "u8.h"
 
@@ -214,11 +216,49 @@ is_in_range (double dx, double x0, double x1)
   return ((x0 + dx) != x0) && ((dx > 0) ? x0 <= x1 : x0 >= x1);
 }
 
-static inline _Bool
-is_border (Laby *lab, double y, double x)
+static Line
+get_border_line (Laby *lab, int r, int c, enum border border)
 {
-  int iy = round (y);
-  int ix = round (x);
+  Line dg;
+  dg.p0.y = r * laby_room_height;
+  dg.p0.x = c * laby_room_width;
+  dg.p1.y = dg.p0.y + laby_room_height;
+  dg.p1.x = dg.p0.x + laby_room_width;
+
+  Line res;
+  switch (border)
+    {
+    case BOTTOM_BORDER:
+      res.p0.y = dg.p1.y;
+      res.p0.x = dg.p0.x;
+      res.p1.y = dg.p1.y;
+      res.p1.x = dg.p1.x;
+      break;
+    case RIGHT_BORDER:
+      res.p0.y = dg.p0.y;
+      res.p0.x = dg.p1.x;
+      res.p1.y = dg.p1.y;
+      res.p1.x = dg.p1.x;
+      break;
+    case UPPER_BORDER:
+      res.p0.y = dg.p0.y;
+      res.p0.x = dg.p0.x;
+      res.p1.y = dg.p0.y;
+      res.p1.x = dg.p1.x;
+      break;
+    case LEFT_BORDER:;
+      res.p0.y = dg.p0.y;
+      res.p0.x = dg.p0.x;
+      res.p1.y = dg.p1.y;
+      res.p1.x = dg.p0.x;
+      break;
+    }
+  return res;
+}
+
+static _Bool
+is_point_on_border (Laby *lab, int iy, int ix)
+{
   int r = iy / laby_room_height;
   int c = ix / laby_room_width;
   int b = laby_get_border (lab, r, c);
@@ -227,11 +267,40 @@ is_border (Laby *lab, double y, double x)
          || ((ix == c * laby_room_width) && (b & LEFT_BORDER));
 }
 
+static _Bool
+is_intersect_with_borders (Laby *lab, double y0, double x0, double x1,
+                           double y1)
+{
+  int iy = round (y0);
+  int ix = round (x0);
+  int r = iy / laby_room_height;
+  int c = ix / laby_room_width;
+  enum border b = laby_get_border (lab, r, c);
+  enum border borders[4]
+      = { LEFT_BORDER, UPPER_BORDER, RIGHT_BORDER, BOTTOM_BORDER };
+  _Bool res = 0;
+  for (int i = 0; i < 4; i++)
+    {
+      if (res)
+        return res;
+
+      if (!(b & borders[i]))
+        continue;
+
+      Line bl = get_border_line (lab, r, c, b);
+
+      res = is_point_on_border (lab, iy, ix)
+            || is_lines_intersected (bl.p0.x, bl.p0.y, bl.p1.x, bl.p1.y, x0,
+                                     y0, x1, y1);
+    }
+  return res;
+}
+
 static void
 draw_visible_in_direction (smap *sm, Laby *lab, double y0, double x0,
                            double dy, double dx, double y1, double x1)
 {
-  while (!is_border (lab, y0, x0)
+  while (!is_intersect_with_borders (lab, y0, x0, y1, x1)
          && (is_in_range (dy, y0, y1) || is_in_range (dx, x0, x1)))
     {
       draw_inside_border (sm, y0, x0, SIDX_LIGHT);
@@ -246,19 +315,22 @@ void
 draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
 {
   double l = 0;
-  /* Than bigger denominator - better result, but more computations */
-  double dl = M_PI / (range * range * 10);
+  /* Than bigger denominator, than better result,
+   * but more computations needed */
+  double dl = M_PI / (range * range * 9);
   /* Coz the room has sides with different length, we should draw the visible
-   * area not as a circle, but as an ellipse */
+   * area not as a circle, but as an ellipse.
+   * Also, we should care about different proportions of the symbols in the
+   * terminal and use additional coefficient */
   double h = range;
-  double w = ((double)laby_room_width / laby_room_height) * range;
+  double w = 1.5 * ((double)laby_room_width / laby_room_height) * range;
   while (l <= M_PI_2)
     {
       /* Calculate deltas as sides of triangle with hypotenuse == 1 */
       double fdx = cos (l);
       double fdy = sin (l);
-      /* Now, count a coordinates of the point on the border of visible ellipse
-       * area */
+      /* Now, calculate a coordinates of the point on the border of the visible
+       * ellipse area */
       double y1 = h * fdy;
       double x1 = w * fdx;
       /* Mark visible symbols in 4 directions: */
@@ -288,13 +360,14 @@ void
 render_game (u8buf *buf, Game *game)
 {
   smap sm;
+  int y = laby_room_height * game->player.row;
+  int x = laby_room_width * game->player.col;
   symbols_map_init (&sm, game->lab.rows, game->lab.cols, laby_room_height,
                     laby_room_width);
   draw_laby (&sm, &game->lab);
-  draw_visible_area (&sm, &game->lab, game->player.y, game->player.x,
-                     game->player.visible_range);
-  draw_in_the_middle_of_room (&sm, game->exit.y, game->exit.x, SIDX_EXIT);
-  draw_in_the_middle_of_room (&sm, game->player.y, game->player.x,
+  draw_visible_area (&sm, &game->lab, y, x, game->player.visible_range);
+  draw_in_the_middle_of_room (&sm, game->exit.row, game->exit.col, SIDX_EXIT);
+  draw_in_the_middle_of_room (&sm, game->player.row, game->player.col,
                               SIDX_PLAYER);
   render_symbols_map (buf, &sm);
   symbols_map_free (&sm);

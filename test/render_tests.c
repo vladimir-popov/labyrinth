@@ -121,24 +121,24 @@ visibility_in_open_space_test ()
   int x = c * laby_room_width + (laby_room_width / 2);
   char *expected = "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
                    "┃                           ┃\n"
-                   "┃          ·······          ┃\n"
-                   "┃        ···········        ┃\n"
-                   "┃      ···············      ┃\n"
-                   "┃      ················     ┃\n"
+                   "┃                           ┃\n"
+                   "┃          ········         ┃\n"
+                   "┃       ·············       ┃\n"
                    "┃     ·················     ┃\n"
-                   "┃     ········@········     ┃\n"
+                   "┃    ···················    ┃\n"
+                   "┃    ·········@·········    ┃\n"
+                   "┃    ···················    ┃\n"
                    "┃     ·················     ┃\n"
-                   "┃      ················     ┃\n"
-                   "┃      ···············      ┃\n"
-                   "┃        ···········        ┃\n"
-                   "┃          ·······          ┃\n"
+                   "┃       ·············       ┃\n"
+                   "┃          ········         ┃\n"
+                   "┃                           ┃\n"
                    "┃                           ┃\n"
                    "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
   RENDER ({
     draw_laby (&sm, &lab);
-    draw_visible_area (&sm, &lab, y, x, 4);
+    draw_visible_area (&sm, &lab, y, x, 3);
     draw_in_the_middle_of_room (&sm, r, c, SIDX_PLAYER);
   });
 
@@ -187,7 +187,7 @@ visibility_in_closed_space_test ()
   // when:
   RENDER ({
     draw_laby (&sm, &lab);
-    draw_visible_area (&sm, &lab, y, x, 4);
+    draw_visible_area (&sm, &lab, y, x, 3);
     draw_in_the_middle_of_room (&sm, r, c, SIDX_PLAYER);
   });
 

@@ -29,8 +29,8 @@ typedef struct menu Menu;
 
 typedef struct
 {
-  unsigned char y;
-  unsigned char x;
+  unsigned char row;
+  unsigned char col;
   /* The radius of visible distance including the y:x.
    * 1 means that only current y:x room is visible.
    * 0 turns off visibility check completely. */
@@ -51,7 +51,7 @@ typedef struct
   /* The current state of the player */
   Player player;
   /* The position of the exit from the labyrinth */
-  pos exit;
+  LPos exit;
   /* Implementation of a menu depends on runtime.
    * The main logic of the game doesn't depend on a menu
    * implementation.*/

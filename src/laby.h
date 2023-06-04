@@ -6,9 +6,9 @@
  */
 typedef struct
 {
-  int y;
-  int x;
-} pos;
+  int row;
+  int col;
+} LPos;
 
 #define POSITION_EMPTY                                                        \
   {                                                                           \
