@@ -1,7 +1,7 @@
 .DEFAULT_GOAL = compile
 
 CC = gcc
-CFLAGS = -g # Turn on debug info
+CFLAGS = -Wall -g # Turn on debug info
 
 BUILD_DIR := ./build
 SRC_DIR := ./src

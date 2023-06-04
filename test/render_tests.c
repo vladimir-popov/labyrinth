@@ -138,7 +138,7 @@ visibility_in_open_space_test ()
   // when:
   RENDER ({
     draw_laby (&sm, &lab);
-    draw_visible_area (&sm, &lab, y, x, 4);
+    draw_visible_area (&sm, &lab, y, x, 3);
     draw_in_the_middle_of_room (&sm, r, c, SIDX_PLAYER);
   });
 

@@ -36,11 +36,11 @@ static void
 generate_new_level (Game *game)
 {
   laby_generate (&game->lab, game->height, game->width, game->seed);
-  game->player.y = 0;
-  game->player.x = 0;
+  game->player.row = 0;
+  game->player.col = 0;
   game->player.visible_range = 3;
-  game->exit.y = game->height - 1;
-  game->exit.x = game->width - 1;
+  game->exit.row = game->height - 1;
+  game->exit.col = game->width - 1;
 }
 
 static int
@@ -64,33 +64,33 @@ handle_cmd_in_main_menu (Game *game, enum command cmd)
 }
 
 static void
-move_player (Game *game, int dy, int dx)
+move_player (Game *game, int dr, int dc)
 {
-  game->player.y += dy;
-  game->player.x += dx;
+  game->player.row += dr;
+  game->player.col += dc;
 }
 
 static int
 handle_cmd_in_game (Game *game, enum command cmd)
 {
   Player *p = &game->player;
-  char border = laby_get_border (&game->lab, p->y, p->x);
+  char border = laby_get_border (&game->lab, p->row, p->col);
   switch (cmd)
     {
     case CMD_MV_LEFT:
-      if ((p->x > 0) && !(border & LEFT_BORDER))
+      if ((p->col > 0) && !(border & LEFT_BORDER))
         move_player (game, 0, -1);
       break;
     case CMD_MV_UP:
-      if ((p->y > 0) && !(border & UPPER_BORDER))
+      if ((p->row > 0) && !(border & UPPER_BORDER))
         move_player (game, -1, 0);
       break;
     case CMD_MV_RIGHT:
-      if ((p->x < game->lab.cols - 1) && !(border & RIGHT_BORDER))
+      if ((p->col < game->lab.cols - 1) && !(border & RIGHT_BORDER))
         move_player (game, 0, 1);
       break;
     case CMD_MV_DOWN:
-      if ((p->y < game->lab.rows - 1) && !(border & BOTTOM_BORDER))
+      if ((p->row < game->lab.rows - 1) && !(border & BOTTOM_BORDER))
         move_player (game, 1, 0);
       break;
     case CMD_PAUSE:
@@ -100,7 +100,7 @@ handle_cmd_in_game (Game *game, enum command cmd)
     default:
       break;
     }
-  if (p->y == game->exit.y && p->x == game->exit.x)
+  if (p->row == game->exit.row && p->col == game->exit.col)
     {
       game->state = ST_WIN;
       game->menu = create_menu (game, ST_WIN);
