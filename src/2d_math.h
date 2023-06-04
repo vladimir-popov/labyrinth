@@ -2,7 +2,9 @@
 #define __2D_MATH__
 
 #define pseudoscalar_product(ax, ay, bx, by) (ax * by - ay * bx)
-#define vector_pseudoscalar_product(a, b) pseudoscalar_product (a.px, a.py, b.px, b.py)
+
+#define vector_pseudoscalar_product(a, b)                                     \
+  pseudoscalar_product (a.px, a.py, b.px, b.py)
 
 typedef struct
 {
@@ -26,8 +28,17 @@ typedef struct
 
 void vector_init (Vector *v, Point from, Point to);
 
-double vector_pseudo_scalar_product (Vector *a, Vector *b);
+void line_init (Line *l, double x0, double y0, double x1, double y1);
 
+/**
+ * Checks that the line a is intersected with b.
+ */
 _Bool line_is_intersected (Line *a, Line *b);
+
+/**
+ * Checks that the line AB is intersected with CD.
+ */
+_Bool is_lines_intersected (double Ax, double Ay, double Bx, double By,
+                           double Cx, double Cy, double Dx, double Dy);
 
 #endif // __2D_MATH__

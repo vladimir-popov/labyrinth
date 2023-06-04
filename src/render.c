@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "2d_math.h"
 #include "art.h"
 #include "game.h"
 #include "laby.h"
@@ -219,47 +220,45 @@ static Line
 get_border_line (Laby *lab, int r, int c, enum border border)
 {
   Line dg;
-  dg.y0 = r * laby_room_height;
-  dg.x0 = c * laby_room_width;
-  dg.y1 = dg.y0 + laby_room_height;
-  dg.x1 = dg.x0 + laby_room_width;
+  dg.p0.y = r * laby_room_height;
+  dg.p0.x = c * laby_room_width;
+  dg.p1.y = dg.p0.y + laby_room_height;
+  dg.p1.x = dg.p0.x + laby_room_width;
 
   Line res;
   switch (border)
     {
     case BOTTOM_BORDER:
-      res.y0 = dg.y1;
-      res.x0 = dg.x0;
-      res.y1 = dg.y1;
-      res.x1 = dg.x1;
+      res.p0.y = dg.p1.y;
+      res.p0.x = dg.p0.x;
+      res.p1.y = dg.p1.y;
+      res.p1.x = dg.p1.x;
       break;
     case RIGHT_BORDER:
-      res.y0 = dg.y0;
-      res.x0 = dg.x1;
-      res.y1 = dg.y1;
-      res.x1 = dg.x1;
+      res.p0.y = dg.p0.y;
+      res.p0.x = dg.p1.x;
+      res.p1.y = dg.p1.y;
+      res.p1.x = dg.p1.x;
       break;
     case UPPER_BORDER:
-      res.y0 = dg.y0;
-      res.x0 = dg.x0;
-      res.y1 = dg.y0;
-      res.x1 = dg.x1;
+      res.p0.y = dg.p0.y;
+      res.p0.x = dg.p0.x;
+      res.p1.y = dg.p0.y;
+      res.p1.x = dg.p1.x;
       break;
     case LEFT_BORDER:;
-      res.y0 = dg.y0;
-      res.x0 = dg.x0;
-      res.y1 = dg.y1;
-      res.x1 = dg.x0;
+      res.p0.y = dg.p0.y;
+      res.p0.x = dg.p0.x;
+      res.p1.y = dg.p1.y;
+      res.p1.x = dg.p0.x;
       break;
     }
   return res;
 }
 
 static _Bool
-is_point_on_border (Laby *lab, double y, double x)
+is_point_on_border (Laby *lab, int iy, int ix)
 {
-  int iy = round (y);
-  int ix = round (x);
   int r = iy / laby_room_height;
   int c = ix / laby_room_width;
   int b = laby_get_border (lab, r, c);
@@ -268,24 +267,12 @@ is_point_on_border (Laby *lab, double y, double x)
          || ((ix == c * laby_room_width) && (b & LEFT_BORDER));
 }
 
-static inline double
-vector_ps_product (double y0, double x0, double y1, double x1)
-{
-  return x0 * y1 - x1 * y0;
-}
-
-static _Bool
-is_lines_intersect (Line *a, double y0, double x0, double x1, double y1)
-{
-  double v1 = vector_ps_product()
-}
-
 static _Bool
 is_intersect_with_borders (Laby *lab, double y0, double x0, double x1,
                            double y1)
 {
-  int iy = round (y1);
-  int ix = round (x1);
+  int iy = round (y0);
+  int ix = round (x0);
   int r = iy / laby_room_height;
   int c = ix / laby_room_width;
   enum border b = laby_get_border (lab, r, c);
@@ -300,9 +287,11 @@ is_intersect_with_borders (Laby *lab, double y0, double x0, double x1,
       if (!(b & borders[i]))
         continue;
 
-      Line b_line = get_border_line (lab, r, c, b);
-      res = is_lines_intersect (&b_line, y0, x0, y1, x1)
-            || is_point_on_border (lab, y1, x1);
+      Line bl = get_border_line (lab, r, c, b);
+
+      res = is_point_on_border (lab, iy, ix)
+            || is_lines_intersected (bl.p0.x, bl.p0.y, bl.p1.x, bl.p1.y, x0,
+                                     y0, x1, y1);
     }
   return res;
 }
@@ -311,7 +300,7 @@ static void
 draw_visible_in_direction (smap *sm, Laby *lab, double y0, double x0,
                            double dy, double dx, double y1, double x1)
 {
-  while (!is_point_on_border (lab, y0, x0)
+  while (!is_intersect_with_borders (lab, y0, x0, y1, x1)
          && (is_in_range (dy, y0, y1) || is_in_range (dx, x0, x1)))
     {
       draw_inside_border (sm, y0, x0, SIDX_LIGHT);
@@ -340,8 +329,8 @@ draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
       /* Calculate deltas as sides of triangle with hypotenuse == 1 */
       double fdx = cos (l);
       double fdy = sin (l);
-      /* Now, count a coordinates of the point on the border of visible ellipse
-       * area */
+      /* Now, calculate a coordinates of the point on the border of the visible
+       * ellipse area */
       double y1 = h * fdy;
       double x1 = w * fdx;
       /* Mark visible symbols in 4 directions: */

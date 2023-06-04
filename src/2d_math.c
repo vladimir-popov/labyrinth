@@ -45,26 +45,39 @@ line_is_intersected (Line *a, Line *b)
   if (line_is_projections_intersected (a, b))
     return 1;
 
-  /* 
+  /*
    * @a the line from A to B
    * @b the line from C to D
    */
   Vector AB;
-  vector_init(&AB, a->p0, a->p1);
+  vector_init (&AB, a->p0, a->p1);
   Vector AD;
-  vector_init(&AD, a->p0, b->p1);
+  vector_init (&AD, a->p0, b->p1);
   Vector AC; // will be used also as CA
-  vector_init(&AC, a->p0, b->p0);
+  vector_init (&AC, a->p0, b->p0);
   Vector CD;
-  vector_init(&CD, b->p0, b->p1);
+  vector_init (&CD, b->p0, b->p1);
   Vector CB;
-  vector_init(&CB, b->p0, a->p1);
+  vector_init (&CB, b->p0, a->p1);
 
   double v1 = vector_pseudoscalar_product (AD, AB);
-  double v2 = vector_pseudoscalar_product(AB, AC);
+  double v2 = vector_pseudoscalar_product (AB, AC);
 
-  double v3 = vector_pseudoscalar_product(AC, CD);
-  double v4 = vector_pseudoscalar_product(CD, CB);
+  double v3 = vector_pseudoscalar_product (AC, CD);
+  double v4 = vector_pseudoscalar_product (CD, CB);
 
-  return isless(v1 * v2, 0) && isless(v3 * v4, 0);
+  return isless (v1 * v2, 0) && isless (v3 * v4, 0);
+}
+
+// TODO: do not use structures in the implementation
+_Bool
+is_lines_intersected (double Ax, double Ay, double Bx, double By, double Cx,
+                     double Cy, double Dx, double Dy)
+{
+  Line a;
+  line_init (&a, Ax, Ay, Bx, By);
+  Line b;
+  line_init (&b, Cx, Cy, Dx, Dy);
+
+  return line_is_intersected (&a, &b);
 }
