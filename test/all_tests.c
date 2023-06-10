@@ -1,3 +1,4 @@
+#include "2d_math_tests.c"
 #include "render_tests.c"
 #include "u8_tests.c"
 #include "term.h"
@@ -5,11 +6,15 @@
 
 int tests_run = 0;
 char *test_only = NULL;
-// char *test_only = "visibility_in_closed_space_test";
+// char *test_only = "perpendicular_lines_intersection_test";
 
 char *
 all_tests ()
 {
+  /* 2d math tests */
+  mu_run_test(intersected_lines_test);
+  mu_run_test(parallel_lines_intersection_test);
+  mu_run_test(perpendicular_lines_intersection_test);
   /* str tests */
   mu_run_test (utf8_find_index_test);
   mu_run_test (utf8_symbols_count_test);

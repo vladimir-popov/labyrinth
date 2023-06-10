@@ -8,8 +8,8 @@
 #define __RENDER__
 
 #include "art.h"
-#include "u8.h"
 #include "laby.h"
+#include "u8.h"
 #include <time.h>
 
 #define SIDX_NOTHING 0
@@ -63,16 +63,15 @@ struct menu
  * `rows` x `cols` rooms, where a room has `room_height` x `room_width` symbols
  * dimension.
  */
-void symbols_map_init (smap *sm, int rows, int cols, int room_height,
-                       int room_width);
+void smap_init (smap *sm, int rows, int cols, int room_height, int room_width);
 
-void symbols_map_free (smap *sm);
+void smap_free (smap *sm);
 
 /**
-* Puts the symbol `s` to the middle of the room r:c. 
-* @r zero-based number of the row of rooms in the labyrinth.
-* @c zero-based number of the column of rooms in the labyrinth.
-*/
+ * Puts the symbol `s` to the middle of the room r:c.
+ * @r zero-based number of the row of rooms in the labyrinth.
+ * @c zero-based number of the column of rooms in the labyrinth.
+ */
 void draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s);
 
 /**

@@ -74,7 +74,7 @@ static int
 handle_cmd_in_game (Game *game, enum command cmd)
 {
   Player *p = &game->player;
-  char border = laby_get_border (&game->lab, p->row, p->col);
+  char border = laby_get_borders (&game->lab, p->row, p->col);
   switch (cmd)
     {
     case CMD_MV_LEFT:

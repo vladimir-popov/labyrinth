@@ -31,7 +31,7 @@ laby_free (Laby *lab)
 
 /*  Returns only 4 first bits, which are about borders of the room. */
 unsigned char
-laby_get_border (const Laby *lab, int r, int c)
+laby_get_borders (const Laby *lab, int r, int c)
 {
   int is_x_inside = c >= 0 && c < lab->cols;
   int is_y_inside = r >= 0 && r < lab->rows;
@@ -120,7 +120,6 @@ laby_set_visited (Laby *lab, int y, int x)
   ROOM_MARK_AS_VISITED (&lab->rooms[y][x]);
 }
 
-
 void
 laby_set_content (Laby *lab, int y, int x, unsigned char value)
 {
@@ -181,7 +180,7 @@ laby_generate (Laby *lab, int height, int width, int seed)
           int no_bb = 0;
           for (int i = 0; i < width && no_bb < 2; i++)
             if (s[x] == s[i])
-              no_bb = (laby_get_border (lab, y, i) & BOTTOM_BORDER)
+              no_bb = (laby_get_borders (lab, y, i) & BOTTOM_BORDER)
                           ? no_bb
                           : no_bb + 1;
 

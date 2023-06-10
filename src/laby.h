@@ -1,6 +1,8 @@
 #ifndef __LABY__
 #define __LABY__
 
+#include "2d_math.h"
+
 /**
  * Coordinates of the room in the labyrinth.
  */
@@ -88,13 +90,16 @@ void laby_init_empty (Laby *lab, int height, int width);
 void laby_free (Laby *lab);
 
 /*  Returns only 4 first bits, which are about borders of the room. */
-unsigned char laby_get_border (const Laby *lab, int y, int x);
+unsigned char laby_get_borders (const Laby *lab, int y, int x);
 
 /* Add border flag. */
 void laby_add_border (Laby *lab, int y, int x, enum border border);
 
 /* Remove border flag. */
 void laby_rm_border (Laby *lab, int y, int x, enum border border);
+
+Line laby_get_border_line (Laby *lab, int r, int c, enum border border,
+                           int room_height, int room_width);
 
 /**
  * Finds all visible rooms from the room on fy:fx in the range and put them to
