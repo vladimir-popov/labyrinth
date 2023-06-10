@@ -35,13 +35,13 @@ TEST_OBJS += $(BUILD_DIR)/$(TEST_DIR)/$(TEST_MAIN).o
 # Build step for C source
 # Changes in Makefile should trigger compilation too
 $(BUILD_DIR)/$(SRC_DIR)/%.c.o: $(SRC_DIR)/%.c Makefile
-	@[ -d $(BUILD_DIR)/$(SRC_DIR)/ ] || mkdir $(BUILD_DIR)/$(SRC_DIR)/
+	@[ -d $(BUILD_DIR)/$(SRC_DIR)/ ] || mkdir -p $(BUILD_DIR)/$(SRC_DIR)/
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # TEST_MAIN should be recompile on changes in any TEST_SRCS or Makefile
 $(BUILD_DIR)/$(TEST_DIR)/$(TEST_MAIN).o: $(TEST_SRCS) Makefile
 	@echo "Compile tests..."
-	@[ -d $(BUILD_DIR)/$(TEST_DIR)/ ] || mkdir $(BUILD_DIR)/$(TEST_DIR)/
+	@[ -d $(BUILD_DIR)/$(TEST_DIR)/ ] || mkdir -p $(BUILD_DIR)/$(TEST_DIR)/
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $(TEST_DIR)/$(TEST_MAIN) -o $@
 
 # Build the game

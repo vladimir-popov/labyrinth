@@ -1,6 +1,8 @@
 #ifndef __LABY__
 #define __LABY__
 
+#include "2d_math.h"
+
 /**
  * Coordinates of the room in the labyrinth.
  */
@@ -18,15 +20,15 @@ typedef struct
 /*
  * All information about a single room should be encoded in one byte:
  *
- * |   C   |M|V|L U R B|
- * |0 ... 0|0|0|0 0 0 0|
+ * |   C   |Vb|Vt|L U R B|
+ * |0 ... 0|0 |0 |0 0 0 0|
  *
  * Section B: describes the bottom border of the room;
  * Section R: describes the right border of the room;
  * Section U: describes the upper border of the room;
  * Section L: describes the left border of the room;
- * Section V: was the room visited by the player or not;
- * Section M: is visible the room on map or not;
+ * Section Vt: was the room visited by the player or not;
+ * Section Vb: is the room visible or not;
  * Section C: describes a content of the room;
  */
 typedef unsigned int room;
@@ -34,15 +36,7 @@ typedef unsigned int room;
 typedef room *p_room;
 
 #define VISITED_MASK 0x10
-#define ON_MAP_MASK 0x11
-
-#define VISIBILITY_SHIFT 4
-#define ON_MAP_SHIFT 5
-#define CONTENT_SHIFT 6
-
-#define ROOM_IS_VISITED(P_ROOM) (*P_ROOM & VISITED_MASK)
-#define ROOM_MARK_AS_VISITED(P_ROOM) (*P_ROOM |= VISITED_MASK)
-#define ROOM_MARK_AS_NOT_VISITED(P_ROOM) (*P_ROOM &= ~VISITED_MASK)
+#define VISIBLE_MASK 0x20
 
 /**
  * Checks the flag `expected` in the `border` and returns TRUE
@@ -84,11 +78,13 @@ typedef struct
 /* Creates a new labyrinth with height x width empty rooms. */
 void laby_init_empty (Laby *lab, int height, int width);
 
+void laby_generate (Laby *lab, int height, int width, int seed);
+
 /* Frees memory of the labyrinth. */
 void laby_free (Laby *lab);
 
 /*  Returns only 4 first bits, which are about borders of the room. */
-unsigned char laby_get_border (const Laby *lab, int y, int x);
+unsigned char laby_get_borders (const Laby *lab, int y, int x);
 
 /* Add border flag. */
 void laby_add_border (Laby *lab, int y, int x, enum border border);
@@ -97,20 +93,29 @@ void laby_add_border (Laby *lab, int y, int x, enum border border);
 void laby_rm_border (Laby *lab, int y, int x, enum border border);
 
 /**
- * Finds all visible rooms from the room on fy:fx in the range and put them to
- * the dest. Returns a count of the visible rooms (the length of the dest).
+ * Calculates visibility of rooms from the center of the room r:c in the
+ * labyrinth with 3x3 room size.
+ * Here we use the similar to ray-trace idea:
+ * - casts a glance in all possible directions from the center of the room r:c;
+ * - marks as visible all rooms, which center can be achieved by the glance
+ *   in the range without intersection with borders.
+ *
+ * @r zero based vertical position of the room from which visibility
+ * calculated.
+ * @c zero based horizontal position of the room from which visibility
+ * calculated.
+ * @range the maximum count of the visible rooms in a single direction.
  */
-int laby_find_visible_rooms (const Laby *lab, p_room **dest, int fy, int fx,
-                             int range);
+void laby_mark_visible_rooms (Laby *lab, int r, int c, int range);
 
-int laby_is_visited (const Laby *lab, int y, int x);
+_Bool laby_is_visible (const Laby *lab, int r, int c);
 
-void laby_set_visited (Laby *lab, int y, int x);
+_Bool laby_is_visited (const Laby *lab, int r, int c);
 
-void laby_set_content (Laby *lab, int y, int x, unsigned char value);
+void laby_set_visited (Laby *lab, int r, int c);
 
-unsigned char laby_get_content (const Laby *lab, int y, int x);
+void laby_set_content (Laby *lab, int r, int c, unsigned char value);
 
-void laby_generate (Laby *lab, int height, int width, int seed);
+unsigned char laby_get_content (const Laby *lab, int r, int c);
 
 #endif /* __LABY__ */

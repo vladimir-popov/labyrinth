@@ -8,8 +8,8 @@
 #define __RENDER__
 
 #include "art.h"
-#include "u8.h"
 #include "laby.h"
+#include "u8.h"
 #include <time.h>
 
 #define SIDX_NOTHING 0
@@ -63,34 +63,21 @@ struct menu
  * `rows` x `cols` rooms, where a room has `room_height` x `room_width` symbols
  * dimension.
  */
-void symbols_map_init (smap *sm, int rows, int cols, int room_height,
-                       int room_width);
+void smap_init (smap *sm, int rows, int cols, int room_height, int room_width);
 
-void symbols_map_free (smap *sm);
+void smap_free (smap *sm);
 
 /**
-* Puts the symbol `s` to the middle of the room r:c. 
-* @r zero-based number of the row of rooms in the labyrinth.
-* @c zero-based number of the column of rooms in the labyrinth.
-*/
+ * Puts the symbol `s` to the middle of the room r:c.
+ * @r zero-based number of the row of rooms in the labyrinth.
+ * @c zero-based number of the column of rooms in the labyrinth.
+ */
 void draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s);
 
 /**
  * Prepare the labyrinth `lab` to render it.
  */
 void draw_laby (smap *sm, Laby *lab);
-
-/**
- * The similar to ray-trace idea:
- * - cast a glance in all possible directions in the range;
- * - marks all visible symbols in the direction till the end of the range,
- *   or meeting the first not visible symbol
- *
- * @y zero based vertical position of the view point in the symbols map.
- * @x zero based horizontal position of the view point in the symbols map.
- * @range the maximum count of the visible symbols in single direction.
- */
-void draw_visible_area (smap *sm, Laby *lab, int y, int x, int range);
 
 void render_symbols_map (u8buf *dest, const smap *source);
 

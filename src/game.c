@@ -38,7 +38,7 @@ generate_new_level (Game *game)
   laby_generate (&game->lab, game->height, game->width, game->seed);
   game->player.row = 0;
   game->player.col = 0;
-  game->player.visible_range = 3;
+  game->player.visible_range = 2;
   game->exit.row = game->height - 1;
   game->exit.col = game->width - 1;
 }
@@ -74,7 +74,7 @@ static int
 handle_cmd_in_game (Game *game, enum command cmd)
 {
   Player *p = &game->player;
-  char border = laby_get_border (&game->lab, p->row, p->col);
+  char border = laby_get_borders (&game->lab, p->row, p->col);
   switch (cmd)
     {
     case CMD_MV_LEFT:

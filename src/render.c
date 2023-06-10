@@ -23,13 +23,12 @@ static const char *symbols[] =
 //   0    1    2    3    4    5    6    7    8    9
   { 
      "", " ", "┃", "━", "┏", "┓", "┗", "┛", "╋", "┣",
-    "┫", "┳", "┻", "@", "⛿", "·" 
+    "┫", "┳", "┻", "@", "⛿", "·", "*" 
   };
 // clang-format on
 
 void
-symbols_map_init (smap *sm, int rows, int cols, int room_height,
-                  int room_width)
+smap_init (smap *sm, int rows, int cols, int room_height, int room_width)
 {
   sm->height = rows * room_height + 1;
   sm->width = cols * room_width + 1;
@@ -51,7 +50,7 @@ symbols_map_draw (smap *sm, double y, double x, symbol s)
 }
 
 void
-symbols_map_free (smap *sm)
+smap_free (smap *sm)
 {
   for (int i = 0; i < sm->height; i++)
     free (sm->symbols[i]);
@@ -123,7 +122,7 @@ get_corner (int broom, int bneighbor)
       && NOT_EXPECT_BORDERS (bneighbor, BOTTOM_BORDER))
     return 2; // "┃"
 
-  return 1; // " "
+  return 0;
 }
 
 void
@@ -135,34 +134,39 @@ draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s)
 }
 
 /**
- * @y number of the room by vertical
- * @x number of the room by horizontal
- * @r number of the char of the room by vertical
- * @c number of the char of the room by horizontal
+ * @r number of the room by vertical
+ * @c number of the room by horizontal
+ * @y number of the char inside the room by vertical
+ * @x number of the char inside the room by horizontal
  */
 static void
-draw_room (smap *sm, Laby *lab, int y, int x, int r, int c)
+draw_room (smap *sm, Laby *lab, int r, int c, int y, int x)
 {
   /* We will render left and upper borders at once.
    * To choose correct symbol for the corner we need to know a
    * neighbor. */
-  int border = laby_get_border (lab, y, x);
-  int neighbor = laby_get_border (lab, y - 1, x - 1);
+  int border = laby_get_borders (lab, r, c);
+  int neighbor = laby_get_borders (lab, r - 1, c - 1);
 
   symbol *idx
-      = &sm->symbols[r + y * laby_room_height][c + x * laby_room_width];
+      = &sm->symbols[y + r * laby_room_height][x + c * laby_room_width];
 
   /* render the first row of symbols of the room */
-  if (r == 0)
+  if (y == 0)
     {
-      *idx = (c == 0)                  ? get_corner (border, neighbor)
-             : (border & UPPER_BORDER) ? 3
-                                       : SIDX_EMPTY;
+      *idx = (x == 0) ? get_corner (border, neighbor) : 0;
+      *idx = (*idx)                              ? *idx
+             : (border & UPPER_BORDER)           ? 3
+             : (laby_is_visible (lab, r, c))     ? SIDX_LIGHT
+             : (laby_is_visible (lab, r - 1, c)) ? SIDX_LIGHT
+                                                 : SIDX_EMPTY;
     }
   /* render the content of the room (the second row) */
   else
     {
-      *idx = ((c == 0) && (border & LEFT_BORDER)) ? 2 : SIDX_EMPTY;
+      *idx = ((x == 0) && (border & LEFT_BORDER)) ? 2
+             : (laby_is_visible (lab, r, c))      ? SIDX_LIGHT
+                                                  : SIDX_EMPTY;
     }
 }
 
@@ -170,175 +174,22 @@ void
 draw_laby (smap *sm, Laby *lab)
 {
   /* Render rooms from every row, plus one extra row for the bottom borders */
-  for (int y = 0; y <= lab->rows; y++)
+  for (int r = 0; r <= lab->rows; r++)
     {
       /* iterates over room height (only one line for the last extra row) */
-      int n = (y < lab->rows) ? laby_room_height : 1;
-      for (int r = 0; r < n; r++)
+      int rh = (r < lab->rows) ? laby_room_height : 1;
+      for (int ry = 0; ry < rh; ry++)
         {
           /* Take a room from the row, plus one more for the right border */
-          for (int x = 0; x <= lab->cols; x++)
+          for (int c = 0; c <= lab->cols; c++)
             {
-
               /* Iterate over columns of the single room
                * (only one symbol for the extra right room) */
-              int k = (x < lab->cols) ? laby_room_width : 1;
-              for (int c = 0; c < k; c++)
-                draw_room (sm, lab, y, x, r, c);
+              int rw = (c < lab->cols) ? laby_room_width : 1;
+              for (int rx = 0; rx < rw; rx++)
+                draw_room (sm, lab, r, c, ry, rx);
             }
         }
-    }
-}
-
-static inline void
-draw_inside_border (smap *sm, double y, double x, symbol s)
-{
-  int ix = round (x);
-  int iy = round (y);
-  if (ix < 1 || iy < 1)
-    return;
-  if (ix >= (sm->width - 1) || iy >= (sm->height - 1))
-    return;
-  sm->symbols[iy][ix] = s;
-}
-
-/**
- * @dx increment
- * @x0 a current coordinate
- * @x1 a target coordinate
- * @return 0 if the current coordinate is out of range
- */
-static inline _Bool
-is_in_range (double dx, double x0, double x1)
-{
-  /* the first condition is a hack to avoid infinite loop
-   * in case of dx == ~0 */
-  return ((x0 + dx) != x0) && ((dx > 0) ? x0 <= x1 : x0 >= x1);
-}
-
-static Line
-get_border_line (Laby *lab, int r, int c, enum border border)
-{
-  Line dg;
-  dg.p0.y = r * laby_room_height;
-  dg.p0.x = c * laby_room_width;
-  dg.p1.y = dg.p0.y + laby_room_height;
-  dg.p1.x = dg.p0.x + laby_room_width;
-
-  Line res;
-  switch (border)
-    {
-    case BOTTOM_BORDER:
-      res.p0.y = dg.p1.y;
-      res.p0.x = dg.p0.x;
-      res.p1.y = dg.p1.y;
-      res.p1.x = dg.p1.x;
-      break;
-    case RIGHT_BORDER:
-      res.p0.y = dg.p0.y;
-      res.p0.x = dg.p1.x;
-      res.p1.y = dg.p1.y;
-      res.p1.x = dg.p1.x;
-      break;
-    case UPPER_BORDER:
-      res.p0.y = dg.p0.y;
-      res.p0.x = dg.p0.x;
-      res.p1.y = dg.p0.y;
-      res.p1.x = dg.p1.x;
-      break;
-    case LEFT_BORDER:;
-      res.p0.y = dg.p0.y;
-      res.p0.x = dg.p0.x;
-      res.p1.y = dg.p1.y;
-      res.p1.x = dg.p0.x;
-      break;
-    }
-  return res;
-}
-
-static _Bool
-is_point_on_border (Laby *lab, int iy, int ix)
-{
-  int r = iy / laby_room_height;
-  int c = ix / laby_room_width;
-  int b = laby_get_border (lab, r, c);
-
-  return ((iy == r * laby_room_height) && (b & UPPER_BORDER))
-         || ((ix == c * laby_room_width) && (b & LEFT_BORDER));
-}
-
-static _Bool
-is_intersect_with_borders (Laby *lab, double y0, double x0, double x1,
-                           double y1)
-{
-  int iy = round (y0);
-  int ix = round (x0);
-  int r = iy / laby_room_height;
-  int c = ix / laby_room_width;
-  enum border b = laby_get_border (lab, r, c);
-  enum border borders[4]
-      = { LEFT_BORDER, UPPER_BORDER, RIGHT_BORDER, BOTTOM_BORDER };
-  _Bool res = 0;
-  for (int i = 0; i < 4; i++)
-    {
-      if (res)
-        return res;
-
-      if (!(b & borders[i]))
-        continue;
-
-      Line bl = get_border_line (lab, r, c, b);
-
-      res = is_point_on_border (lab, iy, ix)
-            || is_lines_intersected (bl.p0.x, bl.p0.y, bl.p1.x, bl.p1.y, x0,
-                                     y0, x1, y1);
-    }
-  return res;
-}
-
-static void
-draw_visible_in_direction (smap *sm, Laby *lab, double y0, double x0,
-                           double dy, double dx, double y1, double x1)
-{
-  while (!is_intersect_with_borders (lab, y0, x0, y1, x1)
-         && (is_in_range (dy, y0, y1) || is_in_range (dx, x0, x1)))
-    {
-      draw_inside_border (sm, y0, x0, SIDX_LIGHT);
-      if (is_in_range (dx, x0, x1))
-        x0 += dx;
-      if (is_in_range (dy, y0, y1))
-        y0 += dy;
-    }
-}
-
-void
-draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
-{
-  double l = 0;
-  /* Than bigger denominator, than better result,
-   * but more computations needed */
-  double dl = M_PI / (range * range * 9);
-  /* Coz the room has sides with different length, we should draw the visible
-   * area not as a circle, but as an ellipse.
-   * Also, we should care about different proportions of the symbols in the
-   * terminal and use additional coefficient */
-  double h = range;
-  double w = 1.5 * ((double)laby_room_width / laby_room_height) * range;
-  while (l <= M_PI_2)
-    {
-      /* Calculate deltas as sides of triangle with hypotenuse == 1 */
-      double fdx = cos (l);
-      double fdy = sin (l);
-      /* Now, calculate a coordinates of the point on the border of the visible
-       * ellipse area */
-      double y1 = h * fdy;
-      double x1 = w * fdx;
-      /* Mark visible symbols in 4 directions: */
-      draw_visible_in_direction (sm, lab, y, x, fdy, fdx, y + y1, x + x1);
-      draw_visible_in_direction (sm, lab, y, x, -fdy, fdx, y - y1, x + x1);
-      draw_visible_in_direction (sm, lab, y, x, fdy, -fdx, y + y1, x - x1);
-      draw_visible_in_direction (sm, lab, y, x, -fdy, -fdx, y - y1, x - x1);
-      l += dl;
     }
 }
 
@@ -360,17 +211,16 @@ void
 render_game (u8buf *buf, Game *game)
 {
   smap sm;
-  int y = laby_room_height * game->player.row;
-  int x = laby_room_width * game->player.col;
-  symbols_map_init (&sm, game->lab.rows, game->lab.cols, laby_room_height,
-                    laby_room_width);
+  smap_init (&sm, game->lab.rows, game->lab.cols, laby_room_height,
+             laby_room_width);
+  laby_mark_visible_rooms (&game->lab, game->player.row, game->player.col,
+                           game->player.visible_range);
   draw_laby (&sm, &game->lab);
-  draw_visible_area (&sm, &game->lab, y, x, game->player.visible_range);
   draw_in_the_middle_of_room (&sm, game->exit.row, game->exit.col, SIDX_EXIT);
   draw_in_the_middle_of_room (&sm, game->player.row, game->player.col,
                               SIDX_PLAYER);
   render_symbols_map (buf, &sm);
-  symbols_map_free (&sm);
+  smap_free (&sm);
 }
 
 void

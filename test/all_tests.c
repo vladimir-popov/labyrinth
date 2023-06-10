@@ -1,3 +1,4 @@
+#include "2d_math_tests.c"
 #include "render_tests.c"
 #include "u8_tests.c"
 #include "term.h"
@@ -5,11 +6,16 @@
 
 int tests_run = 0;
 char *test_only = NULL;
-// char *test_only = "visibility_in_closed_space_test";
+// char *test_only = "visibility_in_closed_space_test_2";
 
 char *
 all_tests ()
 {
+  /* 2d math tests */
+  mu_run_test(intersected_lines_test);
+  mu_run_test(parallel_lines_intersection_test);
+  mu_run_test(perpendicular_lines_intersection_test);
+  mu_run_test(lines_intersection_test_1);
   /* str tests */
   mu_run_test (utf8_find_index_test);
   mu_run_test (utf8_symbols_count_test);
@@ -28,14 +34,11 @@ all_tests ()
   mu_run_test (simple_laby_test);
   mu_run_test (generate_eller_test);
   mu_run_test (visibility_in_open_space_test);
-  mu_run_test (visibility_in_closed_space_test);
-  // mu_run_test (laby_visibility_test_2);
-  // mu_run_test (laby_visibility_test_3);
-  // mu_run_test (laby_visibility_test_4);
-  // mu_run_test (laby_visibility_test_5);
-  // mu_run_test (laby_visibility_test_6);
-  // mu_run_test (laby_visibility_test_7);
-  // mu_run_test (laby_visibility_test_8);
+  mu_run_test (visibility_in_closed_space_test_1);
+  mu_run_test (visibility_in_closed_space_test_2);
+  mu_run_test (laby_visibility_crossroads_test);
+  mu_run_test (laby_visibility_test_1);
+  mu_run_test (laby_visibility_test_2);
   return 0;
 }
 
