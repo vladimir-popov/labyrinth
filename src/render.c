@@ -204,8 +204,8 @@ get_borders_lines (const Laby *lab, const int r, const int c, Line dest[4])
   Line dg;
   dg.p0.y = r * laby_room_height;
   dg.p0.x = c * laby_room_width;
-  dg.p1.y = dg.p0.y + laby_room_height;
-  dg.p1.x = dg.p0.x + laby_room_width;
+  dg.p1.y = dg.p0.y + laby_room_height + 1;
+  dg.p1.x = dg.p0.x + laby_room_width + 1;
 
   int borders = laby_get_borders (lab, r, c);
 
@@ -251,7 +251,7 @@ get_borders_lines (const Laby *lab, const int r, const int c, Line dest[4])
 }
 
 static inline _Bool
-is_equal (double a, double b, double c)
+are_equal (double a, double b, double c)
 {
   return (fabs (a - b) < 1e-5) && (fabs (b - c) < 1e-5);
 }
@@ -262,9 +262,9 @@ is_on_border (int y, int x, Line bls[], int count)
   /* here we can simplify checking using inside about lines */
   for (int i = 0; i < count; i++)
     {
-      if (is_equal (bls[i].p0.x, bls[i].p1.x, x))
+      if (are_equal (bls[i].p0.x, bls[i].p1.x, x))
         return 1;
-      if (is_equal (bls[i].p0.y, bls[i].p1.y, y))
+      if (are_equal (bls[i].p0.y, bls[i].p1.y, y))
         return 1;
     }
   return 0;
@@ -288,7 +288,20 @@ is_vector_intersects_with_borders (Laby *lab, int y0, int x0, int y, int x)
   /* both points may be in the same room,
    * in this case check is x:y on a border is enough */
   if (r == r0 && c == c0)
-    return is_on_border (y, x, bls, bls_count);
+    {
+      /* We have a very special case with top-left corner,
+       * which can be detected only from the neighbor:
+       * ┏━━━┳
+       * ┃   ┃
+       * ┣━━━·
+       *       @
+       */
+      if (y == r * laby_room_height && x == c * laby_room_width
+          && (laby_get_borders (lab, r - 1, c - 1)
+              & (BOTTOM_BORDER | RIGHT_BORDER)))
+        return 1;
+      return is_on_border (y, x, bls, bls_count);
+    }
 
   /* Checks intersection with borders of the target room */
   for (int i = 0; i < bls_count; i++)
@@ -348,7 +361,7 @@ draw_visible_in_direction (smap *sm, Laby *lab, double fy0, double fx0,
           ix = round (fx0);
         }
     }
-} //ix == 10 && iy == 6     round(fx1) == 10 && round(fy1) == 10
+} // ix == 4 && iy == 2
 
 void
 draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
@@ -356,7 +369,7 @@ draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
   double l = 0;
   /* Than bigger denominator, than better result,
    * but more computations needed */
-  double dl = M_PI / (range * range * 1);
+  double dl = M_PI / (range * range * 10);
   /* Coz the room has sides with different length, we should draw the visible
    * area not as a circle, but as an ellipse.
    * Also, we should care about different proportions of the symbols in the
