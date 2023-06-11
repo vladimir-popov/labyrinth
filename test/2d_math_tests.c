@@ -76,3 +76,28 @@ perpendicular_lines_intersection_test ()
   return 0;
 }
 
+static char *
+lines_intersection_test_1 ()
+{
+  // given:
+  //       A
+  //       |
+  //C---D  |
+  //       |
+  //       B
+  Point A = { 16.0, 4.0 };
+  Point B = { 16.0, 6.0 };
+  Point C = { 11.0, 5.0 };
+  Point D = { 12.0, 5.0 };
+  Line AB;
+  line_init (&AB, A.x, A.y, B.x, B.y);
+  Line CD;
+  line_init (&CD, C.x, C.y, D.x, D.y);
+
+  // when:
+  _Bool res = line_is_intersected (&AB, &CD);
+
+  // then:
+  mu_assert ("Lines should not intersect", !res);
+  return 0;
+}

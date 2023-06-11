@@ -98,9 +98,6 @@ void laby_add_border (Laby *lab, int y, int x, enum border border);
 /* Remove border flag. */
 void laby_rm_border (Laby *lab, int y, int x, enum border border);
 
-Line laby_get_border_line (Laby *lab, int r, int c, enum border border,
-                           int room_height, int room_width);
-
 /**
  * Finds all visible rooms from the room on fy:fx in the range and put them to
  * the dest. Returns a count of the visible rooms (the length of the dest).

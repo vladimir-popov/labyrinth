@@ -75,10 +75,10 @@ line_is_intersected (Line *l1, Line *l2)
   Vector CB;
   vector_initp (&CB, l2->p0, l1->p1);
 
-  double v1 = vector_pseudoscalar_product (AD, AB);
+  double v1 = vector_pseudoscalar_product (AB, AD);
   double v2 = vector_pseudoscalar_product (AB, AC);
 
-  double v3 = vector_pseudoscalar_product (AC, CD);
+  double v3 = vector_pseudoscalar_product (CD, AC);
   double v4 = vector_pseudoscalar_product (CD, CB);
 
   return isless (v1 * v2, 0) && isless (v3 * v4, 0);

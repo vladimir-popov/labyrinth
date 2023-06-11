@@ -149,7 +149,36 @@ visibility_in_open_space_test ()
 }
 
 char *
-visibility_in_closed_space_test ()
+visibility_in_closed_space_test_1 ()
+{
+  // given:
+  u8buf buf = U8_BUF_EMPTY;
+  smap sm;
+  Laby lab;
+  laby_init_empty (&lab, 1, 1);
+  int r = 0;
+  int c = 0;
+  int y = r * laby_room_height + (laby_room_height / 2);
+  int x = c * laby_room_width + (laby_room_width / 2);
+  char *expected = "┏━━━┓\n"
+                   "┃·@·┃\n"
+                   "┗━━━┛";
+
+  // when:
+  RENDER ({
+    draw_laby (&sm, &lab);
+    draw_visible_area (&sm, &lab, y, x, 5);
+    draw_in_the_middle_of_room (&sm, r, c, SIDX_PLAYER);
+  });
+
+  // then:
+  u8str actual = u8_buffer_to_u8str (&buf);
+  mu_u8str_eq_to_str (actual, expected);
+  return 0;
+}
+
+char *
+visibility_in_closed_space_test_2 ()
 {
   // given:
   u8buf buf = U8_BUF_EMPTY;
@@ -168,21 +197,17 @@ visibility_in_closed_space_test ()
   int c = 2;
   int y = r * laby_room_height + (laby_room_height / 2);
   int x = c * laby_room_width + (laby_room_width / 2);
-  char *expected = "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
-                   "┃                           ┃\n"
-                   "┃                           ┃\n"
-                   "┃                           ┃\n"
-                   "┃       ┏━━━━━━━━━━━┓       ┃\n"
-                   "┃       ┃···········┃       ┃\n"
-                   "┃       ┃···········┃       ┃\n"
-                   "┃       ┃·····@·····┃       ┃\n"
-                   "┃       ┃···········┃       ┃\n"
-                   "┃       ┃···········┃       ┃\n"
-                   "┃       ┗━━━━━━━━━━━┛       ┃\n"
-                   "┃                           ┃\n"
-                   "┃                           ┃\n"
-                   "┃                           ┃\n"
-                   "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛";
+  char *expected = "┏━━━━━━━━━━━━━━━━━━━┓\n"
+                   "┃                   ┃\n"
+                   "┃   ┏━━━━━━━━━━━┓   ┃\n"
+                   "┃   ┃···········┃   ┃\n"
+                   "┃   ┃···········┃   ┃\n"
+                   "┃   ┃·····@·····┃   ┃\n"
+                   "┃   ┃···········┃   ┃\n"
+                   "┃   ┃···········┃   ┃\n"
+                   "┃   ┗━━━━━━━━━━━┛   ┃\n"
+                   "┃                   ┃\n"
+                   "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
   RENDER ({

@@ -253,7 +253,7 @@ get_borders_lines (const Laby *lab, const int r, const int c, Line dest[4])
 static inline _Bool
 is_equal (double a, double b, double c)
 {
-  return (fabs (a - b) > 1e-5) && (fabs (b - c) > 1e-5);
+  return (fabs (a - b) < 1e-5) && (fabs (b - c) < 1e-5);
 }
 
 static _Bool
@@ -262,9 +262,9 @@ is_on_border (int y, int x, Line bls[], int count)
   /* here we can simplify checking using inside about lines */
   for (int i = 0; i < count; i++)
     {
-      if (is_equal (bls[i].p0.x, bls[i].p0.x, x))
+      if (is_equal (bls[i].p0.x, bls[i].p1.x, x))
         return 1;
-      if (is_equal (bls[i].p0.y, bls[i].p0.y, y))
+      if (is_equal (bls[i].p0.y, bls[i].p1.y, y))
         return 1;
     }
   return 0;
@@ -348,7 +348,7 @@ draw_visible_in_direction (smap *sm, Laby *lab, double fy0, double fx0,
           ix = round (fx0);
         }
     }
-}
+} //ix == 10 && iy == 6     round(fx1) == 10 && round(fy1) == 10
 
 void
 draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
@@ -356,14 +356,14 @@ draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
   double l = 0;
   /* Than bigger denominator, than better result,
    * but more computations needed */
-  double dl = M_PI / (range * range * 11);
+  double dl = M_PI / (range * range * 1);
   /* Coz the room has sides with different length, we should draw the visible
    * area not as a circle, but as an ellipse.
    * Also, we should care about different proportions of the symbols in the
    * terminal and use additional coefficient */
   double h = range;
   double w = 1.5 * ((double)laby_room_width / laby_room_height) * range;
-  while (islessequal (l, M_PI_2))
+  while (islessequal (l, 2 * M_PI))
     {
       /* Calculate deltas as sides of triangle with hypotenuse == 1 */
       double fdx = cos (l);
@@ -372,11 +372,9 @@ draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
        * ellipse area */
       double y1 = h * fdy;
       double x1 = w * fdx;
-      /* Mark visible symbols in 4 directions: */
+      /* Mark as visible symbols in the direction to the ellipse from the start
+       * point: */
       draw_visible_in_direction (sm, lab, y, x, fdy, fdx, y + y1, x + x1);
-      draw_visible_in_direction (sm, lab, y, x, -fdy, fdx, y - y1, x + x1);
-      draw_visible_in_direction (sm, lab, y, x, fdy, -fdx, y + y1, x - x1);
-      draw_visible_in_direction (sm, lab, y, x, -fdy, -fdx, y - y1, x - x1);
       l += dl;
     }
 }
