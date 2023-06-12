@@ -204,8 +204,8 @@ get_borders_lines (const Laby *lab, const int r, const int c, Line dest[4])
   Line dg;
   dg.p0.y = r * laby_room_height;
   dg.p0.x = c * laby_room_width;
-  dg.p1.y = dg.p0.y + laby_room_height + 1;
-  dg.p1.x = dg.p0.x + laby_room_width + 1;
+  dg.p1.y = dg.p0.y + laby_room_height;
+  dg.p1.x = dg.p0.x + laby_room_width;
 
   int borders = laby_get_borders (lab, r, c);
 
@@ -286,7 +286,7 @@ is_vector_intersects_with_borders (Laby *lab, int y0, int x0, int y, int x)
   int bls_count = get_borders_lines (lab, r, c, bls);
 
   /* both points may be in the same room,
-   * in this case check is x:y on a border is enough */
+   * in this case checking if x:y on a border is enough */
   if (r == r0 && c == c0)
     {
       /* We have a very special case with top-left corner,
@@ -329,6 +329,7 @@ is_vector_intersects_with_borders (Laby *lab, int y0, int x0, int y, int x)
 static inline _Bool
 is_in_range (double dx, double x, double x1)
 {
+  /* to prevent infinite loop we should check that delta is no 0 */
   return isgreater (fabs (dx), 1e-5)
          && (isgreater (dx, 0) ? islessequal (x, x1) : isgreaterequal (x, x1));
 }
@@ -342,26 +343,27 @@ draw_visible_in_direction (smap *sm, Laby *lab, double fy0, double fx0,
 {
   int iy_prev = round (fy0);
   int ix_prev = round (fx0);
-  int iy = iy_prev;
-  int ix = ix_prev;
+  int iy_target = iy_prev;
+  int ix_target = ix_prev;
   while ((is_in_range (dy, fy0, fy1) || is_in_range (dx, fx0, fx1))
-         && !is_vector_intersects_with_borders (lab, iy_prev, ix_prev, iy, ix))
+         && !is_vector_intersects_with_borders (lab, iy_prev, ix_prev,
+                                                iy_target, ix_target))
     {
-      iy_prev = iy;
-      ix_prev = ix;
-      draw_inside_borders (sm, iy, ix, SIDX_LIGHT);
+      iy_prev = iy_target;
+      ix_prev = ix_target;
+      draw_inside_borders (sm, iy_target, ix_target, SIDX_LIGHT);
       if (is_in_range (dy, fy0, fy1))
         {
           fy0 += dy;
-          iy = round (fy0);
+          iy_target = round (fy0);
         }
       if (is_in_range (dx, fx0, fx1))
         {
           fx0 += dx;
-          ix = round (fx0);
+          ix_target = round (fx0);
         }
     }
-} // ix == 4 && iy == 2
+}
 
 void
 draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
@@ -375,16 +377,16 @@ draw_visible_area (smap *sm, Laby *lab, int y, int x, int range)
    * Also, we should care about different proportions of the symbols in the
    * terminal and use additional coefficient */
   double h = range;
-  double w = 1.5 * ((double)laby_room_width / laby_room_height) * range;
+  double w = 1.2 * ((double)laby_room_width / laby_room_height) * range;
   while (islessequal (l, 2 * M_PI))
     {
-      /* Calculate deltas as sides of triangle with hypotenuse == 1 */
-      double fdx = cos (l);
-      double fdy = sin (l);
-      /* Now, calculate a coordinates of the point on the border of the visible
+      /* Calculate coordinates of the point on the border of the visible
        * ellipse area */
-      double y1 = h * fdy;
-      double x1 = w * fdx;
+      double y1 = h * sin (l);
+      double x1 = w * cos (l);
+      /* Calculate deltas */
+      double fdy = y1 / 10;
+      double fdx = x1 / 10;
       /* Mark as visible symbols in the direction to the ellipse from the start
        * point: */
       draw_visible_in_direction (sm, lab, y, x, fdy, fdx, y + y1, x + x1);

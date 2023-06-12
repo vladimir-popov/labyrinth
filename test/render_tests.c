@@ -122,15 +122,15 @@ visibility_in_open_space_test ()
   char *expected = "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
                    "┃                           ┃\n"
                    "┃                           ┃\n"
+                   "┃                           ┃\n"
                    "┃         ·········         ┃\n"
-                   "┃      ··············       ┃\n"
-                   "┃     ·················     ┃\n"
-                   "┃    ···················    ┃\n"
-                   "┃    ·········@·········    ┃\n"
-                   "┃    ···················    ┃\n"
-                   "┃     ·················     ┃\n"
-                   "┃      ··············       ┃\n"
+                   "┃       ·············       ┃\n"
+                   "┃      ···············      ┃\n"
+                   "┃      ·······@·······      ┃\n"
+                   "┃      ···············      ┃\n"
+                   "┃       ·············       ┃\n"
                    "┃         ·········         ┃\n"
+                   "┃                           ┃\n"
                    "┃                           ┃\n"
                    "┃                           ┃\n"
                    "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛";
@@ -267,21 +267,20 @@ laby_visibility_test_1 ()
   u8buf buf = U8_BUF_EMPTY;
   smap sm;
   Laby lab;
-  int r = 1;
+  int r = 2;
   int c = 1;
   int y = r * laby_room_height + (laby_room_height / 2);
   int x = c * laby_room_width + (laby_room_width / 2);
   laby_init_empty (&lab, 3, 3);
   laby_add_border (&lab, 0, 0, RIGHT_BORDER);
-  laby_add_border (&lab, 1, 1, LEFT_BORDER | RIGHT_BORDER);
-  laby_add_border (&lab, 2, 2, LEFT_BORDER);
+  laby_add_border (&lab, 1, 1, UPPER_BORDER | RIGHT_BORDER | BOTTOM_BORDER);
 
   char *expected = "┏━━━┳━━━━━━━┓\n"
                    "┃   ┃····   ┃\n"
                    "┃   ┃···┃   ┃\n"
                    "┃   ┃·@·┃   ┃\n"
                    "┃    ···┃   ┃\n"
-                   "┃   ····┃   ┃\n"
+                   "┃  ·····┃   ┃\n"
                    "┗━━━━━━━┻━━━┛";
 
   // when:
@@ -316,7 +315,7 @@ laby_visibility_test_2 ()
   char *expected = "┏━━━━━━━━━━━┓\n"
                    "┃           ┃\n"
                    "┣━━━━━━━    ┃\n"
-                   "┃·@·········┃\n"
+                   "┃·@·····    ┃\n"
                    "┃···━━━━━━━━┫\n"
                    "┃····       ┃\n"
                    "┗━━━━━━━━━━━┛";
@@ -351,9 +350,9 @@ laby_visibility_test_3 ()
   laby_add_border (&lab, 2, 2, UPPER_BORDER);
 
   char *expected = "┏━━━━━━━━━━━┓\n"
-                   "┃       ····┃\n"
+                   "┃      ·····┃\n"
                    "┣━━━━━━━ ···┃\n"
-                   "┃·········@·┃\n"
+                   "┃    ·····@·┃\n"
                    "┃   ━━━━━━━━┫\n"
                    "┃           ┃\n"
                    "┗━━━━━━━━━━━┛";
