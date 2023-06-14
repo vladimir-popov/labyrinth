@@ -124,13 +124,16 @@ render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
   /* render the content of the room (the second row) */
   else
     {
-      enum content ct = laby_get_content (lab, r, c);
+      enum content ct
+          = (x == laby_room_width / 2) ? laby_get_content (lab, r, c) : 0;
+
       s = ((x == 0) && (border & LEFT_BORDER)) ? s_borders[0]
           : (ct == C_PLAYER)                   ? s_player
           : (ct == C_EXIT)                     ? s_exit
           : (laby_is_visible (lab, r, c))      ? s_light
                                                : s_empty;
     }
+  u8_buffer_append_str (buf, s, strlen (s));
 }
 
 void
@@ -152,6 +155,7 @@ render_laby (u8buf *buf, Laby *lab)
               for (int rx = 0; rx < rw; rx++)
                 render_room (buf, lab, r, c, ry, rx);
             }
+          u8_buffer_end_line (buf);
         }
     }
 }

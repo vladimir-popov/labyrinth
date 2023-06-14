@@ -35,7 +35,7 @@ game_run_loop (Game *game)
 static void
 generate_new_level (Game *game)
 {
-  laby_generate (&game->lab, game->height, game->width, game->seed);
+  laby_generate (&L, game->height, game->width, game->seed);
   game->player.row = 0;
   game->player.col = 0;
   game->player.visible_range = 2;
@@ -67,24 +67,32 @@ static void
 move_player (Game *game, int dr, int dc)
 {
   /* unmark visible rooms */
-  for (int i = P.row - P.visible_range; i < P.row + P.visible_range; i++)
-    for (int j = P.col - P.visible_range; j < P.col + P.visible_range; j++)
+  for (int i = P.row - P.visible_range; i <= P.row + P.visible_range; i++)
+    for (int j = P.col - P.visible_range; j <= P.col + P.visible_range; j++)
       {
-        laby_set_visibility (&game->lab, i, j, 0);
+        laby_set_visibility (&L, i, j, 0);
       }
   /* change player's position */
   laby_set_content (&L, P.row, P.col, C_NOTHING);
   P.row += dr;
   P.col += dc;
-  laby_set_content (&L, P.row, P.col, C_PLAYER);
-  /* mark new visible rooms */
-  laby_mark_visible_rooms (&game->lab, P.row, P.col, P.visible_range);
+  if (laby_get_content (&L, P.row, P.col) == C_EXIT)
+    {
+      game->state = ST_WIN;
+      game->menu = create_menu (game, ST_WIN);
+    }
+  else
+    {
+      laby_set_content (&L, P.row, P.col, C_PLAYER);
+      /* mark new visible rooms */
+      laby_mark_visible_rooms (&L, P.row, P.col, P.visible_range);
+    }
 }
 
 static int
 handle_cmd_in_game (Game *game, enum command cmd)
 {
-  char border = laby_get_borders (&game->lab, P.row, P.col);
+  char border = laby_get_borders (&L, P.row, P.col);
   switch (cmd)
     {
     case CMD_MV_LEFT:
@@ -96,11 +104,11 @@ handle_cmd_in_game (Game *game, enum command cmd)
         move_player (game, -1, 0);
       break;
     case CMD_MV_RIGHT:
-      if ((P.col < game->lab.cols - 1) && !(border & RIGHT_BORDER))
+      if ((P.col < L.cols - 1) && !(border & RIGHT_BORDER))
         move_player (game, 0, 1);
       break;
     case CMD_MV_DOWN:
-      if ((P.row < game->lab.rows - 1) && !(border & BOTTOM_BORDER))
+      if ((P.row < L.rows - 1) && !(border & BOTTOM_BORDER))
         move_player (game, 1, 0);
       break;
     case CMD_PAUSE:
@@ -109,11 +117,6 @@ handle_cmd_in_game (Game *game, enum command cmd)
       break;
     default:
       break;
-    }
-  if (laby_get_content (&L, P.row, P.col) == C_EXIT)
-    {
-      game->state = ST_WIN;
-      game->menu = create_menu (game, ST_WIN);
     }
   return CONTINUE_LOOP;
 }
