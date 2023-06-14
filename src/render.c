@@ -213,8 +213,6 @@ render_game (u8buf *buf, Game *game)
   smap sm;
   smap_init (&sm, game->lab.rows, game->lab.cols, laby_room_height,
              laby_room_width);
-  laby_mark_visible_rooms (&game->lab, game->player.row, game->player.col,
-                           game->player.visible_range);
   draw_laby (&sm, &game->lab);
   draw_in_the_middle_of_room (&sm, game->exit.row, game->exit.col, SIDX_EXIT);
   draw_in_the_middle_of_room (&sm, game->player.row, game->player.col,

@@ -110,9 +110,11 @@ void laby_mark_visible_rooms (Laby *lab, int r, int c, int range);
 
 _Bool laby_is_visible (const Laby *lab, int r, int c);
 
+void laby_set_visibility (Laby *lab, int r, int c, _Bool flag);
+
 _Bool laby_is_visited (const Laby *lab, int r, int c);
 
-void laby_set_visited (Laby *lab, int r, int c);
+void laby_set_visited (Laby *lab, int r, int c, _Bool flag);
 
 void laby_set_content (Laby *lab, int r, int c, unsigned char value);
 

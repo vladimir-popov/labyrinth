@@ -10,6 +10,8 @@ static const int CONTINUE_LOOP = 1;
 
 static const int STOP_LOOP = 0;
 
+#define P game->player
+
 void
 game_init (Game *game, int height, int width, int seed)
 {
@@ -66,8 +68,17 @@ handle_cmd_in_main_menu (Game *game, enum command cmd)
 static void
 move_player (Game *game, int dr, int dc)
 {
-  game->player.row += dr;
-  game->player.col += dc;
+  /* unmark visible rooms */
+  for (int i = P.row - P.visible_range; i < P.row + P.visible_range; i++)
+    for (int j = P.col - P.visible_range; j < P.col + P.visible_range; j++)
+      {
+        laby_set_visibility (&game->lab, i, j, 0);
+      }
+  /* change player's position */
+  P.row += dr;
+  P.col += dc;
+  /* mark new visible rooms */
+  laby_mark_visible_rooms (&game->lab, P.row, P.col, P.visible_range);
 }
 
 static int

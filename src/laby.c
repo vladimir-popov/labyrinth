@@ -121,13 +121,18 @@ laby_is_visible (const Laby *lab, int r, int c)
 }
 
 void
-laby_set_visible (Laby *lab, int r, int c)
+laby_set_visibility (Laby *lab, int r, int c, _Bool flag)
 {
   int is_x_inside = c >= 0 && c < lab->cols;
   int is_y_inside = r >= 0 && r < lab->rows;
 
   if (is_y_inside && is_x_inside)
-    lab->rooms[r][c] |= VISIBLE_MASK;
+    {
+      if (flag)
+        lab->rooms[r][c] |= VISIBLE_MASK;
+      else
+        lab->rooms[r][c] &= ~VISIBLE_MASK;
+    }
 }
 
 _Bool
@@ -140,13 +145,18 @@ laby_is_visited (const Laby *lab, int r, int c)
 }
 
 void
-laby_set_visited (Laby *lab, int r, int c)
+laby_set_visited (Laby *lab, int r, int c, _Bool flag)
 {
   int is_x_inside = c >= 0 && c < lab->cols;
   int is_y_inside = r >= 0 && r < lab->rows;
 
   if (is_y_inside && is_x_inside)
-    lab->rooms[r][c] |= VISITED_MASK;
+    {
+      if (flag)
+        lab->rooms[r][c] |= VISITED_MASK;
+      else
+        lab->rooms[r][c] &= ~VISITED_MASK;
+    }
 }
 
 void
@@ -261,7 +271,7 @@ mark_visible_in_direction (Laby *lab, int r0, int c0, int r1, int c1)
           if (is_intersect_with_borders (lab, y0, x0, y, x))
             break;
 
-          laby_set_visible (lab, r0, c0);
+          laby_set_visibility (lab, r0, c0, 1);
           y0 = 3 * r0 + 1;
           x0 = 3 * c0 + 1;
         }
@@ -291,7 +301,7 @@ void
 laby_mark_visible_rooms (Laby *lab, int r, int c, int range)
 {
   /* initial room must be visible */
-  laby_set_visible (lab, r, c);
+  laby_set_visibility (lab, r, c, 1);
 
   /* goes around perimeter of the visible aria and issues glance from the
    * middle of the room r:c to the middle of rooms in the visible range */
