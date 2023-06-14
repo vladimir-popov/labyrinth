@@ -6,23 +6,20 @@
 /*
  * All information about a single room should be encoded in one byte:
  *
- * |   C   |Vb|Vt|L U R B|
- * |0 ... 0|0 |0 |0 0 0 0|
+ * |   C   |N|V|L U R B|
+ * |0 ... 0|0|0|0 0 0 0|
  *
  * Section B: describes the bottom border of the room;
  * Section R: describes the right border of the room;
  * Section U: describes the upper border of the room;
  * Section L: describes the left border of the room;
- * Section Vt: was the room visited by the player or not;
- * Section Vb: is the room visible or not;
+ * Section V: is the room visible or not;
+ * Section N: was the room visible by the player or not;
  * Section C: describes a content of the room;
  */
 typedef unsigned int room;
 
 typedef room *p_room;
-
-#define VISITED_MASK 0x10
-#define VISIBLE_MASK 0x20
 
 /**
  * Checks the flag `expected` in the `border` and returns TRUE
@@ -106,9 +103,9 @@ _Bool laby_is_visible (const Laby *lab, int r, int c);
 
 void laby_set_visibility (Laby *lab, int r, int c, _Bool flag);
 
-_Bool laby_is_visited (const Laby *lab, int r, int c);
+_Bool laby_is_known (const Laby *lab, int r, int c);
 
-void laby_set_visited (Laby *lab, int r, int c, _Bool flag);
+void laby_mark_as_known (Laby *lab, int r, int c);
 
 void laby_set_content (Laby *lab, int r, int c, enum content value);
 

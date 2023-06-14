@@ -76,6 +76,7 @@ move_player (Game *game, int dr, int dc)
   laby_set_content (&L, P.row, P.col, C_NOTHING);
   P.row += dr;
   P.col += dc;
+  /* check collisions */
   if (laby_get_content (&L, P.row, P.col) == C_EXIT)
     {
       game->state = ST_WIN;
@@ -84,7 +85,6 @@ move_player (Game *game, int dr, int dc)
   else
     {
       laby_set_content (&L, P.row, P.col, C_PLAYER);
-      /* mark new visible rooms */
       laby_mark_visible_rooms (&L, P.row, P.col, P.visible_range);
     }
 }

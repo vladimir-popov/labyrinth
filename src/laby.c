@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define VISIBLE_MASK 0x10
+#define KNOWN_MASK 0x20
+
 #define CONTENT_SHIFT 6
 
 #define min(a, b) ((a < b) ? a : b)
@@ -129,34 +132,29 @@ laby_set_visibility (Laby *lab, int r, int c, _Bool flag)
   if (is_y_inside && is_x_inside)
     {
       if (flag)
-        lab->rooms[r][c] |= VISIBLE_MASK;
+        lab->rooms[r][c] |= (VISIBLE_MASK | KNOWN_MASK);
       else
         lab->rooms[r][c] &= ~VISIBLE_MASK;
     }
 }
 
 _Bool
-laby_is_visited (const Laby *lab, int r, int c)
+laby_is_known (const Laby *lab, int r, int c)
 {
   int is_x_inside = c >= 0 && c < lab->cols;
   int is_y_inside = r >= 0 && r < lab->rows;
 
-  return (is_y_inside && is_x_inside) ? lab->rooms[r][c] & VISITED_MASK : 0;
+  return (is_y_inside && is_x_inside) ? lab->rooms[r][c] & KNOWN_MASK : 0;
 }
 
 void
-laby_set_visited (Laby *lab, int r, int c, _Bool flag)
+laby_mark_as_known (Laby *lab, int r, int c)
 {
   int is_x_inside = c >= 0 && c < lab->cols;
   int is_y_inside = r >= 0 && r < lab->rows;
 
   if (is_y_inside && is_x_inside)
-    {
-      if (flag)
-        lab->rooms[r][c] |= VISITED_MASK;
-      else
-        lab->rooms[r][c] &= ~VISITED_MASK;
-    }
+    lab->rooms[r][c] |= KNOWN_MASK;
 }
 
 void
