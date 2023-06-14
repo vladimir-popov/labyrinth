@@ -40,6 +40,7 @@ generate_new_level (Game *game)
   game->player.col = 0;
   game->player.visible_range = 2;
   laby_set_content (&L, P.row, P.col, C_PLAYER);
+  laby_mark_visible_rooms (&L, P.row, P.col, P.visible_range);
   laby_set_content (&L, game->height - 1, game->width - 1, C_EXIT);
 }
 

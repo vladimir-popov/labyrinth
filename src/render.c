@@ -56,8 +56,21 @@ create_frame (u8buf *buf, int height, int width)
 }
 
 static const char *
-get_corner (int broom, int bneighbor)
+get_top_left_corner (Laby *lab, int r, int c)
 {
+  _Bool is_known_room = laby_is_known_room (lab, r, c)
+                        || laby_is_known_room (lab, r - 1, c)
+                        || laby_is_known_room (lab, r - 1, c - 1)
+                        || laby_is_known_room (lab, r, c - 1);
+  if (!is_known_room)
+    return 0;
+
+  /* We will render left and upper borders at once.
+   * To choose correct symbol for the corner we need to know a
+   * neighbor. */
+  int broom = laby_get_borders (lab, r, c);
+  int bneighbor = laby_get_borders (lab, r - 1, c - 1);
+
   if (EXPECT_BORDERS (broom, LEFT_BORDER | UPPER_BORDER)
       && EXPECT_BORDERS (bneighbor, RIGHT_BORDER | BOTTOM_BORDER))
     return s_borders[6]; // "╋";
@@ -104,19 +117,20 @@ get_corner (int broom, int bneighbor)
 static void
 render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
 {
-  /* We will render left and upper borders at once.
-   * To choose correct symbol for the corner we need to know a
-   * neighbor. */
   int border = laby_get_borders (lab, r, c);
-  int neighbor = laby_get_borders (lab, r - 1, c - 1);
+  _Bool is_known_room = laby_is_known_room (lab, r, c);
 
   /* render the first row of symbols of the room */
   const char *s;
+  int draw_border = 0;
   if (y == 0)
     {
-      s = (x == 0) ? get_corner (border, neighbor) : 0;
+      draw_border = (border & UPPER_BORDER)
+                    && (is_known_room || laby_is_known_room (lab, r - 1, c));
+      s = (x == 0) ? get_top_left_corner (lab, r, c) : 0;
       s = (s)                                 ? s
-          : (border & UPPER_BORDER)           ? s_borders[1]
+          : (draw_border)                     ? s_borders[1]
+          : (!is_known_room)              ? s_empty
           : (laby_is_visible (lab, r, c))     ? s_light
           : (laby_is_visible (lab, r - 1, c)) ? s_light
                                               : s_empty;
@@ -124,14 +138,17 @@ render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
   /* render the content of the room (the second row) */
   else
     {
+      draw_border = (x == 0) && (border & LEFT_BORDER)
+                    && (is_known_room || laby_is_known_room (lab, r, c - 1));
       enum content ct
           = (x == laby_room_width / 2) ? laby_get_content (lab, r, c) : 0;
 
-      s = ((x == 0) && (border & LEFT_BORDER)) ? s_borders[0]
-          : (ct == C_PLAYER)                   ? s_player
-          : (ct == C_EXIT)                     ? s_exit
-          : (laby_is_visible (lab, r, c))      ? s_light
-                                               : s_empty;
+      s = (draw_border)                   ? s_borders[0]
+          : (!is_known_room)              ? s_empty
+          : (ct == C_PLAYER)              ? s_player
+          : (ct == C_EXIT)                ? s_exit
+          : (laby_is_visible (lab, r, c)) ? s_light
+                                          : s_empty;
     }
   u8_buffer_append_str (buf, s, strlen (s));
 }

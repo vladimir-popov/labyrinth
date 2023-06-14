@@ -103,7 +103,7 @@ _Bool laby_is_visible (const Laby *lab, int r, int c);
 
 void laby_set_visibility (Laby *lab, int r, int c, _Bool flag);
 
-_Bool laby_is_known (const Laby *lab, int r, int c);
+_Bool laby_is_known_room (const Laby *lab, int r, int c);
 
 void laby_mark_as_known (Laby *lab, int r, int c);
 

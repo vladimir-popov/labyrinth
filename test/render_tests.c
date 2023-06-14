@@ -14,13 +14,30 @@ const int laby_room_width = 4;
 const int game_window_rows = 25;
 const int game_window_cols = 78;
 
+void
+mark_whole_known (Laby *lab)
+{
+  for (int i = 0; i < lab->rows; i++)
+    for (int j = 0; j < lab->cols; j++)
+      {
+        laby_mark_as_known (lab, i, j);
+      }
+}
+
+void
+init_known_empty (Laby *lab, int rows, int cols)
+{
+  laby_init_empty (lab, rows, cols);
+  mark_whole_known (lab);
+}
+
 static char *
 empty_laby_test ()
 {
   // given:
   u8buf buf = U8_BUF_EMPTY;
   Laby lab;
-  laby_init_empty (&lab, 1, 1);
+  init_known_empty (&lab, 1, 1);
 
   char *expected = "┏━━━┓\n"
                    "┃   ┃\n"
@@ -39,7 +56,7 @@ simple_laby_test ()
   // given:
   u8buf buf = U8_BUF_EMPTY;
   Laby lab;
-  laby_init_empty (&lab, 3, 3);
+  init_known_empty (&lab, 3, 3);
   laby_add_border (&lab, 0, 1, (RIGHT_BORDER | BOTTOM_BORDER));
   laby_add_border (&lab, 1, 1, (LEFT_BORDER | BOTTOM_BORDER));
   laby_add_border (&lab, 2, 2, UPPER_BORDER);
@@ -77,9 +94,10 @@ generate_eller_test ()
   // when:
   Laby lab;
   laby_generate (&lab, 3, 5, 1);
-  render_laby (&buf, &lab);
 
   // then:
+  mark_whole_known(&lab);
+  render_laby (&buf, &lab);
   u8str actual = u8_buffer_to_u8str (&buf);
   mu_u8str_eq_to_str (actual, expected);
   return 0;
@@ -94,7 +112,7 @@ visibility_in_open_space_test ()
   int r = 2;
   int c = 2;
   int range = 1;
-  laby_init_empty (&lab, 5, 5);
+  init_known_empty (&lab, 5, 5);
   laby_mark_visible_rooms (&lab, r, c, range);
   laby_set_content (&lab, r, c, C_PLAYER);
   char *expected = "┏━━━━━━━━━━━━━━━━━━━┓\n"
@@ -127,7 +145,7 @@ visibility_in_closed_space_test_1 ()
   int r = 0;
   int c = 0;
   int range = 3;
-  laby_init_empty (&lab, 1, 1);
+  init_known_empty (&lab, 1, 1);
   laby_mark_visible_rooms (&lab, r, c, range);
   laby_set_content (&lab, r, c, C_PLAYER);
   char *expected = "┏━━━┓\n"
@@ -152,7 +170,7 @@ visibility_in_closed_space_test_2 ()
   int r = 2;
   int c = 2;
   int range = 3;
-  laby_init_empty (&lab, 5, 5);
+  init_known_empty (&lab, 5, 5);
   laby_add_border (&lab, 1, 1, LEFT_BORDER | UPPER_BORDER);
   laby_add_border (&lab, 1, 2, UPPER_BORDER);
   laby_add_border (&lab, 1, 3, RIGHT_BORDER | UPPER_BORDER);
@@ -193,7 +211,7 @@ laby_visibility_crossroads_test ()
   int r = 1;
   int c = 1;
   int range = 3;
-  laby_init_empty (&lab, 3, 3);
+  init_known_empty (&lab, 3, 3);
   laby_add_border (&lab, 0, 0, RIGHT_BORDER | BOTTOM_BORDER);
   laby_add_border (&lab, 0, 2, LEFT_BORDER | BOTTOM_BORDER);
   laby_add_border (&lab, 2, 0, RIGHT_BORDER | UPPER_BORDER);
@@ -227,7 +245,7 @@ laby_visibility_test_1 ()
   int r = 1;
   int c = 1;
   int range = 3;
-  laby_init_empty (&lab, 3, 3);
+  init_known_empty (&lab, 3, 3);
   laby_add_border (&lab, 0, 0, RIGHT_BORDER);
   laby_add_border (&lab, 1, 1, LEFT_BORDER | RIGHT_BORDER);
   laby_add_border (&lab, 2, 2, LEFT_BORDER);
@@ -260,7 +278,7 @@ laby_visibility_test_2 ()
   int r = 1;
   int c = 1;
   int range = 3;
-  laby_init_empty (&lab, 3, 3);
+  init_known_empty (&lab, 3, 3);
   laby_add_border (&lab, 0, 1, BOTTOM_BORDER);
   laby_add_border (&lab, 2, 2, UPPER_BORDER);
   laby_mark_visible_rooms (&lab, r, c, range);

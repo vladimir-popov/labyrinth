@@ -139,7 +139,7 @@ laby_set_visibility (Laby *lab, int r, int c, _Bool flag)
 }
 
 _Bool
-laby_is_known (const Laby *lab, int r, int c)
+laby_is_known_room (const Laby *lab, int r, int c)
 {
   int is_x_inside = c >= 0 && c < lab->cols;
   int is_y_inside = r >= 0 && r < lab->rows;
