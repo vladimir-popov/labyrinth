@@ -1,9 +1,3 @@
-/**
- *  We will "draw" a game to the two dimension byte array as
- * indexes of the array with utf-8 symbols. It should help to avoid issues with
- * different size of symbols in utf-8 encoding. And at the end, we will
- * "render" this symbols map to the u8 buffer.
- */
 #ifndef __RENDER__
 #define __RENDER__
 
@@ -11,12 +5,6 @@
 #include "laby.h"
 #include "u8.h"
 #include <time.h>
-
-#define SIDX_NOTHING 0
-#define SIDX_EMPTY 1
-#define SIDX_PLAYER 13
-#define SIDX_EXIT 14
-#define SIDX_LIGHT 15
 
 /* The terminal resolution in chars by vertical. */
 extern int screen_rows;
@@ -33,20 +21,6 @@ extern const int game_window_rows;
 /* The count of visible chars by horizontal. */
 extern const int game_window_cols;
 
-/* Index of the particular symbol in the array of symbols. */
-typedef unsigned char symbol;
-
-/**
- * The map of symbols. It's a two dimensions array with indexes of the symbols,
- * which are representation of the drawn game field.
- */
-typedef struct
-{
-  int height;
-  int width;
-  symbol **symbols;
-} smap;
-
 struct menu
 {
   time_t last_update_at;
@@ -59,27 +33,9 @@ struct menu
   }
 
 /**
- * Initialize the symbols map with enough symbols to "draw" a labyrinth with
- * `rows` x `cols` rooms, where a room has `room_height` x `room_width` symbols
- * dimension.
- */
-void smap_init (smap *sm, int rows, int cols, int room_height, int room_width);
-
-void smap_free (smap *sm);
-
-/**
- * Puts the symbol `s` to the middle of the room r:c.
- * @r zero-based number of the row of rooms in the labyrinth.
- * @c zero-based number of the column of rooms in the labyrinth.
- */
-void draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s);
-
-/**
  * Prepare the labyrinth `lab` to render it.
  */
-void draw_laby (smap *sm, Laby *lab);
-
-void render_symbols_map (u8buf *dest, const smap *source);
+void render_laby (u8buf *buf, Laby *lab);
 
 void render_welcome_screen (u8buf *buf, void *menu);
 

@@ -3,6 +3,11 @@
 
 #include "laby.h"
 
+
+#define L game->lab
+#define P game->player
+#define E game->exit
+
 enum command
 {
   CMD_NOTHING = 0,
@@ -50,8 +55,6 @@ typedef struct
   Laby lab;
   /* The current state of the player */
   Player player;
-  /* The position of the exit from the labyrinth */
-  LPos exit;
   /* Implementation of a menu depends on runtime.
    * The main logic of the game doesn't depend on a menu
    * implementation.*/

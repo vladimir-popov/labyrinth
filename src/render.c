@@ -17,45 +17,15 @@
 #include "render.h"
 #include "u8.h"
 
-// clang-format off
-/* The array of symbols, which are used to render the game. */
-static const char *symbols[] = 
-//   0    1    2    3    4    5    6    7    8    9
-  { 
-     "", " ", "┃", "━", "┏", "┓", "┗", "┛", "╋", "┣",
-    "┫", "┳", "┻", "@", "⛿", "·", "*" 
-  };
-// clang-format on
+static const char *s_empty = " ";
+static const char *s_player = "@";
+static const char *s_exit = "⛿";
+static const char *s_light = "·";
 
-void
-smap_init (smap *sm, int rows, int cols, int room_height, int room_width)
-{
-  sm->height = rows * room_height + 1;
-  sm->width = cols * room_width + 1;
-  sm->symbols = malloc (sizeof (symbol *) * sm->height);
-  for (int i = 0; i < sm->height; i++)
-    sm->symbols[i] = malloc (sizeof (symbol) * sm->width);
-}
-
-static inline void
-symbols_map_draw (smap *sm, double y, double x, symbol s)
-{
-  int ix = round (x);
-  int iy = round (y);
-  if (ix < 0 || iy < 0)
-    return;
-  if (ix >= sm->width || iy >= sm->height)
-    return;
-  sm->symbols[iy][ix] = s;
-}
-
-void
-smap_free (smap *sm)
-{
-  for (int i = 0; i < sm->height; i++)
-    free (sm->symbols[i]);
-  free (sm->symbols);
-}
+/* Symbols to render borders */
+//       0    1    2    3    4    5    6    7    8    9    10
+static const char *s_borders[]
+    = { "┃", "━", "┏", "┓", "┗", "┛", "╋", "┣", "┫", "┳", "┻" };
 
 static void
 create_frame (u8buf *buf, int height, int width)
@@ -65,72 +35,64 @@ create_frame (u8buf *buf, int height, int width)
       u8str str = U8_STR_EMPTY;
       if (i == 0)
         {
-          u8_str_append_str (&str, symbols[4]);
-          u8_str_append_repeate_str (&str, symbols[3], width - 2);
-          u8_str_append_str (&str, symbols[5]);
+          u8_str_append_str (&str, s_borders[2]);
+          u8_str_append_repeate_str (&str, s_borders[1], width - 2);
+          u8_str_append_str (&str, s_borders[3]);
         }
       else if (i == height - 1)
         {
-          u8_str_append_str (&str, symbols[6]);
-          u8_str_append_repeate_str (&str, symbols[3], width - 2);
-          u8_str_append_str (&str, symbols[7]);
+          u8_str_append_str (&str, s_borders[4]);
+          u8_str_append_repeate_str (&str, s_borders[1], width - 2);
+          u8_str_append_str (&str, s_borders[5]);
         }
       else
         {
-          u8_str_append_str (&str, symbols[2]);
-          u8_str_append_repeate_str (&str, symbols[1], width - 2);
-          u8_str_append_str (&str, symbols[2]);
+          u8_str_append_str (&str, s_borders[0]);
+          u8_str_append_repeate_str (&str, " ", width - 2);
+          u8_str_append_str (&str, s_borders[0]);
         }
       u8_buffer_add_line (buf, str.chars, str.length);
     }
 }
 
-static symbol
+static const char *
 get_corner (int broom, int bneighbor)
 {
   if (EXPECT_BORDERS (broom, LEFT_BORDER | UPPER_BORDER)
       && EXPECT_BORDERS (bneighbor, RIGHT_BORDER | BOTTOM_BORDER))
-    return 8; // "╋";
+    return s_borders[6]; // "╋";
   if (EXPECT_BORDERS (broom, LEFT_BORDER | UPPER_BORDER)
       && EXPECT_BORDERS (bneighbor, RIGHT_BORDER))
-    return 9; // "┣"
+    return s_borders[7]; // "┣"
   if (EXPECT_BORDERS (broom, LEFT_BORDER | UPPER_BORDER)
       && EXPECT_BORDERS (bneighbor, BOTTOM_BORDER))
-    return 11; // "┳"
+    return s_borders[9]; // "┳"
   if (EXPECT_BORDERS (broom, LEFT_BORDER)
       && EXPECT_BORDERS (bneighbor, RIGHT_BORDER | BOTTOM_BORDER))
-    return 10; // "┫"
+    return s_borders[8]; // "┫"
   if (EXPECT_BORDERS (broom, UPPER_BORDER)
       && EXPECT_BORDERS (bneighbor, RIGHT_BORDER | BOTTOM_BORDER))
-    return 12; // "┻"
+    return s_borders[10]; // "┻"
   if (EXPECT_BORDERS (broom, LEFT_BORDER | UPPER_BORDER)
       && NOT_EXPECT_BORDERS (bneighbor, RIGHT_BORDER | BOTTOM_BORDER))
-    return 4; // "┏"
+    return s_borders[2]; // "┏"
   if (NOT_EXPECT_BORDERS (broom, LEFT_BORDER | UPPER_BORDER)
       && EXPECT_BORDERS (bneighbor, RIGHT_BORDER | BOTTOM_BORDER))
-    return 7; // "┛"
+    return s_borders[5]; // "┛"
   if (EXPECT_BORDERS (broom, UPPER_BORDER)
       && EXPECT_BORDERS (bneighbor, RIGHT_BORDER))
-    return 6; // "┗"
+    return s_borders[4]; // "┗"
   if (EXPECT_BORDERS (broom, LEFT_BORDER)
       && EXPECT_BORDERS (bneighbor, BOTTOM_BORDER))
-    return 5; // "┓"
+    return s_borders[3]; // "┓"
   if (EXPECT_BORDERS (broom, UPPER_BORDER)
       && NOT_EXPECT_BORDERS (bneighbor, RIGHT_BORDER))
-    return 3; // "━"
+    return s_borders[1]; // "━"
   if (EXPECT_BORDERS (broom, LEFT_BORDER)
       && NOT_EXPECT_BORDERS (bneighbor, BOTTOM_BORDER))
-    return 2; // "┃"
+    return s_borders[0]; // "┃"
 
   return 0;
-}
-
-void
-draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s)
-{
-  int y = r * laby_room_height + (laby_room_height / 2);
-  int x = c * laby_room_width + (laby_room_width / 2);
-  symbols_map_draw (sm, y, x, s);
 }
 
 /**
@@ -140,7 +102,7 @@ draw_in_the_middle_of_room (smap *sm, int r, int c, symbol s)
  * @x number of the char inside the room by horizontal
  */
 static void
-draw_room (smap *sm, Laby *lab, int r, int c, int y, int x)
+render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
 {
   /* We will render left and upper borders at once.
    * To choose correct symbol for the corner we need to know a
@@ -148,30 +110,31 @@ draw_room (smap *sm, Laby *lab, int r, int c, int y, int x)
   int border = laby_get_borders (lab, r, c);
   int neighbor = laby_get_borders (lab, r - 1, c - 1);
 
-  symbol *idx
-      = &sm->symbols[y + r * laby_room_height][x + c * laby_room_width];
-
   /* render the first row of symbols of the room */
+  const char *s;
   if (y == 0)
     {
-      *idx = (x == 0) ? get_corner (border, neighbor) : 0;
-      *idx = (*idx)                              ? *idx
-             : (border & UPPER_BORDER)           ? 3
-             : (laby_is_visible (lab, r, c))     ? SIDX_LIGHT
-             : (laby_is_visible (lab, r - 1, c)) ? SIDX_LIGHT
-                                                 : SIDX_EMPTY;
+      s = (x == 0) ? get_corner (border, neighbor) : 0;
+      s = (s)                                 ? s
+          : (border & UPPER_BORDER)           ? s_borders[1]
+          : (laby_is_visible (lab, r, c))     ? s_light
+          : (laby_is_visible (lab, r - 1, c)) ? s_light
+                                              : s_empty;
     }
   /* render the content of the room (the second row) */
   else
     {
-      *idx = ((x == 0) && (border & LEFT_BORDER)) ? 2
-             : (laby_is_visible (lab, r, c))      ? SIDX_LIGHT
-                                                  : SIDX_EMPTY;
+      enum content ct = laby_get_content (lab, r, c);
+      s = ((x == 0) && (border & LEFT_BORDER)) ? s_borders[0]
+          : (ct == C_PLAYER)                   ? s_player
+          : (ct == C_EXIT)                     ? s_exit
+          : (laby_is_visible (lab, r, c))      ? s_light
+                                               : s_empty;
     }
 }
 
 void
-draw_laby (smap *sm, Laby *lab)
+render_laby (u8buf *buf, Laby *lab)
 {
   /* Render rooms from every row, plus one extra row for the bottom borders */
   for (int r = 0; r <= lab->rows; r++)
@@ -187,38 +150,16 @@ draw_laby (smap *sm, Laby *lab)
                * (only one symbol for the extra right room) */
               int rw = (c < lab->cols) ? laby_room_width : 1;
               for (int rx = 0; rx < rw; rx++)
-                draw_room (sm, lab, r, c, ry, rx);
+                render_room (buf, lab, r, c, ry, rx);
             }
         }
     }
 }
 
 void
-render_symbols_map (u8buf *dest, const smap *source)
-{
-  for (int i = 0; i < source->height; i++)
-    {
-      for (int j = 0; j < source->width; j++)
-        {
-          const char *s = symbols[source->symbols[i][j]];
-          u8_buffer_append_str (dest, s, strlen (s));
-        }
-      u8_buffer_end_line (dest);
-    }
-}
-
-void
 render_game (u8buf *buf, Game *game)
 {
-  smap sm;
-  smap_init (&sm, game->lab.rows, game->lab.cols, laby_room_height,
-             laby_room_width);
-  draw_laby (&sm, &game->lab);
-  draw_in_the_middle_of_room (&sm, game->exit.row, game->exit.col, SIDX_EXIT);
-  draw_in_the_middle_of_room (&sm, game->player.row, game->player.col,
-                              SIDX_PLAYER);
-  render_symbols_map (buf, &sm);
-  smap_free (&sm);
+  render_laby (buf, &game->lab);
 }
 
 void

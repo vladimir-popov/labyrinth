@@ -160,7 +160,7 @@ laby_set_visited (Laby *lab, int r, int c, _Bool flag)
 }
 
 void
-laby_set_content (Laby *lab, int y, int x, unsigned char value)
+laby_set_content (Laby *lab, int y, int x, enum content value)
 {
   int mask = (1 << CONTENT_SHIFT) - 1;
   lab->rooms[y][x] = (value << CONTENT_SHIFT) | (lab->rooms[y][x] & mask);

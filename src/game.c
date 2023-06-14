@@ -10,8 +10,6 @@ static const int CONTINUE_LOOP = 1;
 
 static const int STOP_LOOP = 0;
 
-#define P game->player
-
 void
 game_init (Game *game, int height, int width, int seed)
 {
@@ -41,8 +39,8 @@ generate_new_level (Game *game)
   game->player.row = 0;
   game->player.col = 0;
   game->player.visible_range = 2;
-  game->exit.row = game->height - 1;
-  game->exit.col = game->width - 1;
+  laby_set_content (&L, P.row, P.col, C_PLAYER);
+  laby_set_content (&L, game->height - 1, game->width - 1, C_EXIT);
 }
 
 static int
@@ -75,8 +73,10 @@ move_player (Game *game, int dr, int dc)
         laby_set_visibility (&game->lab, i, j, 0);
       }
   /* change player's position */
+  laby_set_content (&L, P.row, P.col, C_NOTHING);
   P.row += dr;
   P.col += dc;
+  laby_set_content (&L, P.row, P.col, C_PLAYER);
   /* mark new visible rooms */
   laby_mark_visible_rooms (&game->lab, P.row, P.col, P.visible_range);
 }
@@ -84,24 +84,23 @@ move_player (Game *game, int dr, int dc)
 static int
 handle_cmd_in_game (Game *game, enum command cmd)
 {
-  Player *p = &game->player;
-  char border = laby_get_borders (&game->lab, p->row, p->col);
+  char border = laby_get_borders (&game->lab, P.row, P.col);
   switch (cmd)
     {
     case CMD_MV_LEFT:
-      if ((p->col > 0) && !(border & LEFT_BORDER))
+      if ((P.col > 0) && !(border & LEFT_BORDER))
         move_player (game, 0, -1);
       break;
     case CMD_MV_UP:
-      if ((p->row > 0) && !(border & UPPER_BORDER))
+      if ((P.row > 0) && !(border & UPPER_BORDER))
         move_player (game, -1, 0);
       break;
     case CMD_MV_RIGHT:
-      if ((p->col < game->lab.cols - 1) && !(border & RIGHT_BORDER))
+      if ((P.col < game->lab.cols - 1) && !(border & RIGHT_BORDER))
         move_player (game, 0, 1);
       break;
     case CMD_MV_DOWN:
-      if ((p->row < game->lab.rows - 1) && !(border & BOTTOM_BORDER))
+      if ((P.row < game->lab.rows - 1) && !(border & BOTTOM_BORDER))
         move_player (game, 1, 0);
       break;
     case CMD_PAUSE:
@@ -111,7 +110,7 @@ handle_cmd_in_game (Game *game, enum command cmd)
     default:
       break;
     }
-  if (p->row == game->exit.row && p->col == game->exit.col)
+  if (laby_get_content (&L, P.row, P.col) == C_EXIT)
     {
       game->state = ST_WIN;
       game->menu = create_menu (game, ST_WIN);

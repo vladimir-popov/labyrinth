@@ -3,20 +3,6 @@
 
 #include "2d_math.h"
 
-/**
- * Coordinates of the room in the labyrinth.
- */
-typedef struct
-{
-  int row;
-  int col;
-} LPos;
-
-#define POSITION_EMPTY                                                        \
-  {                                                                           \
-    0, 0                                                                      \
-  }
-
 /*
  * All information about a single room should be encoded in one byte:
  *
@@ -57,6 +43,14 @@ enum border
   RIGHT_BORDER = 2,
   UPPER_BORDER = 4,
   LEFT_BORDER = 8,
+};
+
+/* The objects which can be in the labyrinth */
+enum content
+{
+  C_NOTHING = 0,
+  C_PLAYER = 1,
+  C_EXIT = 2,
 };
 
 /* The single horizontal line of rooms. */
@@ -116,7 +110,7 @@ _Bool laby_is_visited (const Laby *lab, int r, int c);
 
 void laby_set_visited (Laby *lab, int r, int c, _Bool flag);
 
-void laby_set_content (Laby *lab, int r, int c, unsigned char value);
+void laby_set_content (Laby *lab, int r, int c, enum content value);
 
 unsigned char laby_get_content (const Laby *lab, int r, int c);
 
