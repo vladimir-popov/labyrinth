@@ -15,20 +15,10 @@ const int game_window_rows = 25;
 const int game_window_cols = 78;
 
 void
-mark_whole_known (Laby *lab)
-{
-  for (int i = 0; i < lab->rows; i++)
-    for (int j = 0; j < lab->cols; j++)
-      {
-        laby_mark_as_known (lab, i, j);
-      }
-}
-
-void
 init_known_empty (Laby *lab, int rows, int cols)
 {
   laby_init_empty (lab, rows, cols);
-  mark_whole_known (lab);
+  laby_mark_whole_as_known (lab);
 }
 
 static char *
@@ -96,7 +86,7 @@ generate_eller_test ()
   laby_generate (&lab, 3, 5, 1);
 
   // then:
-  mark_whole_known(&lab);
+  laby_mark_whole_as_known (&lab);
   render_laby (&buf, &lab);
   u8str actual = u8_buffer_to_u8str (&buf);
   mu_u8str_eq_to_str (actual, expected);

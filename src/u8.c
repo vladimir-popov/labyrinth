@@ -155,12 +155,22 @@ u8_buffer_init (u8buf *buf, const char *str)
 }
 
 void
+u8_buffer_clean (u8buf *buf)
+{
+  u8_buffer_free (buf);
+  buf->lines = NULL;
+  buf->last_line_ended = 0;
+  buf->lines_count = 0;
+}
+
+void
 u8_buffer_free (u8buf *buf)
 {
   for (int i = 0; i < buf->lines_count; i++)
     {
       u8_str_free (&buf->lines[i]);
     }
+  free (buf->lines);
 }
 
 static void

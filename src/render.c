@@ -130,7 +130,7 @@ render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
       s = (x == 0) ? get_top_left_corner (lab, r, c) : 0;
       s = (s)                                 ? s
           : (draw_border)                     ? s_borders[1]
-          : (!is_known_room)              ? s_empty
+          : (!is_known_room)                  ? s_empty
           : (laby_is_visible (lab, r, c))     ? s_light
           : (laby_is_visible (lab, r - 1, c)) ? s_light
                                               : s_empty;
@@ -240,8 +240,12 @@ render_pause_menu (u8buf *buf, void *menu)
 }
 
 void
-render_winning (u8buf *buf, void *menu)
+render_winning (u8buf *buf, Game *game)
 {
+  u8_buffer_clean (buf);
+  laby_mark_whole_as_known (&L);
+  render_laby (buf, &L);
+
   u8buf frame = U8_BUF_EMPTY;
   u8buf label = U8_BUF_EMPTY;
   create_frame (&frame, 10, 60);
@@ -271,7 +275,7 @@ render (Game *game)
       render_pause_menu (&buf, game->menu);
       break;
     case ST_WIN:
-      render_winning (&buf, game->menu);
+      render_winning (&buf, game);
       break;
     case ST_GAME:
       break;

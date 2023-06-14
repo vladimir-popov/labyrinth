@@ -85,6 +85,8 @@ typedef struct
  */
 void u8_buffer_init (u8buf *buf, const char *str);
 
+void u8_buffer_clean(u8buf *buf);
+
 /**
  * Splits the string to lines by the '\n' character.
  */

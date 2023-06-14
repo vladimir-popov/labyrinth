@@ -40,6 +40,4 @@ void render_laby (u8buf *buf, Laby *lab);
 void render_welcome_screen (u8buf *buf, void *menu);
 
 void render_pause_menu (u8buf *buf, void *menu);
-
-void render_winning (u8buf *buf, void *menu);
 #endif // __RENDER__

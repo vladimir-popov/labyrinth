@@ -105,7 +105,9 @@ void laby_set_visibility (Laby *lab, int r, int c, _Bool flag);
 
 _Bool laby_is_known_room (const Laby *lab, int r, int c);
 
-void laby_mark_as_known (Laby *lab, int r, int c);
+void laby_mark_as_known_room (Laby *lab, int r, int c);
+
+void laby_mark_whole_as_known (Laby *lab);
 
 void laby_set_content (Laby *lab, int r, int c, enum content value);
 

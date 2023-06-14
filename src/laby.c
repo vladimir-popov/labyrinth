@@ -148,13 +148,23 @@ laby_is_known_room (const Laby *lab, int r, int c)
 }
 
 void
-laby_mark_as_known (Laby *lab, int r, int c)
+laby_mark_as_known_room (Laby *lab, int r, int c)
 {
   int is_x_inside = c >= 0 && c < lab->cols;
   int is_y_inside = r >= 0 && r < lab->rows;
 
   if (is_y_inside && is_x_inside)
     lab->rooms[r][c] |= KNOWN_MASK;
+}
+
+void
+laby_mark_whole_as_known (Laby *lab)
+{
+  for (int i = 0; i < lab->rows; i++)
+    for (int j = 0; j < lab->cols; j++)
+      {
+        lab->rooms[i][j] |= KNOWN_MASK;
+      }
 }
 
 void
