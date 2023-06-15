@@ -5,13 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-time_t seed = 0;
-
-/* The terminal resolution in chars by vertical. */
-int screen_height = 0;
-/* The terminal resolution in chars by horizontal. */
-int screen_width = 0;
-
 /* The count of symbols by vertical of one room.  */
 const int laby_room_height = 2;
 /* The count of symbols by horizontal of one room.  */
@@ -21,6 +14,17 @@ const int laby_room_width = 4;
 const int game_window_height = 25;
 /* The count of visible chars by horizontal. */
 const int game_window_width = 78;
+
+time_t seed = 0;
+
+/* The terminal resolution in chars by vertical. */
+int screen_height = 0;
+/* The terminal resolution in chars by horizontal. */
+int screen_width = 0;
+
+/* the room counts of the generated labyrinth */
+static int laby_rows = 0;
+static int laby_cols = 0;
 
 void
 refresh_screen (int sig)
@@ -36,29 +40,29 @@ parse_args (int argc, char *argv[])
   seed = time (NULL);
 
   int p;
-  while ((p = getopt (argc, argv, "s:w:h:")) != -1)
+  while ((p = getopt (argc, argv, "s:r:c:")) != -1)
     {
       switch (p)
         {
         case 's':
-          seed = strtol (optarg, NULL, 10);
+          seed = strtol (optarg, NULL, 0);
           break;
-        case 'w':
-          screen_width = strtol (optarg, NULL, 10);
+        case 'r':
+          laby_rows = strtol (optarg, NULL, 0);
           break;
-        case 'h':
-          screen_height = strtol (optarg, NULL, 10);
+        case 'c':
+          laby_cols = strtol (optarg, NULL, 0);
           break;
         case '?':
-          if (optopt == 'h')
-            fprintf (stderr, "The -h argument should be followed by a count "
-                             "of symbols for whole labyrinth vertically.");
-          else if (optopt == 'w')
-            fprintf (stderr, "The -w argument should be followed by a count "
-                             "of symbols for whole labyrinth horizontally.");
-          else if (optopt == 's')
+          if (optopt == 's')
             fprintf (stderr, "The -s argument should be followed by a number, "
-                             "which will be used as seed.");
+                             "which will be used as a seed.");
+          else if (optopt == 'r')
+            fprintf (stderr, "The -r argument should be followed by a count "
+                             "of rooms in the labyrinth by vertical.");
+          else if (optopt == 'c')
+            fprintf (stderr, "The -c argument should be followed by a count "
+                             "of rooms in the labyrinth by horizontal.");
           else
             fprintf (stderr, "Unknown option character '%c'.\n", optopt);
           return -1;
@@ -78,11 +82,14 @@ main (int argc, char *argv[])
   refresh_screen (0);
   hide_cursor ();
 
-  int height = (game_window_height - 1) / laby_room_height;
-  int width = (game_window_width - 1) / laby_room_width;
+  seed = (seed > 0) ? seed : time (NULL);
+  laby_rows = (laby_rows > 0) ? laby_rows
+                              : (game_window_height - 1) / laby_room_height;
+  laby_cols = (laby_cols > 0) ? laby_cols
+                              : (game_window_width - 1) / laby_room_width;
 
   Game game;
-  game_init (&game, height, width, seed);
+  game_init (&game, laby_rows, laby_cols, seed);
   game_run_loop (&game);
 
   clear_screen ();

@@ -316,8 +316,7 @@ render (Game *game)
    * player position */
   if (game->state != ST_MAIN_MENU
       && !is_visible_enough (game, visible_height, visible_width)
-      && !is_player_on_screen (&game->player, visible_height - player_y_pad,
-                               visible_width - player_x_pad))
+      && !is_player_on_screen (&game->player, visible_height, visible_width))
     {
       int buf_y_pad
           = PLAYER_Y (game->player.row) - visible_height + player_y_pad;
