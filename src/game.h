@@ -46,9 +46,9 @@ typedef struct
 {
   int seed;
   /* The count of rooms by vertical */
-  int height;
+  int laby_rows;
   /* The count of rooms by horizontal */
-  int width;
+  int laby_cols;
   /* The FSM of the game  */
   enum game_state state;
   /* The current labyrinth */
@@ -64,7 +64,7 @@ typedef struct
 /**
  * Initializes a game with count of rooms in the labyrinth and seed number.
  */
-void game_init (Game *game, int height, int width, int seed);
+void game_init (Game *game, int rows, int cols, int seed);
 
 void game_run_loop (Game *game);
 

@@ -7,9 +7,9 @@
 #include <time.h>
 
 /* The terminal resolution in chars by vertical. */
-extern int screen_rows;
+extern int screen_height;
 /* The terminal resolution in chars by horizontal. */
-extern int screen_cols;
+extern int screen_width;
 
 /* The count of symbols by vertical of one room.  */
 extern const int laby_room_height;
@@ -17,9 +17,9 @@ extern const int laby_room_height;
 extern const int laby_room_width;
 
 /* The count of visible chars by vertical. */
-extern const int game_window_rows;
+extern const int game_window_height;
 /* The count of visible chars by horizontal. */
-extern const int game_window_cols;
+extern const int game_window_width;
 
 struct menu
 {
@@ -31,6 +31,9 @@ struct menu
   {                                                                           \
     0.0, 0                                                                    \
   }
+
+#define PLAYER_Y(Prow) (Prow * laby_room_height + laby_room_height / 2)
+#define PLAYER_X(Pcol) (Pcol * laby_room_width + laby_room_width / 2)
 
 /**
  * Prepare the labyrinth `lab` to render it.

@@ -8,9 +8,9 @@
 time_t seed = 0;
 
 /* The terminal resolution in chars by vertical. */
-int screen_rows = 0;
+int screen_height = 0;
 /* The terminal resolution in chars by horizontal. */
-int screen_cols = 0;
+int screen_width = 0;
 
 /* The count of symbols by vertical of one room.  */
 const int laby_room_height = 2;
@@ -18,14 +18,14 @@ const int laby_room_height = 2;
 const int laby_room_width = 4;
 
 /* The count of visible chars by vertical. */
-const int game_window_rows = 25;
+const int game_window_height = 25;
 /* The count of visible chars by horizontal. */
-const int game_window_cols = 78;
+const int game_window_width = 78;
 
 void
 refresh_screen (int sig)
 {
-  if (get_window_size (&screen_rows, &screen_cols) == -1)
+  if (get_window_size (&screen_height, &screen_width) == -1)
     fatal ("Fail on getting the size of the window");
   clear_screen ();
 }
@@ -44,10 +44,10 @@ parse_args (int argc, char *argv[])
           seed = strtol (optarg, NULL, 10);
           break;
         case 'w':
-          screen_cols = strtol (optarg, NULL, 10);
+          screen_width = strtol (optarg, NULL, 10);
           break;
         case 'h':
-          screen_rows = strtol (optarg, NULL, 10);
+          screen_height = strtol (optarg, NULL, 10);
           break;
         case '?':
           if (optopt == 'h')
@@ -78,8 +78,8 @@ main (int argc, char *argv[])
   refresh_screen (0);
   hide_cursor ();
 
-  int height = (game_window_rows - 1) / laby_room_height;
-  int width = (game_window_cols - 1) / laby_room_width;
+  int height = (game_window_height - 1) / laby_room_height;
+  int width = (game_window_width - 1) / laby_room_width;
 
   Game game;
   game_init (&game, height, width, seed);

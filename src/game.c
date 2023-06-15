@@ -14,8 +14,8 @@ void
 game_init (Game *game, int height, int width, int seed)
 {
   game->seed = seed;
-  game->height = height;
-  game->width = width;
+  game->laby_rows = height;
+  game->laby_cols = width;
   game->state = ST_MAIN_MENU;
   game->menu = create_menu (NULL, ST_MAIN_MENU);
 }
@@ -35,13 +35,13 @@ game_run_loop (Game *game)
 static void
 generate_new_level (Game *game)
 {
-  laby_generate (&L, game->height, game->width, game->seed);
+  laby_generate (&L, game->laby_rows, game->laby_cols, game->seed);
   game->player.row = 0;
   game->player.col = 0;
   game->player.visible_range = 2;
   laby_set_content (&L, P.row, P.col, C_PLAYER);
   laby_mark_visible_rooms (&L, P.row, P.col, P.visible_range);
-  laby_set_content (&L, game->height - 1, game->width - 1, C_EXIT);
+  laby_set_content (&L, game->laby_rows - 1, game->laby_cols - 1, C_EXIT);
 }
 
 static int

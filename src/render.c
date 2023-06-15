@@ -256,6 +256,19 @@ render_winning (u8buf *buf, Game *game)
   u8_buffer_free (&label);
 }
 
+static inline _Bool
+is_player_on_screen (Player *p, int height, int width)
+{
+  return PLAYER_Y (p->row) < height && PLAYER_X (p->col) < width;
+}
+
+static inline _Bool
+is_visible_enough (Game *game, int visible_height, int visible_width)
+{
+  return visible_height >= game->laby_rows * laby_room_height
+         && visible_width >= game->laby_cols * laby_room_width;
+}
+
 void
 render (Game *game)
 {
@@ -281,14 +294,44 @@ render (Game *game)
       break;
     }
 
-  int rowpad = (screen_rows - game_window_rows) / 2;
-  rowpad = (rowpad > 0) ? rowpad : 0;
-  int colpad = (screen_cols - game_window_cols) / 2;
-  colpad = (colpad > 0) ? colpad : 0;
+  /* padding of the visible game screen and terminal window */
+  int screen_y_pad = (screen_height - game_window_height) / 2;
+  screen_y_pad = (screen_y_pad > 0) ? screen_y_pad : 0;
+  int screen_x_pad = (screen_width - game_window_width) / 2;
+  screen_x_pad = (screen_x_pad > 0) ? screen_x_pad : 0;
 
-  int rows = (screen_rows < game_window_rows) ? screen_rows : game_window_rows;
-  int cols = (screen_cols < game_window_cols) ? screen_cols : game_window_cols;
+  /* actual visible height */
+  int visible_height = (screen_height < game_window_height)
+                           ? screen_height
+                           : game_window_height;
+  /* actual visible width */
+  int visible_width
+      = (screen_width < game_window_width) ? screen_width : game_window_width;
 
-  u8_buffer_write (STDIN_FILENO, &buf, rowpad, colpad, rows, cols);
+  /* the minimal distance between player and a screen border */
+  int player_y_pad = laby_room_height * 3;
+  int player_x_pad = laby_room_width * 3;
+
+  /* we should take only visible part of the buffer, which depends on the
+   * player position */
+  if (game->state != ST_MAIN_MENU
+      && !is_visible_enough (game, visible_height, visible_width)
+      && !is_player_on_screen (&game->player, visible_height - player_y_pad,
+                               visible_width - player_x_pad))
+    {
+      int buf_y_pad
+          = PLAYER_Y (game->player.row) - visible_height + player_y_pad;
+      buf_y_pad = (buf_y_pad < 0) ? 0 : buf_y_pad;
+
+      int buf_x_pad
+          = PLAYER_X (game->player.col) - visible_width + player_x_pad;
+      buf_x_pad = (buf_x_pad < 0) ? 0 : buf_x_pad;
+
+      u8_buffer_crop (&buf, buf_y_pad, buf_x_pad, visible_height,
+                      visible_width);
+    }
+
+  u8_buffer_write (STDIN_FILENO, &buf, screen_y_pad, screen_x_pad,
+                   visible_height, visible_width);
   u8_buffer_free (&buf);
 }
