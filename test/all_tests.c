@@ -6,7 +6,7 @@
 
 int tests_run = 0;
 char *test_only = NULL;
-// char *test_only = "visibility_in_closed_space_test_2";
+// char *test_only = "crop_utf_buffer_test";
 
 char *
 all_tests ()
@@ -23,12 +23,17 @@ all_tests ()
   mu_run_test (utf8_str_merge_1_test);
   mu_run_test (utf8_str_merge_2_test);
   mu_run_test (utf8_merge_into_empty_str_test);
+  mu_run_test (utf8_str_crop_test_1);
+  mu_run_test (utf8_str_crop_test_2);
+  mu_run_test (utf8_str_crop_test_3);
+  mu_run_test (utf8_str_crop_test_4);
   /* buffer tests */
   mu_run_test (parse_string_to_buffer_test);
   mu_run_test (merge_into_empty_buffers_test);
   mu_run_test (merge_middle_buffer_test);
   mu_run_test (merge_bigger_buffer_test);
   mu_run_test (merge_utf_buffer_test);
+  mu_run_test (crop_utf_buffer_test);
   // /* laby tests */
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);

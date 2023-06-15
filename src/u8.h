@@ -56,12 +56,18 @@ void u8_str_append_repeate (u8str *ds, const char *str, int len, int count);
 
 void u8_str_append_repeate_str (u8str *ds, const char *str, int count);
 
-void
-u8_str_merge (u8str *dest, const u8str *source, int spad);
+void u8_str_merge (u8str *dest, const u8str *source, int spad);
 
-void u8_str_crop(u8str *str, int pad, int length);
+/**
+ * Cuts the 'length' symbols from the string after the `pad` symbol.
+ *
+ * @pad the count of symbols from the start of the string which should be
+ *      cropped.
+ * @count the count of symbols which should be taken from the string.
+ */
+void u8_str_crop (u8str *str, int pad, int count);
 
-void u8_str_clean(u8str *str);
+void u8_str_clean (u8str *str);
 
 void u8_str_free (const u8str *str);
 
@@ -143,12 +149,12 @@ void u8_buffer_crop (u8buf *buf, int rowpad, int colpad, int height,
  * CUP sequence is used for padding. It will be inserted as the first symbols
  * of the every line from the buffer.
  *
- * @rowpad count of symbols padding from the top of the screen.
- * @colpad count of symbols padding from the left side of the screen.
+ * @ypad count of symbols padding from the top of the screen.
+ * @xpad count of symbols padding from the left side of the screen.
  * @height count of symbols which will be written by vertical after padding.
  * @width count of symbols which will be written by horizontal after padding.
  */
-void u8_buffer_write (int fildes, const u8buf *buf, int rowpad, int colpad,
+void u8_buffer_write (int fildes, const u8buf *buf, int ypad, int xpad,
                       int height, int width);
 
 void u8_buffer_free (u8buf *buf);

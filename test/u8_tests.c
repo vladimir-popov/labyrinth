@@ -122,6 +122,66 @@ utf8_merge_into_empty_str_test ()
   return 0;
 }
 
+static char *
+utf8_str_crop_test_1 ()
+{
+  // given:
+  u8str str;
+  u8_str_init (&str, "█☺█", 9);
+  char *expected = "☺";
+  // when:
+  u8_str_crop (&str, 1, 1);
+  // then:
+  mu_u8str_eq_to_str (str, expected);
+  mu_assert("Wrong length", str.length == 3);
+  return 0;
+}
+
+static char *
+utf8_str_crop_test_2 ()
+{
+  // given:
+  u8str str;
+  u8_str_init (&str, "█☺█", 9);
+  char *expected = "█☺";
+  // when:
+  u8_str_crop (&str, 0, 2);
+  // then:
+  mu_u8str_eq_to_str (str, expected);
+  mu_assert("Wrong length", str.length == 6);
+  return 0;
+}
+
+static char *
+utf8_str_crop_test_3 ()
+{
+  // given:
+  u8str str;
+  u8_str_init (&str, "█☺█", 9);
+  char *expected = "";
+  // when:
+  u8_str_crop (&str, 0, 0);
+  // then:
+  mu_u8str_eq_to_str (str, expected);
+  mu_assert("Wrong length", str.length == 0);
+  return 0;
+}
+
+static char *
+utf8_str_crop_test_4 ()
+{
+  // given:
+  u8str str;
+  u8_str_init (&str, "█☺█", 9);
+  char *expected = "";
+  // when:
+  u8_str_crop (&str, 4, 1);
+  // then:
+  mu_u8str_eq_to_str (str, expected);
+  mu_assert("Wrong length", str.length == 0);
+  return 0;
+}
+
 /* ========= Tests for buffer ========== */
 
 static char *
@@ -226,6 +286,25 @@ merge_utf_buffer_test ()
 
   // when:
   u8_buffer_merge (&first, &second, 1, 1);
+  u8str actual = u8_buffer_to_u8str (&first);
+
+  // then:
+  mu_u8str_eq_to_str (actual, expected);
+  return 0;
+}
+
+static char *
+crop_utf_buffer_test ()
+{
+  // given:
+  u8buf first = U8_BUF_EMPTY;
+  u8_buffer_parse (&first, "███\n"
+                           "█☺█\n"
+                           "███\n");
+  char *expected = "☺";
+
+  // when:
+  u8_buffer_crop (&first, 1, 1, 1, 1);
   u8str actual = u8_buffer_to_u8str (&first);
 
   // then:

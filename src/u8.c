@@ -139,20 +139,34 @@ u8_str_merge (u8str *dest, const u8str *source, int spad)
 }
 
 void
-u8_str_crop (u8str *str, int pad, int len)
+u8_str_crop (u8str *str, int pad, int count)
 {
-  if (pad >= str->length || len == 0)
+  int pad_idx
+      = (pad == 0) ? 0 : u8_find_index (str->chars, str->length, pad + 1);
+  /* if pad_idx < 0 means that pad is great than count of symbols in the str */
+  if (pad_idx < 0 || count == 0)
     {
       u8_str_clean (str);
-      return;
     }
-  int length = str->length - pad;
-  length = (length < len) ? length : len;
-  char *chars = malloc (sizeof (char) * length);
-  memcpy (chars, &str->chars[pad], length);
-  free (str->chars);
-  str->chars = chars;
-  str->length = length;
+  else if (pad == 0)
+    {
+      int length = u8_find_index (str->chars, str->length, count + 1);
+      if (length > 0 && length < str->length)
+        {
+          str->chars = realloc (str->chars, length);
+          str->length = length;
+        }
+    }
+  else
+    {
+      int length = str->length - pad_idx;
+      char *chars = malloc (sizeof (char) * length);
+      memcpy (chars, &str->chars[pad_idx], sizeof (char) * length);
+      free (str->chars);
+      str->chars = chars;
+      str->length = length;
+      u8_str_crop (str, 0, count);
+    }
 }
 
 void
@@ -272,16 +286,19 @@ u8_buffer_crop (u8buf *buf, int rowpad, int colpad, int height, int width)
       return;
     }
 
-  int lines_count = buf->lines_count - rowpad;
-  lines_count = (lines_count < height) ? lines_count : height;
-  u8str *lines = malloc (sizeof (u8str) * lines_count);
-  memcpy (lines, &buf->lines[rowpad], lines_count);
-  free (buf->lines);
-  buf->lines = lines;
-  buf->lines_count = lines_count;
-  for (int i = 0; i < lines_count; i++)
+  if (rowpad > 0)
     {
-      u8_str_crop (&lines[i], colpad, width);
+      int lines_count = buf->lines_count - rowpad;
+      lines_count = (lines_count < height) ? lines_count : height;
+      u8str *lines = malloc (sizeof (u8str) * lines_count);
+      memcpy (lines, &buf->lines[rowpad], sizeof (u8str) * lines_count);
+      free (buf->lines);
+      buf->lines = lines;
+      buf->lines_count = lines_count;
+    }
+  for (int i = 0; i < buf->lines_count; i++)
+    {
+      u8_str_crop (&buf->lines[i], colpad, width);
     }
 }
 

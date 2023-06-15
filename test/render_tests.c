@@ -3,16 +3,16 @@
 #include "render.h"
 #include "u8.h"
 
-int screen_rows = 0;
-int screen_cols = 0;
+int screen_height = 0;
+int screen_width = 0;
 
 /* The count of symbols of one room.  */
 const int laby_room_height = 2;
 const int laby_room_width = 4;
 
 /* The count of visible chars. */
-const int game_window_rows = 25;
-const int game_window_cols = 78;
+const int game_window_height = 25;
+const int game_window_width = 78;
 
 void
 init_known_empty (Laby *lab, int rows, int cols)
