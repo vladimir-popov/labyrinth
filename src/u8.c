@@ -139,6 +139,31 @@ u8_str_merge (u8str *dest, const u8str *source, int spad)
 }
 
 void
+u8_str_crop (u8str *str, int pad, int len)
+{
+  if (pad >= str->length || len == 0)
+    {
+      u8_str_clean (str);
+      return;
+    }
+  int length = str->length - pad;
+  length = (length < len) ? length : len;
+  char *chars = malloc (sizeof (char) * length);
+  memcpy (chars, &str->chars[pad], length);
+  free (str->chars);
+  str->chars = chars;
+  str->length = length;
+}
+
+void
+u8_str_clean (u8str *str)
+{
+  free (str->chars);
+  str->chars = NULL;
+  str->length = 0;
+}
+
+void
 u8_str_free (const u8str *str)
 {
   free (str->chars);
@@ -236,6 +261,28 @@ u8_buffer_to_u8str (const u8buf *buf)
     }
 
   return res;
+}
+
+void
+u8_buffer_crop (u8buf *buf, int rowpad, int colpad, int height, int width)
+{
+  if (rowpad >= buf->lines_count || height == 0)
+    {
+      u8_buffer_clean (buf);
+      return;
+    }
+
+  int lines_count = buf->lines_count - rowpad;
+  lines_count = (lines_count < height) ? lines_count : height;
+  u8str *lines = malloc (sizeof (u8str) * lines_count);
+  memcpy (lines, &buf->lines[rowpad], lines_count);
+  free (buf->lines);
+  buf->lines = lines;
+  buf->lines_count = lines_count;
+  for (int i = 0; i < lines_count; i++)
+    {
+      u8_str_crop (&lines[i], colpad, width);
+    }
 }
 
 void
