@@ -12,8 +12,10 @@ extern char *test_only;
   while (0)
 
 #define mu_u8str_eq_to_str(actual_u8str, expected_str)                        \
-  mu_assert (actual_u8str.chars,                                              \
-             memcmp (actual_u8str.chars, expected_str, actual_u8str.length)   \
+  mu_assert (                                                                 \
+      (actual_u8str.chars != NULL) ? actual_u8str.chars : "Empty u8str",      \
+      actual_u8str.length > 0                                                 \
+          && memcmp (actual_u8str.chars, expected_str, actual_u8str.length)   \
                  == 0)
 
 #define mu_run_test(test)                                                     \
