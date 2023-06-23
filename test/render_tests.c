@@ -298,12 +298,41 @@ laby_visibility_test_1 ()
   laby_set_content (&lab, r, c, C_PLAYER);
 
   char *expected = "┏━━━┳━━━━━━━┓\n"
-                   "┃   ┃···    ┃\n"
-                   "┃   ┃···┃   ┃\n"
+                   "┃   ┃·······┃\n"
+                   "┃   ┃···┃···┃\n"
                    "┃   ┃·@·┃   ┃\n"
-                   "┃   ····┃   ┃\n"
-                   "┃   ····┃   ┃\n"
+                   "┃·······┃   ┃\n"
+                   "┃·······┃   ┃\n"
                    "┗━━━━━━━┻━━━┛";
+
+  // when:
+  render_laby (&render, &lab);
+
+  // then:
+  u8str actual = u8_buffer_to_u8str (&render.buf);
+  mu_u8str_eq_to_str (actual, expected);
+  return 0;
+}
+char *
+laby_visibility_test_2 ()
+{
+  // given:
+  Render render = DEFAULT_RENDER;
+  Laby lab;
+  int r = 0;
+  int c = 1;
+  int range = 3;
+  init_known_empty (&lab, 2, 3);
+  laby_add_border (&lab, 0, 0, BOTTOM_BORDER);
+  laby_add_border (&lab, 0, 2, BOTTOM_BORDER);
+  laby_mark_visible_rooms (&lab, r, c, range);
+  laby_set_content (&lab, r, c, C_PLAYER);
+
+  char *expected = "┏━━━━━━━━━━━┓\n"
+                   "┃·····@·····┃\n"
+                   "┣━━━····━━━━┫\n"
+                   "┃···········┃\n"
+                   "┗━━━━━━━━━━━┛";
 
   // when:
   render_laby (&render, &lab);
@@ -315,26 +344,26 @@ laby_visibility_test_1 ()
 }
 
 char *
-laby_visibility_test_2 ()
+laby_visibility_test_3 ()
 {
   // given:
   Render render = DEFAULT_RENDER;
   Laby lab;
-  int r = 1;
+  int r = 0;
   int c = 1;
   int range = 3;
   init_known_empty (&lab, 3, 3);
-  laby_add_border (&lab, 0, 1, BOTTOM_BORDER);
-  laby_add_border (&lab, 2, 2, UPPER_BORDER);
+  laby_add_border (&lab, 0, 0, BOTTOM_BORDER);
+  laby_add_border (&lab, 0, 2, BOTTOM_BORDER);
   laby_mark_visible_rooms (&lab, r, c, range);
   laby_set_content (&lab, r, c, C_PLAYER);
 
   char *expected = "┏━━━━━━━━━━━┓\n"
-                   "┃           ┃\n"
-                   "┃···━━━━····┃\n"
                    "┃·····@·····┃\n"
-                   "┃·······━━━━┫\n"
-                   "┃·······    ┃\n"
+                   "┣━━━····━━━━┫\n"
+                   "┃···········┃\n"
+                   "┃···········┃\n"
+                   "┃···········┃\n"
                    "┗━━━━━━━━━━━┛";
 
   // when:

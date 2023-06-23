@@ -18,6 +18,9 @@
 #define min(a, b) ((a < b) ? a : b)
 #define max(a, b) ((a > b) ? a : b)
 
+/* To calculate visibility we take the size of the room as NxN */
+static const int N = 9;
+
 /* Creates a new labyrinth with height x width empty rooms. */
 void
 laby_init_empty (Laby *lab, int height, int width)
@@ -181,14 +184,14 @@ laby_get_content (const Laby *lab, int r, int c)
 }
 
 /**
- * Calculates border lines for labyrinth with 3x3 room size.
+ * Calculates border lines for labyrinth with NxN room size.
  */
 static int
 laby_get_borders_lines (const Laby *lab, const int r, const int c, int borders,
                         Line dest[])
 {
-  int y = 3 * r;
-  int x = 3 * c;
+  int y = N * r;
+  int x = N * c;
   enum border all_borders[4]
       = { LEFT_BORDER, UPPER_BORDER, RIGHT_BORDER, BOTTOM_BORDER };
 
@@ -201,27 +204,27 @@ laby_get_borders_lines (const Laby *lab, const int r, const int c, int borders,
       switch (border)
         {
         case BOTTOM_BORDER:
-          dest[j].p0.y = y + 3;
+          dest[j].p0.y = y + N;
           dest[j].p0.x = x;
-          dest[j].p1.y = y + 3;
-          dest[j].p1.x = x + 3;
+          dest[j].p1.y = y + N;
+          dest[j].p1.x = x + N;
           break;
         case RIGHT_BORDER:
           dest[j].p0.y = y;
-          dest[j].p0.x = x + 3;
-          dest[j].p1.y = y + 3;
-          dest[j].p1.x = x + 3;
+          dest[j].p0.x = x + N;
+          dest[j].p1.y = y + N;
+          dest[j].p1.x = x + N;
           break;
         case UPPER_BORDER:
           dest[j].p0.y = y;
           dest[j].p0.x = x;
           dest[j].p1.y = y;
-          dest[j].p1.x = x + 3;
+          dest[j].p1.x = x + N;
           break;
         case LEFT_BORDER:;
           dest[j].p0.y = y;
           dest[j].p0.x = x;
-          dest[j].p1.y = y + 3;
+          dest[j].p1.y = y + N;
           dest[j].p1.x = x;
           break;
         }
@@ -234,10 +237,10 @@ static _Bool
 is_intersect_with_borders (Laby *lab, int fy, int fx, int ty, int tx)
 {
   Line blines[8];
-  int borders = laby_get_borders (lab, fy / 3, fx / 3);
-  int bcount = laby_get_borders_lines (lab, fy / 3, fx / 3, borders, blines);
-  borders = laby_get_borders (lab, ty / 3, tx / 3);
-  bcount += laby_get_borders_lines (lab, ty / 3, tx / 3, borders,
+  int borders = laby_get_borders (lab, fy / N, fx / N);
+  int bcount = laby_get_borders_lines (lab, fy / N, fx / N, borders, blines);
+  borders = laby_get_borders (lab, ty / N, tx / N);
+  bcount += laby_get_borders_lines (lab, ty / N, tx / N, borders,
                                     &blines[bcount]);
   for (int i = 0; i < bcount; i++)
     {
@@ -250,12 +253,13 @@ is_intersect_with_borders (Laby *lab, int fy, int fx, int ty, int tx)
 static void
 mark_visible_in_direction (Laby *lab, int r0, int c0, int r1, int c1)
 {
+
   /* middle of the 'from' room */
-  int y0 = 3 * r0 + 1;
-  int x0 = 3 * c0 + 1;
+  int y0 = N * r0 + N / 2;
+  int x0 = N * c0 + N / 2;
   /* middle of the 'to' room */
-  int y1 = 3 * r1 + 1;
-  int x1 = 3 * c1 + 1;
+  int y1 = N * r1 + N / 2;
+  int x1 = N * c1 + N / 2;
 
   /* Bresenham's line algorithm.
    *  See https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm */
@@ -271,17 +275,17 @@ mark_visible_in_direction (Laby *lab, int r0, int c0, int r1, int c1)
     {
 
       /* if we achieved a new room */
-      if (r0 != y / 3 || c0 != x / 3)
+      if (r0 != y / N || c0 != x / N)
         {
-          r0 = y / 3;
-          c0 = x / 3;
+          r0 = y / N;
+          c0 = x / N;
 
           if (is_intersect_with_borders (lab, y0, x0, y, x))
             break;
 
           laby_set_visibility (lab, r0, c0, 1);
-          y0 = 3 * r0 + 1;
-          x0 = 3 * c0 + 1;
+          y0 = N * r0 + 1;
+          x0 = N * c0 + 1;
         }
 
       if (y == y1 && x == x1)
@@ -317,17 +321,17 @@ laby_mark_visible_rooms (Laby *lab, int r, int c, int range)
     {
       int r1 = min (lab->rows - 1, max (0, r - range + i));
       int c1 = max (0, c - range);
-      mark_visible_in_direction (lab, r, c, r1, c1);
+      mark_visible_in_direction (lab, r, c, r - range + i, c - range);
       c1 = min (lab->cols - 1, c + range);
-      mark_visible_in_direction (lab, r, c, r1, c1);
+      mark_visible_in_direction (lab, r, c, r - range + i, c + range);
 
       if (i > 0 && i < 2 * range)
         {
           r1 = max (0, r - range);
           c1 = min (lab->cols - 1, max (0, c - range + i));
-          mark_visible_in_direction (lab, r, c, r1, c1);
+          mark_visible_in_direction (lab, r, c, r - range, c - range + i);
           r1 = min (lab->rows - 1, r + range);
-          mark_visible_in_direction (lab, r, c, r1, c1);
+          mark_visible_in_direction (lab, r, c, r + range, c - range + i);
         }
     }
 }

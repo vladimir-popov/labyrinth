@@ -96,14 +96,12 @@ read_pressed_key ()
   char chars[3];
   Key_Code k = { 0, chars };
   k.len = read (STDIN_FILENO, chars, 1);
-#ifndef DEBUG
   if (k.len < 0 && errno != EAGAIN)
     {
       char str[30];
       sprintf (str, "read key: errno=%d", errno);
       fatal (str);
     }
-#endif
 
   if (chars[0] == ESC)
     {

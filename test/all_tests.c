@@ -6,7 +6,7 @@
 
 int tests_run = 0;
 char *test_only = NULL;
-// char *test_only = "render_laby_with_player_test";
+// char *test_only = "laby_visibility_test_3";
 
 char *
 all_tests ()
@@ -46,6 +46,7 @@ all_tests ()
   mu_run_test (laby_visibility_crossroads_test);
   mu_run_test (laby_visibility_test_1);
   mu_run_test (laby_visibility_test_2);
+  mu_run_test (laby_visibility_test_3);
   return 0;
 }
 
