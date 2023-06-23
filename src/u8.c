@@ -79,6 +79,19 @@ u8_str_append_str (u8str *dest, const char *prefix)
   u8_str_append (dest, prefix, strlen (prefix));
 }
 
+int
+u8_str_symbols_count(u8str *str)
+{
+  int found = 0;
+  int i = 0;
+  while (u8_find_symbol (str->chars, str->length, &i))
+    {
+      found++;
+      i++;
+    }
+  return found;
+}
+
 void
 u8_str_append_repeate (u8str *ds, const char *str, int len, int count)
 {
@@ -196,7 +209,6 @@ u8_buffer_init (u8buf *buf, const char *str)
 void
 u8_buffer_clean (u8buf *buf)
 {
-  u8_buffer_free (buf);
   buf->lines = NULL;
   buf->last_line_ended = 0;
   buf->lines_count = 0;
@@ -213,10 +225,11 @@ u8_buffer_free (u8buf *buf)
 }
 
 static void
-u8_buffer_add_str_line (u8buf *buf, const u8str str)
+u8_buffer_add_str_line (u8buf *buf, const u8str *str)
 {
   buf->lines = realloc (buf->lines, sizeof (u8str) * (buf->lines_count + 1));
-  buf->lines[buf->lines_count] = str;
+  buf->lines[buf->lines_count].chars = str->chars;
+  buf->lines[buf->lines_count].length = str->length;
   buf->lines_count++;
   buf->last_line_ended = 0;
 }
@@ -226,7 +239,7 @@ u8_buffer_add_line (u8buf *buf, const char *str, int len)
 {
   u8str ds;
   u8_str_init (&ds, str, len);
-  u8_buffer_add_str_line (buf, ds);
+  u8_buffer_add_str_line (buf, &ds);
 }
 
 void
@@ -329,13 +342,35 @@ u8_buffer_write (int fildes, const u8buf *buf, int rowpad, int colpad,
 }
 
 void
+u8_buffer_fill (u8buf *buf, char *ch, int ch_len, int height, int width)
+{
+  int dh = height - buf->lines_count;
+  dh = (dh > 0) ? dh : buf->lines_count;
+
+  for (int i = 0; i < dh; i++)
+    {
+      int dw = width - u8_str_symbols_count(&buf->lines[i]);
+      if (dw <= 0)
+        continue;
+      u8_str_append_repeate (&buf->lines[i], ch, ch_len, dw);
+    }
+
+  for (int i = buf->lines_count; i < height; i++)
+    {
+      u8str str = U8_STR_EMPTY;
+      u8_str_append_repeate (&str, ch, ch_len, width);
+      u8_buffer_add_str_line (buf, &str);
+    }
+}
+
+void
 u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad, int colpad)
 {
   /* Add empty lines if rowpad great than lines_count */
   while (dest->lines_count <= rowpad)
     {
       u8str ds = U8_STR_EMPTY;
-      u8_buffer_add_str_line (dest, ds);
+      u8_buffer_add_str_line (dest, &ds);
     }
 
   /* Iterate over intersected lines and merge them */
@@ -351,6 +386,6 @@ u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad, int colpad)
       u8str ds = U8_STR_EMPTY;
       u8_str_append_repeate (&ds, " ", 1, colpad);
       u8_str_append (&ds, source->lines[j].chars, source->lines[j].length);
-      u8_buffer_add_str_line (dest, ds);
+      u8_buffer_add_str_line (dest, &ds);
     }
 }

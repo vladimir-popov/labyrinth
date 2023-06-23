@@ -3,7 +3,6 @@
 
 #include "laby.h"
 
-
 #define L game->lab
 #define P game->player
 #define E game->exit
@@ -29,6 +28,9 @@ enum game_state
   ST_WIN
 };
 
+struct render;
+typedef struct render Render;
+
 struct menu;
 typedef struct menu Menu;
 
@@ -44,11 +46,16 @@ typedef struct
 
 typedef struct
 {
+  /* Global configuration of the game */
   int seed;
-  /* The count of rooms by vertical */
+  /* The count of rooms by vertical in the new laby */
   int laby_rows;
-  /* The count of rooms by horizontal */
+  /* The count of rooms by horizontal in the new laby */
   int laby_cols;
+
+  Render *render;
+  /* ------------------------------- */
+
   /* The FSM of the game  */
   enum game_state state;
   /* The current labyrinth */
@@ -66,7 +73,7 @@ typedef struct
  */
 void game_init (Game *game, int rows, int cols, int seed);
 
-void game_run_loop (Game *game);
+void game_run_loop (Game *game, Render *render);
 
 /* ========== THIS FUNCTION RUNTIME DEPENDED ========== */
 
@@ -78,6 +85,6 @@ void *create_menu (const Game *game, enum game_state state);
 
 void close_menu (void *menu, enum game_state state);
 
-void render (Game *game);
+void render (Render *render, Game *game);
 
 #endif /* __LABYRINTH_GAME__ */

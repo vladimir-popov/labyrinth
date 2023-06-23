@@ -5,22 +5,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-/* The count of symbols by vertical of one room.  */
-const int laby_room_height = 2;
-/* The count of symbols by horizontal of one room.  */
-const int laby_room_width = 4;
-
-/* The count of visible chars by vertical. */
-const int game_window_height = 25;
-/* The count of visible chars by horizontal. */
-const int game_window_width = 78;
-
 time_t seed = 0;
 
 /* The terminal resolution in chars by vertical. */
-int screen_height = 0;
+int terminal_window_height = 0;
 /* The terminal resolution in chars by horizontal. */
-int screen_width = 0;
+int terminal_window_width = 0;
 
 /* the room counts of the generated labyrinth */
 static int laby_rows = 0;
@@ -29,7 +19,7 @@ static int laby_cols = 0;
 void
 refresh_screen (int sig)
 {
-  if (get_window_size (&screen_height, &screen_width) == -1)
+  if (get_window_size (&terminal_window_height, &terminal_window_width) == -1)
     fatal ("Fail on getting the size of the window");
   clear_screen ();
 }
@@ -82,15 +72,15 @@ main (int argc, char *argv[])
   refresh_screen (0);
   hide_cursor ();
 
+  Render render = DEFAULT_RENDER;
+
   seed = (seed > 0) ? seed : time (NULL);
-  laby_rows = (laby_rows > 0) ? laby_rows
-                              : (game_window_height - 1) / laby_room_height;
-  laby_cols = (laby_cols > 0) ? laby_cols
-                              : (game_window_width - 1) / laby_room_width;
+  laby_rows = (laby_rows > 0) ? laby_rows : render.visible_rows;
+  laby_cols = (laby_cols > 0) ? laby_cols : render.visible_cols;
 
   Game game;
   game_init (&game, laby_rows, laby_cols, seed);
-  game_run_loop (&game);
+  game_run_loop (&game, &render);
 
   clear_screen ();
   return 0;

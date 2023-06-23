@@ -15,6 +15,7 @@
 #include "game.h"
 #include "laby.h"
 #include "render.h"
+#include "term.h"
 #include "u8.h"
 
 static const char *s_empty = " ";
@@ -115,7 +116,7 @@ get_top_left_corner (Laby *lab, int r, int c)
  * @x number of the char inside the room by horizontal
  */
 static void
-render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
+render_room (Render *render, Laby *lab, int r, int c, int y, int x)
 {
   int border = laby_get_borders (lab, r, c);
   _Bool is_known_room = laby_is_known_room (lab, r, c);
@@ -140,8 +141,10 @@ render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
     {
       draw_border = (x == 0) && (border & LEFT_BORDER)
                     && (is_known_room || laby_is_known_room (lab, r, c - 1));
-      enum content ct
-          = (x == laby_room_width / 2) ? laby_get_content (lab, r, c) : 0;
+
+      enum content ct = (x == render->laby_room_width / 2)
+                            ? laby_get_content (lab, r, c)
+                            : 0;
 
       s = (draw_border)                   ? s_borders[0]
           : (!is_known_room)              ? s_empty
@@ -150,41 +153,140 @@ render_room (u8buf *buf, Laby *lab, int r, int c, int y, int x)
           : (laby_is_visible (lab, r, c)) ? s_light
                                           : s_empty;
     }
-  u8_buffer_append_str (buf, s, strlen (s));
+  u8_buffer_append_str (&render->buf, s, strlen (s));
 }
 
 void
-render_laby (u8buf *buf, Laby *lab)
+render_laby (Render *render, Laby *lab)
 {
+  int rows = render->visible_rows + render->visible_rows_pad;
+  rows = (rows < lab->rows) ? rows : lab->rows;
+  int cols = render->visible_cols + render->visible_cols_pad;
+  cols = (cols < lab->cols) ? cols : lab->cols;
+
   /* Render rooms from every row, plus one extra row for the bottom borders */
-  for (int r = 0; r <= lab->rows; r++)
+  for (int r = render->visible_rows_pad; r <= rows; r++)
     {
       /* iterates over room height (only one line for the last extra row) */
-      int rh = (r < lab->rows) ? laby_room_height : 1;
+      int rh = (r < rows) ? render->laby_room_height : 1;
       for (int ry = 0; ry < rh; ry++)
         {
           /* Take a room from the row, plus one more for the right border */
-          for (int c = 0; c <= lab->cols; c++)
+          int c = render->visible_cols_pad;
+          for (; c <= cols; c++)
             {
               /* Iterate over columns of the single room
                * (only one symbol for the extra right room) */
-              int rw = (c < lab->cols) ? laby_room_width : 1;
+              int rw = (c < cols) ? render->laby_room_width : 1;
               for (int rx = 0; rx < rw; rx++)
-                render_room (buf, lab, r, c, ry, rx);
+                render_room (render, lab, r, c, ry, rx);
             }
-          u8_buffer_end_line (buf);
+          u8_buffer_end_line (&render->buf);
         }
     }
 }
 
 void
-render_game (u8buf *buf, Game *game)
+render_update_visible_area (Render *render, Player *player, int laby_rows,
+                            int laby_cols)
 {
-  render_laby (buf, &game->lab);
+  int margin = player->visible_range;
+  /* if player is near the top border of the visible area */
+  if (player->row <= render->visible_rows_pad + margin)
+    {
+      render->visible_rows_pad = player->row - margin;
+      render->visible_rows_pad
+          = (0 < render->visible_rows_pad) ? render->visible_rows_pad : 0;
+    }
+
+  /* if player is near the left border of the visible area */
+  if (player->col <= render->visible_cols_pad + margin)
+    {
+      render->visible_cols_pad = player->col - margin;
+      render->visible_cols_pad
+          = (0 < render->visible_cols_pad) ? render->visible_cols_pad : 0;
+    }
+
+  /* if player is near the bottom of the visible area, but far from the laby's
+   * border */
+  if (player->row >= (render->visible_rows_pad + render->visible_rows - margin)
+      && (laby_rows - player->row) >= margin)
+    render->visible_rows_pad = player->row - render->visible_rows + margin;
+
+  /* if player is near the right border of the visible area, but far from the
+   * laby's border  */
+  if (player->col >= (render->visible_cols_pad + render->visible_cols - margin)
+      && (laby_cols - player->col) >= margin)
+    render->visible_cols_pad = player->col - render->visible_cols + margin;
 }
 
 void
-render_welcome_screen (u8buf *buf, void *menu)
+render (Render *render, Game *game)
+{
+  /* actual visible height */
+  int visible_height = (terminal_window_height < render->game_screen_height)
+                           ? terminal_window_height
+                           : render->game_screen_height;
+  /* actual visible width */
+  int visible_width = (terminal_window_width < render->game_screen_width)
+                          ? terminal_window_width
+                          : render->game_screen_width;
+
+  if (visible_height < render->game_screen_height
+      || visible_width < render->game_screen_width)
+    {
+      char msg[60];
+      int len = sprintf (
+          msg, CUP "The minimal size of the terminal window is %dx%d",
+          render->game_screen_height, render->game_screen_width);
+      write (STDIN_FILENO, msg, len);
+      len = sprintf (msg, "\nbut it has %dx%d", terminal_window_height,
+                     terminal_window_width);
+      write (STDIN_FILENO, msg, len);
+      return;
+    }
+
+  u8_buffer_clean (&render->buf);
+
+  /* only the main screen overlaps the level completely,
+   * in all other cases we should render the laby before anything else. */
+  if (game->state != ST_MAIN_MENU)
+    {
+      render_update_visible_area (render, &P, L.rows, L.cols);
+      render_laby (render, &game->lab);
+    }
+
+  switch (game->state)
+    {
+    case ST_MAIN_MENU:
+      render_welcome_screen (render, game->menu);
+      break;
+    case ST_PAUSE:
+      render_pause_menu (render, game->menu);
+      break;
+    case ST_WIN:
+      render_winning (render, game);
+      break;
+    case ST_GAME:
+      break;
+    }
+
+  /* padding of the visible game screen and terminal window */
+  int screen_y_pad = (terminal_window_height - render->game_screen_height) / 2;
+  screen_y_pad = (screen_y_pad > 0) ? screen_y_pad : 0;
+  int screen_x_pad = (terminal_window_width - render->game_screen_width) / 2;
+  screen_x_pad = (screen_x_pad > 0) ? screen_x_pad : 0;
+  //
+  // if (L.rows < render->visible_rows || L.cols < render->visible_cols)
+  //   write (STDIN_FILENO, ED_FULL, 4);
+
+  u8_buffer_write (STDIN_FILENO, &render->buf, screen_y_pad, screen_x_pad,
+                   render->game_screen_height, render->game_screen_width);
+  u8_buffer_free (&render->buf);
+}
+
+void
+render_welcome_screen (Render *render, void *menu)
 {
   Menu *m = (Menu *)menu;
   /* Blink menu option */
@@ -195,7 +297,7 @@ render_welcome_screen (u8buf *buf, void *menu)
       m->last_update_at = now;
     }
 
-  u8_buffer_parse (buf, WELCOME_SCREEN);
+  u8_buffer_parse (&render->buf, WELCOME_SCREEN);
   u8buf label = U8_BUF_EMPTY;
   switch (m->state)
     {
@@ -205,19 +307,19 @@ render_welcome_screen (u8buf *buf, void *menu)
       /* New game */
     case 1:
       u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (buf, &label, 14, 22);
+      u8_buffer_merge (&render->buf, &label, 14, 22);
       break;
       /* Exit */
     case 2:
       u8_buffer_parse (&label, LB_EXIT);
-      u8_buffer_merge (buf, &label, 14, 30);
+      u8_buffer_merge (&render->buf, &label, 14, 30);
       break;
     }
   u8_buffer_free (&label);
 }
 
 void
-render_pause_menu (u8buf *buf, void *menu)
+render_pause_menu (Render *render, void *menu)
 {
   Menu *m = (Menu *)menu;
   u8buf frame = U8_BUF_EMPTY;
@@ -234,103 +336,24 @@ render_pause_menu (u8buf *buf, void *menu)
       u8_buffer_merge (&frame, &label, 3, 14);
       break;
     }
-  u8_buffer_merge (buf, &frame, 8, 19);
+  u8_buffer_merge (&render->buf, &frame, 8, 19);
   u8_buffer_free (&frame);
   u8_buffer_free (&label);
 }
 
 void
-render_winning (u8buf *buf, Game *game)
+render_winning (Render *render, Game *game)
 {
-  u8_buffer_clean (buf);
+  u8_buffer_clean (&render->buf);
   laby_mark_whole_as_known (&L);
-  render_laby (buf, &L);
+  render_laby (render, &L);
 
   u8buf frame = U8_BUF_EMPTY;
   u8buf label = U8_BUF_EMPTY;
   create_frame (&frame, 10, 60);
   u8_buffer_parse (&label, LB_YOU_WIN);
   u8_buffer_merge (&frame, &label, 2, 2);
-  u8_buffer_merge (buf, &frame, 6, 8);
+  u8_buffer_merge (&render->buf, &frame, 6, 8);
   u8_buffer_free (&frame);
   u8_buffer_free (&label);
-}
-
-static inline _Bool
-is_player_on_screen (Player *p, int height, int width)
-{
-  return PLAYER_Y (p->row) < height && PLAYER_X (p->col) < width;
-}
-
-static inline _Bool
-is_visible_enough (Game *game, int visible_height, int visible_width)
-{
-  return visible_height >= game->laby_rows * laby_room_height
-         && visible_width >= game->laby_cols * laby_room_width;
-}
-
-void
-render (Game *game)
-{
-  u8buf buf = U8_BUF_EMPTY;
-
-  /* only the main screen overlaps the level completely,
-   * in all other cases we should render the laby before anything else. */
-  if (game->state != ST_MAIN_MENU)
-    render_game (&buf, game);
-
-  switch (game->state)
-    {
-    case ST_MAIN_MENU:
-      render_welcome_screen (&buf, game->menu);
-      break;
-    case ST_PAUSE:
-      render_pause_menu (&buf, game->menu);
-      break;
-    case ST_WIN:
-      render_winning (&buf, game);
-      break;
-    case ST_GAME:
-      break;
-    }
-
-  /* padding of the visible game screen and terminal window */
-  int screen_y_pad = (screen_height - game_window_height) / 2;
-  screen_y_pad = (screen_y_pad > 0) ? screen_y_pad : 0;
-  int screen_x_pad = (screen_width - game_window_width) / 2;
-  screen_x_pad = (screen_x_pad > 0) ? screen_x_pad : 0;
-
-  /* actual visible height */
-  int visible_height = (screen_height < game_window_height)
-                           ? screen_height
-                           : game_window_height;
-  /* actual visible width */
-  int visible_width
-      = (screen_width < game_window_width) ? screen_width : game_window_width;
-
-  /* the minimal distance between player and a screen border */
-  int player_y_pad = laby_room_height * 3;
-  int player_x_pad = laby_room_width * 3;
-
-  /* we should take only visible part of the buffer, which depends on the
-   * player position */
-  if (game->state != ST_MAIN_MENU
-      && !is_visible_enough (game, visible_height, visible_width)
-      && !is_player_on_screen (&game->player, visible_height, visible_width))
-    {
-      int buf_y_pad
-          = PLAYER_Y (game->player.row) - visible_height + player_y_pad;
-      buf_y_pad = (buf_y_pad < 0) ? 0 : buf_y_pad;
-
-      int buf_x_pad
-          = PLAYER_X (game->player.col) - visible_width + player_x_pad;
-      buf_x_pad = (buf_x_pad < 0) ? 0 : buf_x_pad;
-
-      u8_buffer_crop (&buf, buf_y_pad, buf_x_pad, visible_height,
-                      visible_width);
-    }
-
-  u8_buffer_write (STDIN_FILENO, &buf, screen_y_pad, screen_x_pad,
-                   visible_height, visible_width);
-  u8_buffer_free (&buf);
 }

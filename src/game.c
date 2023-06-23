@@ -21,12 +21,12 @@ game_init (Game *game, int height, int width, int seed)
 }
 
 void
-game_run_loop (Game *game)
+game_run_loop (Game *game, Render *r)
 {
   enum command cmd;
   do
     {
-      render (game);
+      render (r, game);
       cmd = read_command (game);
     }
   while (handle_command (game, cmd));

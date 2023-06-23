@@ -48,6 +48,8 @@ typedef struct
 
 void u8_str_init (u8str *str, const char *templ, int len);
 
+int u8_str_symbols_count (u8str *str);
+
 void u8_str_append (u8str *dest, const char *prefix, int len);
 
 void u8_str_append_str (u8str *dest, const char *prefix);
@@ -142,6 +144,11 @@ void u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad,
 void u8_buffer_crop (u8buf *buf, int rowpad, int colpad, int height,
                      int width);
 
+/**
+ * Fills the difference height - buf->lines_count by empty lines,
+ * and width - buf->lines[i].length by the ch symbols.
+ */
+void u8_buffer_fill (u8buf *buf, char *ch, int ch_len, int height, int width);
 /**
  * Crops and writes with padding the buffer to the object referenced by the
  * descriptor fildes.
