@@ -10,6 +10,14 @@ static const int CONTINUE_LOOP = 1;
 
 static const int STOP_LOOP = 0;
 
+static void
+game_init_player (Game *game)
+{
+  game->player.row = rand () % L.rows;
+  game->player.col = rand () % L.cols;
+  game->player.visible_range = 2;
+}
+
 void
 game_init (Game *game, int height, int width, int seed)
 {
@@ -36,9 +44,7 @@ static void
 generate_new_level (Game *game)
 {
   laby_generate (&L, game->laby_rows, game->laby_cols, game->seed);
-  game->player.row = 0;
-  game->player.col = 0;
-  game->player.visible_range = 2;
+  game_init_player (game);
   laby_set_content (&L, P.row, P.col, C_PLAYER);
   laby_mark_visible_rooms (&L, P.row, P.col, P.visible_range);
   laby_set_content (&L, game->laby_rows - 1, game->laby_cols - 1, C_EXIT);
