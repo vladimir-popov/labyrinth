@@ -3,20 +3,13 @@
  * which is not depend on a runtime.
  */
 #include "game.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 static const int CONTINUE_LOOP = 1;
 
 static const int STOP_LOOP = 0;
-
-static void
-game_init_player (Game *game)
-{
-  game->player.row = rand () % L.rows;
-  game->player.col = rand () % L.cols;
-  game->player.visible_range = 2;
-}
 
 void
 game_init (Game *game, int height, int width, int seed)
@@ -41,13 +34,36 @@ game_run_loop (Game *game, Render *r)
 }
 
 static void
-generate_new_level (Game *game)
+game_init_player (Game *game)
 {
-  laby_generate (&L, game->laby_rows, game->laby_cols, game->seed);
-  game_init_player (game);
+  game->player.row = rand () % L.rows;
+  game->player.col = rand () % L.cols;
+  game->player.visible_range = 2;
   laby_set_content (&L, P.row, P.col, C_PLAYER);
   laby_mark_visible_rooms (&L, P.row, P.col, P.visible_range);
-  laby_set_content (&L, game->laby_rows - 1, game->laby_cols - 1, C_EXIT);
+}
+
+static void
+game_place_exit (Game *game)
+{
+  double a = (rand () % 360) * M_PI / 180;
+  int r = 2 * P.visible_range * sin (a) + P.row;
+  int c = 2 * P.visible_range * cos (a) + P.col;
+  r = (r < 0) ? 0 : (r >= L.rows) ? L.rows - 1 : r;
+  c = (c < 0) ? 0 : (c >= L.cols) ? L.cols - 1 : c;
+  if (r == P.row && c == P.col)
+    game_place_exit (game);
+  else
+    laby_set_content (&L, r, c, C_EXIT);
+}
+
+static void
+generate_new_level (Game *game)
+{
+  srand (game->seed);
+  laby_generate (&L, game->laby_rows, game->laby_cols, game->seed);
+  game_init_player (game);
+  game_place_exit (game);
 }
 
 static int
