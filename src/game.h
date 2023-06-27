@@ -81,10 +81,10 @@ enum command read_command (Game *game);
 
 int handle_command (Game *game, enum command cmd);
 
-void *create_menu (const Game *game, enum game_state state);
-
-void close_menu (void *menu, enum game_state state);
-
 void render (Render *render, Game *game);
+
+Menu *create_menu (enum game_state state);
+
+void close_menu (Menu *menu, enum game_state state);
 
 #endif /* __LABYRINTH_GAME__ */

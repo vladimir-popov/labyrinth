@@ -17,7 +17,7 @@ game_init (Game *game, int height, int width, int seed)
   game->laby_rows = height;
   game->laby_cols = width;
   game->state = ST_MAIN_MENU;
-  game->menu = create_menu (NULL, ST_MAIN_MENU);
+  game->menu = create_menu (ST_MAIN_MENU);
 }
 
 void
@@ -81,7 +81,7 @@ move_player (Game *game, int dr, int dc)
   if (laby_get_content (&L, P.row, P.col) == C_EXIT)
     {
       game->state = ST_WIN;
-      game->menu = create_menu (game, ST_WIN);
+      game->menu = create_menu (ST_WIN);
     }
   else
     {
@@ -114,7 +114,7 @@ handle_cmd_in_game (Game *game, enum command cmd)
       break;
     case CMD_PAUSE:
       game->state = ST_PAUSE;
-      game->menu = create_menu (game, ST_PAUSE);
+      game->menu = create_menu (ST_PAUSE);
       break;
     default:
       break;

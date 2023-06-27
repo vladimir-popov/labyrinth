@@ -7,6 +7,12 @@
 #include "u8.h"
 #include <time.h>
 
+struct menu
+{
+  time_t last_update_at;
+  int state;
+};
+
 struct render
 {
   /* The count of symbols by vertical of one room.  */
@@ -39,17 +45,6 @@ struct render
   }
 
 #define DEFAULT_RENDER render_create (2, 4, 25, 78)
-
-struct menu
-{
-  time_t last_update_at;
-  int state;
-};
-
-#define MENU_EMPTY                                                            \
-  {                                                                           \
-    0.0, 0                                                                    \
-  }
 
 #define PLAYER_Y(Prow) (Prow * laby_room_height + laby_room_height / 2)
 #define PLAYER_X(Pcol) (Pcol * laby_room_width + laby_room_width / 2)

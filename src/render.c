@@ -28,6 +28,21 @@ static const char *s_light = "·";
 static const char *s_borders[]
     = { "┃", "━", "┏", "┓", "┗", "┛", "╋", "┣", "┫", "┳", "┻" };
 
+Menu *
+create_menu (enum game_state state)
+{
+  Menu *menu = malloc (sizeof (Menu));
+  menu->last_update_at = 0.0;
+  menu->state = 0;
+  return menu;
+}
+
+void
+close_menu (Menu *menu, enum game_state state)
+{
+  free (menu);
+}
+
 static void
 create_frame (u8buf *buf, int height, int width)
 {

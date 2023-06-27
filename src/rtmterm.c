@@ -132,17 +132,3 @@ read_command (Game *game)
     }
 }
 
-void *
-create_menu (const Game *game, enum game_state state)
-{
-  Menu *m = malloc (sizeof (Menu));
-  m->state = 0;
-  return m;
-}
-
-void
-close_menu (void *menu, enum game_state state)
-{
-  free (menu);
-}
-

@@ -319,18 +319,12 @@ laby_mark_visible_rooms (Laby *lab, int r, int c, int range)
    * middle of the room r:c to the middle of rooms in the visible range */
   for (int i = 0; i <= 2 * range; i++)
     {
-      int r1 = min (lab->rows - 1, max (0, r - range + i));
-      int c1 = max (0, c - range);
       mark_visible_in_direction (lab, r, c, r - range + i, c - range);
-      c1 = min (lab->cols - 1, c + range);
       mark_visible_in_direction (lab, r, c, r - range + i, c + range);
 
       if (i > 0 && i < 2 * range)
         {
-          r1 = max (0, r - range);
-          c1 = min (lab->cols - 1, max (0, c - range + i));
           mark_visible_in_direction (lab, r, c, r - range, c - range + i);
-          r1 = min (lab->rows - 1, r + range);
           mark_visible_in_direction (lab, r, c, r + range, c - range + i);
         }
     }
