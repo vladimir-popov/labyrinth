@@ -1,3 +1,5 @@
+[![CI](https://github.com/vladimir-popov/laby/actions/workflows/ci.yaml/badge.svg)](https://github.com/vladimir-popov/laby/actions/workflows/ci.yaml)
+
 ![logo](logo.png)
 
 
