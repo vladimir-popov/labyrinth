@@ -3,6 +3,13 @@
 CC = gcc
 CFLAGS = -Wall 
 
+# Detect the current OS:
+ifeq ($(OS),Windows_NT)
+    UNAME := Windows
+else
+    UNAME := $(shell uname -s)
+endif
+
 # Turn on debug info by default.
 # To turn it off we need run make with RELEASE option
 ifndef RELEASE
@@ -53,12 +60,12 @@ $(BUILD_DIR)/$(TEST_DIR)/$(TEST_MAIN).o: $(TEST_SRCS) Makefile
 # Build the game
 compile: $(OBJS)
 	@echo "Build application..."
-	$(CC) $(OBJS) -o $(BUILD_DIR)/$(APP_EXEC) 
+	$(CC) $(OBJS) -o $(BUILD_DIR)/$(APP_EXEC)  -lm
 
 # Build tests
 test: $(TEST_OBJS)
 	@echo "Build and run tests..."
-	$(CC) $(TEST_OBJS) -o $(BUILD_DIR)/$(TEST_EXEC) 
+	$(CC) $(TEST_OBJS) -o $(BUILD_DIR)/$(TEST_EXEC)  -lm
 	$(BUILD_DIR)/$(TEST_EXEC)
 
 run: compile
