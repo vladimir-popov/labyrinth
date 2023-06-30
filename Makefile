@@ -1,7 +1,13 @@
 .DEFAULT_GOAL = compile
 
 CC = gcc
-CFLAGS = -Wall -g # Turn on debug info
+CFLAGS = -Wall 
+
+# Turn on debug info by default.
+# To turn it off we need run make with RELEASE option
+ifndef RELEASE
+	CFLAGS += -g
+endif
 
 BUILD_DIR := ./build
 SRC_DIR := ./src
