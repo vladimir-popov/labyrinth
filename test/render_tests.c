@@ -4,6 +4,8 @@
 #include "render.h"
 #include "u8.h"
 
+lcg seed = 1904; // my birthday ^_^
+
 int terminal_window_height = 0;
 int terminal_window_width = 0;
 
@@ -90,7 +92,7 @@ generate_eller_test ()
 
   // when:
   Laby lab;
-  laby_generate (&lab, 5, 5);
+  laby_generate (&lab, 5, 5, &seed);
 
   // then:
   laby_mark_whole_as_known (&lab);
@@ -111,7 +113,7 @@ render_laby_with_player_test ()
   Render render = render_create (2, 4, visible_rows * 2, visible_cols * 4);
   Player player = { 3, 3, 2 };
   Laby lab;
-  laby_generate (&lab, laby_rows, laby_cols);
+  laby_generate (&lab, laby_rows, laby_cols, &seed);
   laby_set_content (&lab, player.row, player.col, C_PLAYER);
   laby_mark_whole_as_known (&lab);
   // The whole laby:

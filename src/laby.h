@@ -2,6 +2,7 @@
 #define __LABY__
 
 #include "2d_math.h"
+#include "lcg.h"
 
 /*
  * All information about a single room should be encoded in one byte:
@@ -69,7 +70,7 @@ typedef struct
 /* Creates a new labyrinth with height x width empty rooms. */
 void laby_init_empty (Laby *lab, int height, int width);
 
-void laby_generate (Laby *lab, int height, int width);
+void laby_generate (Laby *lab, int height, int width, lcg *seed);
 
 /* Frees memory of the labyrinth. */
 void laby_free (Laby *lab);

@@ -67,7 +67,7 @@ typedef struct
 typedef struct
 {
   /* Global configuration of the game */
-  int seed;
+  lcg seed;
   /* The count of rooms by vertical in the new laby */
   int laby_rows;
   /* The count of rooms by horizontal in the new laby */

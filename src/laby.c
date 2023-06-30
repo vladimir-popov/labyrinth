@@ -5,7 +5,6 @@
  */
 #include "laby.h"
 #include "2d_math.h"
-#include "lcg.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -340,7 +339,7 @@ laby_mark_visible_rooms (Laby *lab, int r, int c, int range)
  * @see http://www.neocomputer.org/projects/eller.html
  */
 void
-laby_generate (Laby *lab, int height, int width)
+laby_generate (Laby *lab, int height, int width, lcg *seed)
 {
   /* The final labyrinth */
   laby_init_empty (lab, height, width);
@@ -365,7 +364,7 @@ laby_generate (Laby *lab, int height, int width)
       /* decide if two rooms should have a horizontal border */
       for (int x = 0; x < width - 1; x++)
         {
-          if (s[x] != s[x + 1] && lcg_next () % 2 == 0)
+          if (s[x] != s[x + 1] && lcg_rand (seed) % 2 == 0)
             laby_add_border (lab, y, x, RIGHT_BORDER);
           else
             s[x + 1] = s[x];
@@ -383,7 +382,7 @@ laby_generate (Laby *lab, int height, int width)
 
           /* we can create a border, if it's not a single room without bottom
            * border in the set */
-          if (no_bb > 1 && lcg_next () % 5 > 0)
+          if (no_bb > 1 && lcg_rand (seed) % 5 > 0)
             {
               laby_add_border (lab, y, x, BOTTOM_BORDER);
               /* mark the underlining room to change its set */
