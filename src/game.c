@@ -3,6 +3,7 @@
  * which is not depend on a runtime.
  */
 #include "game.h"
+#include "lcg.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,8 +37,8 @@ game_run_loop (Game *game, Render *r)
 static void
 game_init_player (Game *game)
 {
-  game->player.row = rand () % L.rows;
-  game->player.col = rand () % L.cols;
+  game->player.row = lcg_next () % L.rows;
+  game->player.col = lcg_next () % L.cols;
   game->player.visible_range = 2;
   laby_set_content (&L, P.row, P.col, C_PLAYER);
   laby_mark_visible_rooms (&L, P.row, P.col, P.visible_range);
@@ -46,7 +47,7 @@ game_init_player (Game *game)
 static void
 game_place_exit (Game *game)
 {
-  double a = (rand () % 360) * M_PI / 180;
+  double a = (lcg_next () % 360) * M_PI / 180;
   int r = 2 * P.visible_range * sin (a) + P.row;
   int c = 2 * P.visible_range * cos (a) + P.col;
   r = (r < 0) ? 0 : (r >= L.rows) ? L.rows - 1 : r;
@@ -60,8 +61,8 @@ game_place_exit (Game *game)
 static void
 generate_new_level (Game *game)
 {
-  srand (game->seed);
-  laby_generate (&L, game->laby_rows, game->laby_cols, game->seed);
+  lcg_init (game->seed);
+  laby_generate (&L, game->laby_rows, game->laby_cols);
   game_init_player (game);
   game_place_exit (game);
 }

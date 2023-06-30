@@ -12,10 +12,8 @@ intersected_lines_test ()
   Point B = { 2.0, 0.0 };
   Point C = { 0.0, 1.0 };
   Point D = { 2.0, 1.0 };
-  Line AD;
-  line_init (&AD, A.x, A.y, D.x, D.y);
-  Line CB;
-  line_init (&CB, C.x, C.y, B.x, B.y);
+  Line AD = new_line(A.x, A.y, D.x, D.y);
+  Line CB = new_line(C.x, C.y, B.x, B.y);
 
   // when:
   _Bool res = line_is_intersected (&AD, &CB);
@@ -36,10 +34,8 @@ parallel_lines_intersection_test ()
   Point B = { 2.0, 0.0 };
   Point C = { 0.0, 1.0 };
   Point D = { 2.0, 1.0 };
-  Line AB;
-  line_init (&AB, A.x, A.y, B.x, B.y);
-  Line CD;
-  line_init (&CD, C.x, C.y, D.x, D.y);
+  Line AB = new_line(A.x, A.y, B.x, B.y);
+  Line CD = new_line(C.x, C.y, D.x, D.y);
 
   // when:
   _Bool is_parallel = line_is_parallel(&AB, &CD);
@@ -61,10 +57,8 @@ perpendicular_lines_intersection_test ()
   Point A = { 0.0, 0.0 };
   Point C = { 0.0, 1.0 };
   Point D = { 2.0, 1.0 };
-  Line CA;
-  line_init (&CA, C.x, C.y, A.x, A.y);
-  Line CD;
-  line_init (&CD, C.x, C.y, D.x, D.y);
+  Line CA = new_line(C.x, C.y, A.x, A.y);
+  Line CD = new_line(C.x, C.y, D.x, D.y);
 
   // when:
   _Bool is_pr_int = line_is_projections_intersected(&CA, &CD);
@@ -89,10 +83,8 @@ lines_intersection_test_1 ()
   Point B = { 16.0, 6.0 };
   Point C = { 11.0, 5.0 };
   Point D = { 12.0, 5.0 };
-  Line AB;
-  line_init (&AB, A.x, A.y, B.x, B.y);
-  Line CD;
-  line_init (&CD, C.x, C.y, D.x, D.y);
+  Line AB = new_line(A.x, A.y, B.x, B.y);
+  Line CD = new_line(C.x, C.y, D.x, D.y);
 
   // when:
   _Bool res = line_is_intersected (&AB, &CD);

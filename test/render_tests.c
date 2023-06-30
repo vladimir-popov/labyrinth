@@ -76,21 +76,21 @@ generate_eller_test ()
 {
   // given:
   Render render = DEFAULT_RENDER;
-  char *expected = "┏━━━━━━━━━━━━━━━┳━━━┓\n"
-                   "┃               ┃   ┃\n"
-                   "┃   ━━━━━━━━┳━━━┛   ┃\n"
+  char *expected = "┏━━━┳━━━━━━━┳━━━━━━━┓\n"
+                   "┃   ┃       ┃       ┃\n"
+                   "┃       ┃   ┗━━━┓   ┃\n"
+                   "┃       ┃       ┃   ┃\n"
+                   "┣━━━    ┗━━━┓       ┃\n"
                    "┃           ┃       ┃\n"
-                   "┣━━━━━━━    ┗━━━┓   ┃\n"
-                   "┃               ┃   ┃\n"
-                   "┣━━━━━━━━━━━┓       ┃\n"
-                   "┃           ┃       ┃\n"
-                   "┣━━━━━━━    ┗━━━    ┃\n"
+                   "┣━━━━━━━┓       ┏━━━┫\n"
+                   "┃       ┃       ┃   ┃\n"
+                   "┣━━━    ┗━━━        ┃\n"
                    "┃                   ┃\n"
                    "┗━━━━━━━━━━━━━━━━━━━┛";
 
   // when:
   Laby lab;
-  laby_generate (&lab, 5, 5, 1);
+  laby_generate (&lab, 5, 5);
 
   // then:
   laby_mark_whole_as_known (&lab);
@@ -111,32 +111,32 @@ render_laby_with_player_test ()
   Render render = render_create (2, 4, visible_rows * 2, visible_cols * 4);
   Player player = { 3, 3, 2 };
   Laby lab;
-  laby_generate (&lab, laby_rows, laby_cols, 1);
+  laby_generate (&lab, laby_rows, laby_cols);
   laby_set_content (&lab, player.row, player.col, C_PLAYER);
   laby_mark_whole_as_known (&lab);
   // The whole laby:
-  // ┏━━━━━━━━━━━━━━━┳━━━┳━━━┳━━━┓
-  // ┃               ┃   ┃   ┃   ┃
-  // ┣━━━━━━━┳━━━    ┃   ┃       ┃
-  // ┃       ┃       ┃   ┃       ┃
-  // ┣━━━┓   ┣━━━        ┗━━━    ┃
-  // ┃   ┃   ┃                   ┃
-  // ┃           ┏━━━┳━━━━━━━┳━━━┫
-  // ┃           ┃ @ ┃       ┃   ┃
-  // ┣━━━━━━━        ┣━━━    ┃   ┃
-  // ┃               ┃       ┃   ┃
-  // ┃       ━━━━━━━━┻━━━┓   ┃   ┃
-  // ┃                   ┃   ┃   ┃
-  // ┣━━━    ━━━━━━━━            ┃
+  // ┏━━━━━━━┳━━━━━━━┳━━━━━━━━━━━┓
+  // ┃       ┃       ┃           ┃
+  // ┣━━━┓   ┃   ━━━━┛   ┏━━━━━━━┫
+  // ┃   ┃   ┃           ┃       ┃
+  // ┃           ━━━━┳━━━╋━━━    ┃
+  // ┃               ┃   ┃       ┃
+  // ┣━━━━━━━┳━━━┓       ┗━━━    ┃
+  // ┃       ┃   ┃ @             ┃
+  // ┣━━━        ┗━━━┳━━━━━━━    ┃
+  // ┃               ┃           ┃
+  // ┣━━━┳━━━┓   ━━━━╋━━━┳━━━    ┃
+  // ┃   ┃   ┃       ┃   ┃       ┃
+  // ┃       ┗━━━        ┗━━━    ┃
   // ┃                           ┃
   // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-  char *expected = "┣━━━        ┗\n"
-                   "┃            \n"
-                   "    ┏━━━┳━━━━\n"
-                   "    ┃ @ ┃    \n"
-                   "        ┣━━━ \n"
+  char *expected = "    ━━━━┳━━━╋\n"
+                   "        ┃   ┃\n"
+                   "┳━━━┓       ┗\n"
+                   "┃   ┃ @      \n"
+                   "    ┗━━━┳━━━━\n"
                    "        ┃    \n"
-                   "━━━━━━━━┻━━━┓";
+                   "┓   ━━━━╋━━━┳";
 
   // when:
   render_update_visible_area (&render, &player, laby_rows, laby_cols);

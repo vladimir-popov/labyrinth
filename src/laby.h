@@ -69,7 +69,7 @@ typedef struct
 /* Creates a new labyrinth with height x width empty rooms. */
 void laby_init_empty (Laby *lab, int height, int width);
 
-void laby_generate (Laby *lab, int height, int width, int seed);
+void laby_generate (Laby *lab, int height, int width);
 
 /* Frees memory of the labyrinth. */
 void laby_free (Laby *lab);

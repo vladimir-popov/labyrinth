@@ -2,7 +2,7 @@
 #include <math.h>
 
 void
-vector_initp (Vector *v, Point from, Point to)
+vector_by_points (Vector *v, Point from, Point to)
 {
   v->v.x = to.x;
   v->v.y = to.y;
@@ -65,15 +65,15 @@ line_is_intersected (Line *l1, Line *l2)
    * @b the line from C to D
    */
   Vector AB;
-  vector_initp (&AB, l1->p0, l1->p1);
+  vector_by_points (&AB, l1->p0, l1->p1);
   Vector AD;
-  vector_initp (&AD, l1->p0, l2->p1);
+  vector_by_points (&AD, l1->p0, l2->p1);
   Vector AC; // will be used also as CA
-  vector_initp (&AC, l1->p0, l2->p0);
+  vector_by_points (&AC, l1->p0, l2->p0);
   Vector CD;
-  vector_initp (&CD, l2->p0, l2->p1);
+  vector_by_points (&CD, l2->p0, l2->p1);
   Vector CB;
-  vector_initp (&CB, l2->p0, l1->p1);
+  vector_by_points (&CB, l2->p0, l1->p1);
 
   double v1 = vector_pseudoscalar_product (AB, AD);
   double v2 = vector_pseudoscalar_product (AB, AC);
@@ -82,13 +82,4 @@ line_is_intersected (Line *l1, Line *l2)
   double v4 = vector_pseudoscalar_product (CD, CB);
 
   return isless (v1 * v2, 0) && isless (v3 * v4, 0);
-}
-
-_Bool
-line_is_intersectedp (Line *l, double Cx, double Cy, double Dx, double Dy)
-{
-  Line b;
-  line_init (&b, Cx, Cy, Dx, Dy);
-
-  return line_is_intersected (l, &b);
 }

@@ -5,6 +5,7 @@
  */
 #include "laby.h"
 #include "2d_math.h"
+#include "lcg.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -244,7 +245,8 @@ is_intersect_with_borders (Laby *lab, int fy, int fx, int ty, int tx)
                                     &blines[bcount]);
   for (int i = 0; i < bcount; i++)
     {
-      if (line_is_intersectedp (&blines[i], fx, fy, tx, ty))
+      Line l = new_line (fx, fy, tx, ty);
+      if (line_is_intersected (&blines[i], &l))
         return 1;
     }
   return 0;
@@ -338,10 +340,8 @@ laby_mark_visible_rooms (Laby *lab, int r, int c, int range)
  * @see http://www.neocomputer.org/projects/eller.html
  */
 void
-laby_generate (Laby *lab, int height, int width, int seed)
+laby_generate (Laby *lab, int height, int width)
 {
-  srand (seed);
-
   /* The final labyrinth */
   laby_init_empty (lab, height, width);
 
@@ -365,7 +365,7 @@ laby_generate (Laby *lab, int height, int width, int seed)
       /* decide if two rooms should have a horizontal border */
       for (int x = 0; x < width - 1; x++)
         {
-          if (s[x] != s[x + 1] && rand () % 2 == 0)
+          if (s[x] != s[x + 1] && lcg_next () % 2 == 0)
             laby_add_border (lab, y, x, RIGHT_BORDER);
           else
             s[x + 1] = s[x];
@@ -383,7 +383,7 @@ laby_generate (Laby *lab, int height, int width, int seed)
 
           /* we can create a border, if it's not a single room without bottom
            * border in the set */
-          if (no_bb > 1 && rand () % 5 > 0)
+          if (no_bb > 1 && lcg_next () % 5 > 0)
             {
               laby_add_border (lab, y, x, BOTTOM_BORDER);
               /* mark the underlining room to change its set */
