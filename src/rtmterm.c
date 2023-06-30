@@ -1,8 +1,10 @@
-#include <stdlib.h>
 #include "game.h"
 #include "render.h"
 #include "term.h"
+#include <stdlib.h>
+#include <string.h>
 
+/* This is semantic keys: */
 enum key
 {
   KEY_UNKNOWN,
@@ -11,19 +13,21 @@ enum key
   KEY_LEFT,
   KEY_UP,
   KEY_RIGHT,
-  KEY_DOWN
+  KEY_DOWN,
+  KEY_CMD
 };
 
+/* This function transforms a pressed keyboard key to semantic key */
 enum key
 read_key ()
 {
-  Key_Code kp = read_pressed_key ();
+  KB_Code kp = read_pressed_key ();
   if (kp.len == 1)
     switch (kp.chars[0])
       {
-      case ESC:
+      case KB_ESC:
         return KEY_CANCEL;
-      case KEY_CODE_ENTER:
+      case KB_ENTER:
         return KEY_ENTER;
       case 'j':
         return KEY_DOWN;
@@ -33,6 +37,8 @@ read_key ()
         return KEY_LEFT;
       case 'l':
         return KEY_RIGHT;
+      case ':':
+        return KEY_CMD;
       }
 
   if (kp.len == 2)
@@ -41,13 +47,13 @@ read_key ()
   if (kp.len == 3)
     switch (kp.chars[2])
       {
-      case KEY_CODE_DOWN:
+      case KB_DOWN:
         return KEY_DOWN;
-      case KEY_CODE_UP:
+      case KB_UP:
         return KEY_UP;
-      case KEY_CODE_LEFT:
+      case KB_LEFT:
         return KEY_LEFT;
-      case KEY_CODE_RIGHT:
+      case KB_RIGHT:
         return KEY_RIGHT;
       }
 
@@ -55,26 +61,33 @@ read_key ()
 }
 
 enum command
+parse_cmd (char *cmd, int len)
+{
+  if (strcmp (cmd, "show all") == 0)
+    return CMD_SHOW_ALL;
+
+  return CMD_CONTINUE;
+}
+
+/* This function transforms semantic key to the game command. */
+enum command
 read_command (Game *game)
 {
-  enum key key = read_key ();
-  Menu *m = (Menu *)game->menu;
   switch (game->state)
     {
     case ST_MAIN_MENU:
       {
+        enum key key = read_key ();
+        Menu *m = game->menu;
         switch (key)
           {
           case KEY_ENTER:
-            return (m->state == 1) ? CMD_NEW_GAME : CMD_EXIT;
+            return (m->option == M_NEW_GAME) ? CMD_NEW_GAME : CMD_EXIT;
           case KEY_CANCEL:
             return CMD_EXIT;
           case KEY_UP:
-            m->state = (m->state == 2) ? 1 : m->state;
-            return CMD_NOTHING;
-
           case KEY_DOWN:
-            m->state = (m->state == 1) ? 2 : m->state;
+            m->option = (m->option == M_NEW_GAME) ? M_EXIT : M_NEW_GAME;
             return CMD_NOTHING;
 
           default:
@@ -83,52 +96,91 @@ read_command (Game *game)
       }
 
     case ST_GAME:
-      switch (key)
-        {
-        case KEY_UP:
-          return CMD_MV_UP;
-        case KEY_DOWN:
-          return CMD_MV_DOWN;
-        case KEY_RIGHT:
-          return CMD_MV_RIGHT;
-        case KEY_LEFT:
-          return CMD_MV_LEFT;
-        case KEY_CANCEL:
-          return CMD_PAUSE;
-        default:
+      {
+        enum key key = read_key ();
+        switch (key)
+          {
+          case KEY_UP:
+            return CMD_MV_UP;
+          case KEY_DOWN:
+            return CMD_MV_DOWN;
+          case KEY_RIGHT:
+            return CMD_MV_RIGHT;
+          case KEY_LEFT:
+            return CMD_MV_LEFT;
+          case KEY_CANCEL:
+            return CMD_PAUSE;
+          case KEY_CMD:
+            return CMD_CMD;
+          default:
+            return CMD_NOTHING;
+          }
+      }
+
+    case ST_CMD:
+      {
+        KB_Code k = read_pressed_key ();
+        if (k.len == 1)
+          {
+            switch (k.chars[0])
+              {
+              case KB_ESC:
+                return CMD_CONTINUE;
+              case KB_ENTER:
+                return parse_cmd (M->cmd, M->option);
+              case KB_BACKSPACE:
+                if (M->option > 0)
+                  M->option--;
+                return CMD_NOTHING;
+              default:
+                if (M->option < MAX_CMD_LENGTH)
+                  {
+                    M->cmd[M->option] = k.chars[0];
+                    M->option++;
+                  }
+                return CMD_NOTHING;
+              }
+          }
+        else
           return CMD_NOTHING;
-        }
+      }
 
     case ST_PAUSE:
-      switch (key)
-        {
-        case KEY_UP:
-        case KEY_DOWN:
-          m->state ^= 1;
-          break;
+      {
+        enum key key = read_key ();
+        Menu *m = game->menu;
+        switch (key)
+          {
+          case KEY_UP:
+          case KEY_DOWN:
+            m->option = (m->option == M_CONTINUE) ? M_EXIT : M_CONTINUE;
+            break;
 
-        case KEY_CANCEL:
-          return CMD_CONTINUE;
-
-        case KEY_ENTER:
-          if (m->state)
+          case KEY_CANCEL:
             return CMD_CONTINUE;
-          else
-            return CMD_EXIT;
 
-        default:
-          return CMD_NOTHING;
-        }
+          case KEY_ENTER:
+            if (m->option == M_CONTINUE)
+              return CMD_CONTINUE;
+            else
+              return CMD_EXIT;
+
+          default:
+            return CMD_NOTHING;
+          }
+      }
 
     case ST_WIN:
-      switch (key)
-        {
-        case KEY_CANCEL:
-        case KEY_ENTER:
-          return CMD_EXIT;
-        default:
-          return CMD_NOTHING;
-        }
+      {
+        enum key key = read_key ();
+        switch (key)
+          {
+          case KEY_CANCEL:
+          case KEY_ENTER:
+            return CMD_EXIT;
+          default:
+            return CMD_NOTHING;
+          }
+      }
     }
 }
-

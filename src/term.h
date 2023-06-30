@@ -4,11 +4,13 @@
 #define FATAL_EXIT_CODE 42
 
 /* Code of some keys */
-#define KEY_CODE_ENTER 13
-#define KEY_CODE_UP 'A'
-#define KEY_CODE_DOWN 'B'
-#define KEY_CODE_LEFT 'D'
-#define KEY_CODE_RIGHT 'C'
+#define KB_ESC  27
+#define KB_ENTER 13
+#define KB_BACKSPACE 127
+#define KB_UP 'A'
+#define KB_DOWN 'B'
+#define KB_LEFT 'D'
+#define KB_RIGHT 'C'
 
 /* Control Symbol Introducer */
 #define ESC '\x1b'
@@ -58,13 +60,13 @@ typedef struct
 {
   int len;
   char *chars;
-} Key_Code;
+} KB_Code;
 
 void fatal (char *message);
 
 int is_key_pressed ();
 
-Key_Code read_pressed_key ();
+KB_Code read_pressed_key ();
 
 void disable_raw_mode ();
 

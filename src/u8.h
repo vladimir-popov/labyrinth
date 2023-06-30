@@ -145,6 +145,12 @@ void u8_buffer_crop (u8buf *buf, int rowpad, int colpad, int height,
                      int width);
 
 /**
+ * Replaces the `dest_row` in the buffer by the `source`. If `dest_row` is out
+ * of range, does nothing.
+ */
+void u8_buffer_replace_str (u8buf *buf, int dest_row, u8str *source);
+
+/**
  * Fills the difference height - buf->lines_count by empty lines,
  * and width - buf->lines[i].length by the ch symbols.
  */

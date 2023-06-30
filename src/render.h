@@ -7,10 +7,21 @@
 #include "u8.h"
 #include <time.h>
 
+enum menu_option
+{
+  M_NEW_GAME,
+  M_CONTINUE,
+  M_EXIT
+};
+
+#define MAX_CMD_LENGTH 10
+
 struct menu
 {
-  time_t last_update_at;
-  int state;
+  /* The current option in the menu */
+  enum menu_option option;
+  /* Used to accumulate user command from the command line */
+  char *cmd;
 };
 
 struct render
@@ -62,9 +73,11 @@ void render (Render *render, Game *game);
 
 void render_laby (Render *render, Laby *lab);
 
-void render_welcome_screen (Render *render, void *menu);
+void render_welcome_screen (Render *render, Menu *menu);
 
-void render_pause_menu (Render *render, void *menu);
+void render_pause_menu (Render *render, Menu *menu);
+
+void render_cmd_menu (Render *render, Menu *menu);
 
 void render_winning (Render *render, Game *game);
 #endif // __RENDER__

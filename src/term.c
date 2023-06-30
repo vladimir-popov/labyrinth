@@ -90,11 +90,11 @@ enter_safe_raw_mode ()
     fatal ("tcsetattr");
 }
 
-Key_Code
+KB_Code
 read_pressed_key ()
 {
   char chars[3];
-  Key_Code k = { 0, chars };
+  KB_Code k = { 0, chars };
   k.len = read (STDIN_FILENO, chars, 1);
   if (k.len < 0 && errno != EAGAIN)
     {

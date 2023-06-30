@@ -138,6 +138,10 @@ handle_cmd_in_game (Game *game, enum command cmd)
       game->state = ST_PAUSE;
       game->menu = create_menu (ST_PAUSE);
       break;
+    case CMD_CMD:
+      game->state = ST_CMD;
+      game->menu = create_menu (ST_CMD);
+      break;
     default:
       break;
     }
@@ -151,7 +155,7 @@ handle_cmd_in_pause (Game *game, enum command cmd)
     {
     case CMD_CONTINUE:
       game->state = ST_GAME;
-      close_menu (game->menu, ST_GAME);
+      close_menu (game->menu, ST_PAUSE);
       game->menu = NULL;
       return CONTINUE_LOOP;
 
@@ -177,6 +181,27 @@ handle_cmd_in_win (Game *game, enum command cmd)
     }
 }
 
+static int
+handle_cmd_in_cmd_mode (Game *game, enum command cmd)
+{
+  switch (cmd)
+    {
+    case CMD_CONTINUE:
+      game->state = ST_GAME;
+      close_menu (game->menu, ST_CMD);
+      game->menu = NULL;
+      return CONTINUE_LOOP;
+    case CMD_SHOW_ALL:
+      game->state = ST_GAME;
+      close_menu (game->menu, ST_CMD);
+      game->menu = NULL;
+      laby_mark_whole_as_known (&L);
+      return CONTINUE_LOOP;
+    default:
+      return CONTINUE_LOOP;
+    }
+}
+
 int
 handle_command (Game *game, enum command cmd)
 {
@@ -190,5 +215,7 @@ handle_command (Game *game, enum command cmd)
       return handle_cmd_in_pause (game, cmd);
     case ST_WIN:
       return handle_cmd_in_win (game, cmd);
+    case ST_CMD:
+      return handle_cmd_in_cmd_mode (game, cmd);
     }
 }

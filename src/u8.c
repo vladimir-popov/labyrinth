@@ -80,7 +80,7 @@ u8_str_append_str (u8str *dest, const char *prefix)
 }
 
 int
-u8_str_symbols_count(u8str *str)
+u8_str_symbols_count (u8str *str)
 {
   int found = 0;
   int i = 0;
@@ -342,6 +342,16 @@ u8_buffer_write (int fildes, const u8buf *buf, int rowpad, int colpad,
 }
 
 void
+u8_buffer_replace_str (u8buf *buf, int dest_row, u8str *source)
+{
+  if (dest_row >= buf->lines_count || dest_row < 0)
+    return;
+  u8_str_free (&buf->lines[dest_row]);
+  buf->lines[dest_row].chars = source->chars;
+  buf->lines[dest_row].length = source->length;
+}
+
+void
 u8_buffer_fill (u8buf *buf, char *ch, int ch_len, int height, int width)
 {
   int dh = height - buf->lines_count;
@@ -349,7 +359,7 @@ u8_buffer_fill (u8buf *buf, char *ch, int ch_len, int height, int width)
 
   for (int i = 0; i < dh; i++)
     {
-      int dw = width - u8_str_symbols_count(&buf->lines[i]);
+      int dw = width - u8_str_symbols_count (&buf->lines[i]);
       if (dw <= 0)
         continue;
       u8_str_append_repeate (&buf->lines[i], ch, ch_len, dw);

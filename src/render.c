@@ -32,14 +32,26 @@ Menu *
 create_menu (enum game_state state)
 {
   Menu *menu = malloc (sizeof (Menu));
-  menu->last_update_at = 0.0;
-  menu->state = 0;
+  menu->option = 0;
+
+  if (state == ST_MAIN_MENU)
+    menu->option = M_NEW_GAME;
+
+  if (state == ST_PAUSE)
+    menu->option = M_CONTINUE;
+
+  if (state == ST_CMD)
+    menu->cmd = malloc (sizeof (char) * MAX_CMD_LENGTH);
+
   return menu;
 }
 
 void
 close_menu (Menu *menu, enum game_state state)
 {
+  if (state == ST_CMD)
+    free (menu->cmd);
+
   free (menu);
 }
 
@@ -236,6 +248,82 @@ render_update_visible_area (Render *render, Player *player, int laby_rows,
 }
 
 void
+render_welcome_screen (Render *render, Menu *menu)
+{
+  u8_buffer_parse (&render->buf, WELCOME_SCREEN);
+  u8buf label = U8_BUF_EMPTY;
+  switch (menu->option)
+    {
+      /* New game */
+    case M_NEW_GAME:
+      u8_buffer_parse (&label, LB_NEW_GAME);
+      u8_buffer_merge (&render->buf, &label, 14, 22);
+      break;
+      /* Exit */
+    case M_EXIT:
+      u8_buffer_parse (&label, LB_EXIT);
+      u8_buffer_merge (&render->buf, &label, 14, 30);
+      break;
+    default:
+      break;
+    }
+  u8_buffer_free (&label);
+}
+
+void
+render_pause_menu (Render *render, Menu *menu)
+{
+  u8buf frame = U8_BUF_EMPTY;
+  u8buf label = U8_BUF_EMPTY;
+  create_frame (&frame, 8, 40);
+  switch (menu->option)
+    {
+    case M_CONTINUE:
+      u8_buffer_parse (&label, LB_CONTINUE);
+      u8_buffer_merge (&frame, &label, 3, 4);
+      break;
+    case M_EXIT:
+      u8_buffer_parse (&label, LB_EXIT);
+      u8_buffer_merge (&frame, &label, 3, 14);
+      break;
+    default:
+      break;
+    }
+  u8_buffer_merge (&render->buf, &frame, 8, 19);
+  u8_buffer_free (&frame);
+  u8_buffer_free (&label);
+}
+
+void
+render_winning (Render *render, Game *game)
+{
+  u8_buffer_clean (&render->buf);
+  laby_mark_whole_as_known (&L);
+  render_laby (render, &L);
+
+  u8buf frame = U8_BUF_EMPTY;
+  u8buf label = U8_BUF_EMPTY;
+  create_frame (&frame, 10, 60);
+  u8_buffer_parse (&label, LB_YOU_WIN);
+  u8_buffer_merge (&frame, &label, 2, 2);
+  u8_buffer_merge (&render->buf, &frame, 6, 8);
+  u8_buffer_free (&frame);
+  u8_buffer_free (&label);
+}
+
+static void
+render_cmd (Render *render, char *cmd, int len)
+{
+  u8str cmd_prompt;
+  u8_str_init (&cmd_prompt, ": ", 2);
+  u8_str_append (&cmd_prompt, cmd, len);
+  u8_str_append_repeate (&cmd_prompt, " ", 1,
+                         render->game_screen_width - len - 2);
+  u8_buffer_replace_str (&render->buf, render->buf.lines_count - 1,
+                         &cmd_prompt);
+}
+
+void
 render (Render *render, Game *game)
 {
   /* actual visible height */
@@ -282,7 +370,11 @@ render (Render *render, Game *game)
     case ST_WIN:
       render_winning (render, game);
       break;
+    case ST_CMD:
+      render_cmd (render, M->cmd, M->option);
+      break;
     case ST_GAME:
+      /* Everything already rendered */
       break;
     }
 
@@ -298,77 +390,4 @@ render (Render *render, Game *game)
   u8_buffer_write (STDIN_FILENO, &render->buf, screen_y_pad, screen_x_pad,
                    render->game_screen_height, render->game_screen_width);
   u8_buffer_free (&render->buf);
-}
-
-void
-render_welcome_screen (Render *render, void *menu)
-{
-  Menu *m = (Menu *)menu;
-  /* Blink menu option */
-  time_t now = time (NULL);
-  if ((now - m->last_update_at) > 0.4)
-    {
-      // m->state = -m->state;
-      m->last_update_at = now;
-    }
-
-  u8_buffer_parse (&render->buf, WELCOME_SCREEN);
-  u8buf label = U8_BUF_EMPTY;
-  switch (m->state)
-    {
-    case 0:
-      m->state = 1;
-      break;
-      /* New game */
-    case 1:
-      u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (&render->buf, &label, 14, 22);
-      break;
-      /* Exit */
-    case 2:
-      u8_buffer_parse (&label, LB_EXIT);
-      u8_buffer_merge (&render->buf, &label, 14, 30);
-      break;
-    }
-  u8_buffer_free (&label);
-}
-
-void
-render_pause_menu (Render *render, void *menu)
-{
-  Menu *m = (Menu *)menu;
-  u8buf frame = U8_BUF_EMPTY;
-  u8buf label = U8_BUF_EMPTY;
-  create_frame (&frame, 8, 40);
-  switch (m->state)
-    {
-    case 1:
-      u8_buffer_parse (&label, LB_CONTINUE);
-      u8_buffer_merge (&frame, &label, 3, 4);
-      break;
-    case 0:
-      u8_buffer_parse (&label, LB_EXIT);
-      u8_buffer_merge (&frame, &label, 3, 14);
-      break;
-    }
-  u8_buffer_merge (&render->buf, &frame, 8, 19);
-  u8_buffer_free (&frame);
-  u8_buffer_free (&label);
-}
-
-void
-render_winning (Render *render, Game *game)
-{
-  u8_buffer_clean (&render->buf);
-  laby_mark_whole_as_known (&L);
-  render_laby (render, &L);
-
-  u8buf frame = U8_BUF_EMPTY;
-  u8buf label = U8_BUF_EMPTY;
-  create_frame (&frame, 10, 60);
-  u8_buffer_parse (&label, LB_YOU_WIN);
-  u8_buffer_merge (&frame, &label, 2, 2);
-  u8_buffer_merge (&render->buf, &frame, 6, 8);
-  u8_buffer_free (&frame);
-  u8_buffer_free (&label);
 }
