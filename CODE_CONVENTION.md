@@ -4,7 +4,7 @@ Code should be formatted according to [GNU Coding Standards](https://www.gnu.org
 
 ## Short naming convention
 
- - The "CameCase" is not used at all.
+ - The "CamelCase" is not used at all.
  - Abbreviations are acceptable.
  - Functions should be named only in snake_case.
  - Variables should be named in snake_case, or as a short abbreviation:
@@ -18,7 +18,7 @@ Code should be formatted according to [GNU Coding Standards](https://www.gnu.org
    enum my_enum
    ```
  - Structures should be named in snake_case and always have type alias. In code, structures
-   should be referenced only by their type aliases:
+   should be referenced only by their type aliases.
  - Type aliases for **domain** entities should be named in Snake_Case with capital first letters.
    ```c
    typedef struct {
