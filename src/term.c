@@ -174,7 +174,8 @@ get_cursor_position (int *rows, int *cols)
 int
 set_cursor_position (char **dest, int rows, int cols)
 {
-  return asprintf (dest, CSI "%d;%dH", rows, cols);
+  *dest = malloc(sizeof(char) * 12);
+  return sprintf (*dest, CSI "%d;%dH", rows, cols);
 }
 
 int
