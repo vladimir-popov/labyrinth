@@ -37,10 +37,10 @@ struct render
   /* The count of visible chars by horizontal. */
   const int game_screen_width;
 
-  /* Visible rooms by vertical */
+  /* The actual count of visible rooms by vertical */
   const int visible_rows;
 
-  /* Visible room by horizontal */
+  /* The actual count of visible rooms by horizontal */
   const int visible_cols;
 
   /* This is a padding to keep player always on the screen */
@@ -71,7 +71,7 @@ void render_update_visible_area (Render *render, Player *player, int laby_rows,
 
 void render (Render *render, Game *game);
 
-void render_laby (Render *render, Laby *lab);
+void render_laby (Render *render, Laby *lab, enum laby_draw_mode mode);
 
 void render_welcome_screen (Render *render, Menu *menu);
 

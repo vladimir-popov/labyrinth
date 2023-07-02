@@ -3,9 +3,19 @@
 
 #include "laby.h"
 
+/* The max count of states in the stack is limited by logic
+ * and should not be overflowed  */
+#define MAX_STATES_STACK_SIZE 5
+
 #define L game->lab
 #define P game->player
 #define M game->menu
+// #define GAME_STATE game->stack_states.values[game->stack_states.head]
+// #define GAME_PREV_STATE \
+//   ((game->stack_states.head > 0) \
+//        ? game->stack_states.values[game->stack_states.head - 1] \ : 0)
+#define GAME_STATE game->state
+#define GAME_PREV_STATE game->state
 
 enum command
 {
@@ -30,6 +40,10 @@ enum command
   CMD_EXIT,
   /* Command to wait a special command from user */
   CMD_CMD,
+  /* Command to show the map */
+  CMD_SHOW_MAP,
+  /* Command to close the map */
+  CMD_CLOSE_MAP,
   /* Cheat to show whole labyrinth */
   CMD_SHOW_ALL
 };
@@ -40,6 +54,8 @@ enum game_state
   ST_MAIN_MENU,
   /* The game in a process */
   ST_GAME,
+  /* The map is shown */
+  ST_MAP,
   /* The game is on pause and pause menu is shown */
   ST_PAUSE,
   /* The message about victory is shown */
@@ -48,11 +64,27 @@ enum game_state
   ST_CMD
 };
 
+enum laby_draw_mode
+{
+  /* Only visible part of the laby should be drawn */
+  DLM_REGULAR,
+  /* Only know part of the laby should be drawn (the "map" mode) */
+  DLM_MAP,
+  /* The whole laby should be drawn (in case of cheat as example) */
+  DLM_WHOLE
+};
+
 struct render;
 typedef struct render Render;
 
 struct menu;
 typedef struct menu Menu;
+
+typedef struct states_stack
+{
+  unsigned char head;
+  enum game_state *values;
+} States;
 
 typedef struct
 {
@@ -67,6 +99,7 @@ typedef struct
 typedef struct
 {
   /* Global configuration of the game */
+  /* ------------------------------- */
   lcg seed;
   /* The count of rooms by vertical in the new laby */
   int laby_rows;
@@ -76,7 +109,8 @@ typedef struct
   Render *render;
   /* ------------------------------- */
 
-  /* The FSM of the game  */
+  /* The FSM of the game with history */
+  // States stack_states;
   enum game_state state;
   /* The current labyrinth */
   Laby lab;

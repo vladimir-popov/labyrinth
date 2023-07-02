@@ -120,19 +120,13 @@ laby_rm_border (Laby *lab, int r, int c, enum border border)
 _Bool
 laby_is_visible (const Laby *lab, int r, int c)
 {
-  int is_x_inside = c >= 0 && c < lab->cols;
-  int is_y_inside = r >= 0 && r < lab->rows;
-
-  return (is_y_inside && is_x_inside) ? lab->rooms[r][c] & VISIBLE_MASK : 0;
+  return (laby_is_inside (lab, r, c)) ? lab->rooms[r][c] & VISIBLE_MASK : 0;
 }
 
 void
 laby_set_visibility (Laby *lab, int r, int c, _Bool flag)
 {
-  int is_x_inside = c >= 0 && c < lab->cols;
-  int is_y_inside = r >= 0 && r < lab->rows;
-
-  if (is_y_inside && is_x_inside)
+  if (laby_is_inside (lab, r, c))
     {
       if (flag)
         lab->rooms[r][c] |= (VISIBLE_MASK | KNOWN_MASK);
@@ -144,19 +138,13 @@ laby_set_visibility (Laby *lab, int r, int c, _Bool flag)
 _Bool
 laby_is_known_room (const Laby *lab, int r, int c)
 {
-  int is_x_inside = c >= 0 && c < lab->cols;
-  int is_y_inside = r >= 0 && r < lab->rows;
-
-  return (is_y_inside && is_x_inside) ? lab->rooms[r][c] & KNOWN_MASK : 0;
+  return (laby_is_inside (lab, r, c)) ? lab->rooms[r][c] & KNOWN_MASK : 0;
 }
 
 void
 laby_mark_as_known_room (Laby *lab, int r, int c)
 {
-  int is_x_inside = c >= 0 && c < lab->cols;
-  int is_y_inside = r >= 0 && r < lab->rows;
-
-  if (is_y_inside && is_x_inside)
+  if (laby_is_inside (lab, r, c))
     lab->rooms[r][c] |= KNOWN_MASK;
 }
 

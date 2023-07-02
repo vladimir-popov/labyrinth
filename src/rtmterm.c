@@ -14,6 +14,7 @@ enum key
   KEY_UP,
   KEY_RIGHT,
   KEY_DOWN,
+  KEY_TOGGLE_MAP,
   KEY_CMD
 };
 
@@ -37,6 +38,8 @@ read_key ()
         return KEY_LEFT;
       case 'l':
         return KEY_RIGHT;
+      case 'm':
+        return KEY_TOGGLE_MAP;
       case ':':
         return KEY_CMD;
       }
@@ -73,7 +76,7 @@ parse_cmd (char *cmd, int len)
 enum command
 read_command (Game *game)
 {
-  switch (game->state)
+  switch (GAME_STATE)
     {
     case ST_MAIN_MENU:
       {
@@ -108,6 +111,23 @@ read_command (Game *game)
             return CMD_MV_RIGHT;
           case KEY_LEFT:
             return CMD_MV_LEFT;
+          case KEY_CANCEL:
+            return CMD_PAUSE;
+          case KEY_TOGGLE_MAP:
+            return CMD_SHOW_MAP;
+          case KEY_CMD:
+            return CMD_CMD;
+          default:
+            return CMD_NOTHING;
+          }
+      }
+    case ST_MAP:
+      {
+        enum key key = read_key ();
+        switch (key)
+          {
+          case KEY_TOGGLE_MAP:
+            return CMD_CLOSE_MAP;
           case KEY_CANCEL:
             return CMD_PAUSE;
           case KEY_CMD:
@@ -177,7 +197,7 @@ read_command (Game *game)
           {
           case KEY_CANCEL:
           case KEY_ENTER:
-            return CMD_EXIT;
+            return CMD_NEW_GAME;
           default:
             return CMD_NOTHING;
           }

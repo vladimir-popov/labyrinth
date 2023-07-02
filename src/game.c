@@ -4,6 +4,7 @@
  */
 #include "game.h"
 #include "lcg.h"
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,22 @@ static const int CONTINUE_LOOP = 1;
 
 static const int STOP_LOOP = 0;
 
+static void
+game_set_state (Game *game, enum game_state state)
+{
+  // game->stack_states.head++;
+  // assert (game->stack_states.head < MAX_STATES_STACK_SIZE);
+  // game->stack_states.values[game->stack_states.head] = state;
+  game->state = state;
+}
+
+// static void
+// game_recover_prev_state (Game *game)
+// {
+//   game->stack_states.head--;
+//   assert (game->stack_states.head >= 0);
+// }
+
 void
 game_init (Game *game, int height, int width, int seed)
 {
@@ -19,6 +36,10 @@ game_init (Game *game, int height, int width, int seed)
   game->laby_rows = height;
   game->laby_cols = width;
   game->state = ST_MAIN_MENU;
+  // game->stack_states.head = 0;
+  // game->stack_states.values
+  //     = malloc (sizeof (enum game_state) * MAX_STATES_STACK_SIZE);
+  // game->stack_states.values[0] = ST_MAIN_MENU;
   game->menu = create_menu (ST_MAIN_MENU);
 }
 
@@ -73,7 +94,7 @@ handle_cmd_in_main_menu (Game *game, enum command cmd)
     {
     case CMD_NEW_GAME:
       generate_new_level (game);
-      game->state = ST_GAME;
+      game_set_state (game, ST_GAME);
       close_menu (game->menu, ST_MAIN_MENU);
       game->menu = NULL;
       return CONTINUE_LOOP;
@@ -102,7 +123,7 @@ move_player (Game *game, int dr, int dc)
   /* check collisions */
   if (laby_get_content (&L, P.row, P.col) == C_EXIT)
     {
-      game->state = ST_WIN;
+      game_set_state (game, ST_WIN);
       game->menu = create_menu (ST_WIN);
     }
   else
@@ -135,11 +156,38 @@ handle_cmd_in_game (Game *game, enum command cmd)
         move_player (game, 1, 0);
       break;
     case CMD_PAUSE:
-      game->state = ST_PAUSE;
+      game_set_state (game, ST_PAUSE);
       game->menu = create_menu (ST_PAUSE);
       break;
+    case CMD_SHOW_MAP:
+      game_set_state (game, ST_MAP);
+      break;
     case CMD_CMD:
-      game->state = ST_CMD;
+      game_set_state (game, ST_CMD);
+      game->menu = create_menu (ST_CMD);
+      break;
+    default:
+      break;
+    }
+  return CONTINUE_LOOP;
+}
+
+static int
+handle_cmd_in_map (Game *game, enum command cmd)
+{
+  switch (cmd)
+    {
+    case CMD_PAUSE:
+      game_set_state (game, ST_PAUSE);
+      game->menu = create_menu (ST_PAUSE);
+      break;
+    case CMD_CLOSE_MAP:
+      // game_recover_prev_state (game);
+      game_set_state (game, ST_GAME);
+
+      break;
+    case CMD_CMD:
+      game_set_state (game, ST_CMD);
       game->menu = create_menu (ST_CMD);
       break;
     default:
@@ -154,7 +202,8 @@ handle_cmd_in_pause (Game *game, enum command cmd)
   switch (cmd)
     {
     case CMD_CONTINUE:
-      game->state = ST_GAME;
+      // game_recover_prev_state (game);
+      game_set_state (game, ST_GAME);
       close_menu (game->menu, ST_PAUSE);
       game->menu = NULL;
       return CONTINUE_LOOP;
@@ -174,8 +223,11 @@ handle_cmd_in_win (Game *game, enum command cmd)
 {
   switch (cmd)
     {
-    case CMD_EXIT:
-      return STOP_LOOP;
+    case CMD_NEW_GAME:
+      close_menu (game->menu, ST_WIN);
+      game_set_state (game, ST_MAIN_MENU);
+      game->menu = create_menu (ST_MAIN_MENU);
+      return CONTINUE_LOOP;
     default:
       return CONTINUE_LOOP;
     }
@@ -187,12 +239,14 @@ handle_cmd_in_cmd_mode (Game *game, enum command cmd)
   switch (cmd)
     {
     case CMD_CONTINUE:
-      game->state = ST_GAME;
+      // game_recover_prev_state (game);
+      game_set_state (game, ST_GAME);
       close_menu (game->menu, ST_CMD);
       game->menu = NULL;
       return CONTINUE_LOOP;
     case CMD_SHOW_ALL:
-      game->state = ST_GAME;
+      // game_recover_prev_state (game);
+      game_set_state (game, ST_GAME);
       close_menu (game->menu, ST_CMD);
       game->menu = NULL;
       laby_mark_whole_as_known (&L);
@@ -205,12 +259,14 @@ handle_cmd_in_cmd_mode (Game *game, enum command cmd)
 int
 handle_command (Game *game, enum command cmd)
 {
-  switch (game->state)
+  switch (GAME_STATE)
     {
     case ST_MAIN_MENU:
       return handle_cmd_in_main_menu (game, cmd);
     case ST_GAME:
       return handle_cmd_in_game (game, cmd);
+    case ST_MAP:
+      return handle_cmd_in_map (game, cmd);
     case ST_PAUSE:
       return handle_cmd_in_pause (game, cmd);
     case ST_WIN:

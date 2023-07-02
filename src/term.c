@@ -7,7 +7,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-#define DEBUG
 
 struct termios orig_termios;
 

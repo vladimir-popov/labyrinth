@@ -67,6 +67,9 @@ typedef struct
   row *rooms;
 } Laby;
 
+#define laby_is_inside(lab, r, c)                                             \
+  (c >= 0 && c < lab->cols && r >= 0 && r < lab->rows)
+
 /* Creates a new labyrinth with height x width empty rooms. */
 void laby_init_empty (Laby *lab, int height, int width);
 

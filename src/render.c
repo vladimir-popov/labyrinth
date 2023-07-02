@@ -20,6 +20,7 @@
 
 static const char *s_empty = " ";
 static const char *s_player = "@";
+static const char *s_marker = "X";
 static const char *s_exit = "⛿";
 static const char *s_light = "·";
 
@@ -83,14 +84,28 @@ create_frame (u8buf *buf, int height, int width)
     }
 }
 
-static const char *
-get_top_left_corner (Laby *lab, int r, int c)
+static _Bool
+is_room_should_be_drawn (Laby *lab, int r, int c, enum laby_draw_mode mode)
 {
-  _Bool is_known_room = laby_is_known_room (lab, r, c)
-                        || laby_is_known_room (lab, r - 1, c)
-                        || laby_is_known_room (lab, r - 1, c - 1)
-                        || laby_is_known_room (lab, r, c - 1);
-  if (!is_known_room)
+  switch (mode)
+    {
+    case DLM_REGULAR:
+      return laby_is_visible (lab, r, c);
+    case DLM_MAP:
+      return laby_is_known_room (lab, r, c);
+    case DLM_WHOLE:
+      return 1;
+    }
+}
+
+static const char *
+get_top_left_corner (Laby *lab, int r, int c, enum laby_draw_mode mode)
+{
+  _Bool is_draw_corner = is_room_should_be_drawn (lab, r, c, mode)
+                         || is_room_should_be_drawn (lab, r - 1, c, mode)
+                         || is_room_should_be_drawn (lab, r - 1, c - 1, mode)
+                         || is_room_should_be_drawn (lab, r, c - 1, mode);
+  if (!is_draw_corner)
     return 0;
 
   /* We will render left and upper borders at once.
@@ -137,54 +152,69 @@ get_top_left_corner (Laby *lab, int r, int c)
 }
 
 /**
+ * Checks should th room r:c be drawn according to the mode.
+ */
+static inline _Bool
+need_draw_light_for_room (Laby *lab, int r, int c, enum laby_draw_mode mode)
+{
+  return mode == DLM_REGULAR && laby_is_visible (lab, r, c);
+}
+
+/**
  * @r number of the room by vertical
  * @c number of the room by horizontal
  * @y number of the char inside the room by vertical
  * @x number of the char inside the room by horizontal
+ * @mode the mode of drawing the laby
  */
 static void
-render_room (Render *render, Laby *lab, int r, int c, int y, int x)
+render_room (Render *render, Laby *lab, int r, int c, int y, int x,
+             enum laby_draw_mode mode)
 {
   int border = laby_get_borders (lab, r, c);
-  _Bool is_known_room = laby_is_known_room (lab, r, c);
+  _Bool draw_current_room = is_room_should_be_drawn (lab, r, c, mode);
 
-  /* render the first row of symbols of the room */
   const char *s;
-  int draw_border = 0;
+  /* render the first row of symbols of the room */
   if (y == 0)
     {
-      draw_border = (border & UPPER_BORDER)
-                    && (is_known_room || laby_is_known_room (lab, r - 1, c));
-      s = (x == 0) ? get_top_left_corner (lab, r, c) : 0;
-      s = (s)                                 ? s
-          : (draw_border)                     ? s_borders[1]
-          : (!is_known_room)                  ? s_empty
-          : (laby_is_visible (lab, r, c))     ? s_light
-          : (laby_is_visible (lab, r - 1, c)) ? s_light
-                                              : s_empty;
+      s = (x == 0) ? get_top_left_corner (lab, r, c, mode) : NULL;
+      _Bool draw_upper_border
+          = (draw_current_room
+             || is_room_should_be_drawn (lab, r - 1, c, mode))
+            && (border & UPPER_BORDER);
+
+      s = (s)                                                ? s
+          : (draw_upper_border)                              ? s_borders[1]
+          : (need_draw_light_for_room (lab, r, c, mode))     ? s_light
+          : (need_draw_light_for_room (lab, r - 1, c, mode)) ? s_light
+                                                             : s_empty;
     }
   /* render the content of the room (the second row) */
   else
     {
-      draw_border = (x == 0) && (border & LEFT_BORDER)
-                    && (is_known_room || laby_is_known_room (lab, r, c - 1));
+      _Bool need_draw_border
+          = (x == 0) && (border & LEFT_BORDER)
+            && (draw_current_room
+                || is_room_should_be_drawn (lab, r, c - 1, mode));
 
       enum content ct = (x == render->laby_room_width / 2)
                             ? laby_get_content (lab, r, c)
                             : 0;
 
-      s = (draw_border)                   ? s_borders[0]
-          : (!is_known_room)              ? s_empty
-          : (ct == C_PLAYER)              ? s_player
-          : (ct == C_EXIT)                ? s_exit
-          : (laby_is_visible (lab, r, c)) ? s_light
-                                          : s_empty;
+      s = (need_draw_border)                             ? s_borders[0]
+          : (!draw_current_room)                         ? s_empty
+          : (ct == C_PLAYER && mode == DLM_REGULAR)      ? s_player
+          : (ct == C_PLAYER && mode == DLM_MAP)          ? s_marker
+          : (ct == C_EXIT)                               ? s_exit
+          : (need_draw_light_for_room (lab, r, c, mode)) ? s_light
+                                                         : s_empty;
     }
   u8_buffer_append_str (&render->buf, s, strlen (s));
 }
 
 void
-render_laby (Render *render, Laby *lab)
+render_laby (Render *render, Laby *lab, enum laby_draw_mode mode)
 {
   int rows = render->visible_rows + render->visible_rows_pad;
   rows = (rows < lab->rows) ? rows : lab->rows;
@@ -206,7 +236,7 @@ render_laby (Render *render, Laby *lab)
                * (only one symbol for the extra right room) */
               int rw = (c < cols) ? render->laby_room_width : 1;
               for (int rx = 0; rx < rw; rx++)
-                render_room (render, lab, r, c, ry, rx);
+                render_room (render, lab, r, c, ry, rx, mode);
             }
           u8_buffer_end_line (&render->buf);
         }
@@ -257,12 +287,12 @@ render_welcome_screen (Render *render, Menu *menu)
       /* New game */
     case M_NEW_GAME:
       u8_buffer_parse (&label, LB_NEW_GAME);
-      u8_buffer_merge (&render->buf, &label, 14, 22);
+      u8_buffer_merge (&render->buf, &label, 15, 22);
       break;
       /* Exit */
     case M_EXIT:
       u8_buffer_parse (&label, LB_EXIT);
-      u8_buffer_merge (&render->buf, &label, 14, 30);
+      u8_buffer_merge (&render->buf, &label, 15, 30);
       break;
     default:
       break;
@@ -299,7 +329,7 @@ render_winning (Render *render, Game *game)
 {
   u8_buffer_clean (&render->buf);
   laby_mark_whole_as_known (&L);
-  render_laby (render, &L);
+  render_laby (render, &L, DLM_WHOLE);
 
   u8buf frame = U8_BUF_EMPTY;
   u8buf label = U8_BUF_EMPTY;
@@ -321,6 +351,13 @@ render_cmd (Render *render, char *cmd, int len)
                          render->game_screen_width - len - 2);
   u8_buffer_replace_str (&render->buf, render->buf.lines_count - 1,
                          &cmd_prompt);
+}
+
+static void
+render_level (Render *render, Game *game, enum laby_draw_mode mode)
+{
+  render_update_visible_area (render, &P, L.rows, L.cols);
+  render_laby (render, &game->lab, mode);
 }
 
 void
@@ -351,30 +388,27 @@ render (Render *render, Game *game)
 
   u8_buffer_clean (&render->buf);
 
-  /* only the main screen overlaps the level completely,
-   * in all other cases we should render the laby before anything else. */
-  if (game->state != ST_MAIN_MENU)
-    {
-      render_update_visible_area (render, &P, L.rows, L.cols);
-      render_laby (render, &game->lab);
-    }
-
-  switch (game->state)
+  switch (GAME_STATE)
     {
     case ST_MAIN_MENU:
       render_welcome_screen (render, game->menu);
       break;
     case ST_PAUSE:
+      render_level (render, game, DLM_REGULAR);
       render_pause_menu (render, game->menu);
       break;
-    case ST_WIN:
-      render_winning (render, game);
-      break;
     case ST_CMD:
+      render_level (render, game, DLM_REGULAR);
       render_cmd (render, M->cmd, M->option);
       break;
     case ST_GAME:
-      /* Everything already rendered */
+      render_level (render, game, DLM_REGULAR);
+      break;
+    case ST_MAP:
+      render_level (render, game, DLM_MAP);
+      break;
+    case ST_WIN:
+      render_winning (render, game);
       break;
     }
 

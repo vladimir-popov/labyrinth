@@ -39,7 +39,7 @@ all_tests ()
   mu_run_test (empty_laby_test);
   mu_run_test (simple_laby_test);
   mu_run_test (generate_eller_test);
-  mu_run_test (render_laby_with_player_test);
+  mu_run_test (render_laby_map_test);
   mu_run_test (visibility_in_open_space_test);
   mu_run_test (visibility_in_closed_space_test_1);
   mu_run_test (visibility_in_closed_space_test_2);

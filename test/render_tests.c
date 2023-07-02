@@ -38,7 +38,7 @@ empty_laby_test ()
                    "┃   ┃\n"
                    "┗━━━┛";
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_WHOLE);
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
   mu_u8str_eq_to_str (actual, expected);
@@ -65,7 +65,7 @@ simple_laby_test ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_WHOLE);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -96,14 +96,17 @@ generate_eller_test ()
 
   // then:
   laby_mark_whole_as_known (&lab);
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_WHOLE);
   u8str actual = u8_buffer_to_u8str (&render.buf);
   mu_u8str_eq_to_str (actual, expected);
   return 0;
 }
 
+/**
+ * Here we generate a laby great than visible area.
+ */
 static char *
-render_laby_with_player_test ()
+render_laby_map_test ()
 {
   // given:
   int laby_rows = 7;
@@ -135,14 +138,14 @@ render_laby_with_player_test ()
   char *expected = "    ━━━━┳━━━╋\n"
                    "        ┃   ┃\n"
                    "┳━━━┓       ┗\n"
-                   "┃   ┃ @      \n"
+                   "┃   ┃ X      \n"
                    "    ┗━━━┳━━━━\n"
                    "        ┃    \n"
                    "┓   ━━━━╋━━━┳";
 
   // when:
   render_update_visible_area (&render, &player, laby_rows, laby_cols);
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_MAP);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -162,20 +165,20 @@ visibility_in_open_space_test ()
   init_known_empty (&lab, 5, 5);
   laby_mark_visible_rooms (&lab, r, c, range);
   laby_set_content (&lab, r, c, C_PLAYER);
-  char *expected = "┏━━━━━━━━━━━━━━━━━━━┓\n"
-                   "┃                   ┃\n"
-                   "┃   ············    ┃\n"
-                   "┃   ············    ┃\n"
-                   "┃   ············    ┃\n"
-                   "┃   ······@·····    ┃\n"
-                   "┃   ············    ┃\n"
-                   "┃   ············    ┃\n"
-                   "┃   ············    ┃\n"
-                   "┃                   ┃\n"
-                   "┗━━━━━━━━━━━━━━━━━━━┛";
+  char *expected = "                     \n"
+                   "                     \n"
+                   "    ············     \n"
+                   "    ············     \n"
+                   "    ············     \n"
+                   "    ······@·····     \n"
+                   "    ············     \n"
+                   "    ············     \n"
+                   "    ············     \n"
+                   "                     \n"
+                   "                     ";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_REGULAR);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -200,7 +203,7 @@ visibility_in_closed_space_test_1 ()
                    "┗━━━┛";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_REGULAR);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -228,20 +231,20 @@ visibility_in_closed_space_test_2 ()
   laby_add_border (&lab, 3, 3, RIGHT_BORDER | BOTTOM_BORDER);
   laby_mark_visible_rooms (&lab, r, c, range);
   laby_set_content (&lab, r, c, C_PLAYER);
-  char *expected = "┏━━━━━━━━━━━━━━━━━━━┓\n"
-                   "┃                   ┃\n"
-                   "┃   ┏━━━━━━━━━━━┓   ┃\n"
-                   "┃   ┃···········┃   ┃\n"
-                   "┃   ┃···········┃   ┃\n"
-                   "┃   ┃·····@·····┃   ┃\n"
-                   "┃   ┃···········┃   ┃\n"
-                   "┃   ┃···········┃   ┃\n"
-                   "┃   ┗━━━━━━━━━━━┛   ┃\n"
-                   "┃                   ┃\n"
-                   "┗━━━━━━━━━━━━━━━━━━━┛";
+  char *expected = "                     \n"
+                   "                     \n"
+                   "    ┏━━━━━━━━━━━┓    \n"
+                   "    ┃···········┃    \n"
+                   "    ┃···········┃    \n"
+                   "    ┃·····@·····┃    \n"
+                   "    ┃···········┃    \n"
+                   "    ┃···········┃    \n"
+                   "    ┗━━━━━━━━━━━┛    \n"
+                   "                     \n"
+                   "                     ";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_REGULAR);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -266,16 +269,16 @@ laby_visibility_crossroads_test ()
   laby_mark_visible_rooms (&lab, r, c, range);
   laby_set_content (&lab, r, c, C_PLAYER);
 
-  char *expected = "┏━━━┳━━━┳━━━┓\n"
-                   "┃   ┃···┃   ┃\n"
+  char *expected = "    ┳━━━┳    \n"
+                   "    ┃···┃    \n"
                    "┣━━━┛···┗━━━┫\n"
                    "┃·····@·····┃\n"
                    "┣━━━┓···┏━━━┫\n"
-                   "┃   ┃···┃   ┃\n"
-                   "┗━━━┻━━━┻━━━┛";
+                   "    ┃···┃    \n"
+                   "    ┻━━━┻    ";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_REGULAR);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -299,16 +302,16 @@ laby_visibility_test_1 ()
   laby_mark_visible_rooms (&lab, r, c, range);
   laby_set_content (&lab, r, c, C_PLAYER);
 
-  char *expected = "┏━━━┳━━━━━━━┓\n"
-                   "┃   ┃·······┃\n"
-                   "┃   ┃···┃···┃\n"
-                   "┃   ┃·@·┃   ┃\n"
-                   "┃·······┃   ┃\n"
-                   "┃·······┃   ┃\n"
-                   "┗━━━━━━━┻━━━┛";
+  char *expected = "    ┳━━━━━━━┓\n"
+                   "    ┃·······┃\n"
+                   "    ┃···┃···┃\n"
+                   "    ┃·@·┃    \n"
+                   "┃·······┃    \n"
+                   "┃·······┃    \n"
+                   "┗━━━━━━━┻    ";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_REGULAR);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -337,7 +340,7 @@ laby_visibility_test_2 ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_REGULAR);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
@@ -369,7 +372,7 @@ laby_visibility_test_3 ()
                    "┗━━━━━━━━━━━┛";
 
   // when:
-  render_laby (&render, &lab);
+  render_laby (&render, &lab, DLM_REGULAR);
 
   // then:
   u8str actual = u8_buffer_to_u8str (&render.buf);
