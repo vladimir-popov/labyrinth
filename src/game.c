@@ -85,21 +85,26 @@ generate_new_level (Game *game)
   game_place_exit (game);
 }
 
+static void
+run_new_game (Game *game)
+{
+  game->state_idx = 0;
+  generate_new_level (game);
+  game_set_state (game, ST_GAME);
+}
+
 static int
 handle_cmd_in_main_menu (Game *game, enum command cmd)
 {
   switch (cmd)
     {
     case CMD_NEW_GAME:
-      generate_new_level (game);
-      game_set_state (game, ST_GAME);
+      run_new_game (game);
       close_menu (game->menu, ST_MAIN_MENU);
       game->menu = NULL;
       return CONTINUE_LOOP;
-
     case CMD_EXIT:
       return STOP_LOOP;
-
     default:
       return CONTINUE_LOOP;
     }
@@ -244,6 +249,10 @@ handle_cmd_in_cmd_mode (Game *game, enum command cmd)
       game->menu = NULL;
       laby_mark_whole_as_known (&L);
       return CONTINUE_LOOP;
+    case CMD_NEW_GAME:
+      run_new_game (game);
+      return CONTINUE_LOOP;
+
     case CMD_EXIT:
       return STOP_LOOP;
     default:

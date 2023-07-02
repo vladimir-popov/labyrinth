@@ -72,6 +72,9 @@ parse_cmd (char *cmd, int len)
   if (strcmp(cmd, "exit") == 0 || strcmp(cmd, "q") == 0)
     return CMD_EXIT;
 
+  if (strcmp(cmd, "new game") == 0)
+    return CMD_NEW_GAME;
+
   return CMD_CONTINUE;
 }
 
