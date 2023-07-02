@@ -244,6 +244,8 @@ handle_cmd_in_cmd_mode (Game *game, enum command cmd)
       game->menu = NULL;
       laby_mark_whole_as_known (&L);
       return CONTINUE_LOOP;
+    case CMD_EXIT:
+      return STOP_LOOP;
     default:
       return CONTINUE_LOOP;
     }

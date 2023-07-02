@@ -69,6 +69,9 @@ parse_cmd (char *cmd, int len)
   if (strcmp (cmd, "show all") == 0)
     return CMD_SHOW_ALL;
 
+  if (strcmp(cmd, "exit") == 0 || strcmp(cmd, "q") == 0)
+    return CMD_EXIT;
+
   return CMD_CONTINUE;
 }
 
