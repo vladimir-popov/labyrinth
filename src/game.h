@@ -3,19 +3,19 @@
 
 #include "laby.h"
 
-/* The max count of states in the stack is limited by logic
- * and should not be overflowed  */
+/* The max count of states in the stack of game states 
+ * is limited by logic and should not be overflowed  */
 #define MAX_STATES_STACK_SIZE 5
 
+/* The macros to take the current game state */
+#define GAME_STATE game->states_stack[game->state_idx]
+#define GAME_PREV_STATE                                                       \
+  ((game->state_idx > 0) ? game->states_stack[game->state_idx - 1] : 0)
+
+/* A few macros to simplify work with game objects */
 #define L game->lab
 #define P game->player
 #define M game->menu
-// #define GAME_STATE game->stack_states.values[game->stack_states.head]
-// #define GAME_PREV_STATE \
-//   ((game->stack_states.head > 0) \
-//        ? game->stack_states.values[game->stack_states.head - 1] \ : 0)
-#define GAME_STATE game->state
-#define GAME_PREV_STATE game->state
 
 enum command
 {
@@ -80,12 +80,6 @@ typedef struct render Render;
 struct menu;
 typedef struct menu Menu;
 
-typedef struct states_stack
-{
-  unsigned char head;
-  enum game_state *values;
-} States;
-
 typedef struct
 {
   unsigned char row;
@@ -110,8 +104,9 @@ typedef struct
   /* ------------------------------- */
 
   /* The FSM of the game with history */
-  // States stack_states;
-  enum game_state state;
+  enum game_state *states_stack;
+  /* The index of the current game state */
+  unsigned char state_idx;
   /* The current labyrinth */
   Laby lab;
   /* The current state of the player */

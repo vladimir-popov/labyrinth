@@ -16,18 +16,17 @@ static const int STOP_LOOP = 0;
 static void
 game_set_state (Game *game, enum game_state state)
 {
-  // game->stack_states.head++;
-  // assert (game->stack_states.head < MAX_STATES_STACK_SIZE);
-  // game->stack_states.values[game->stack_states.head] = state;
-  game->state = state;
+  game->state_idx++;
+  assert (game->state_idx < MAX_STATES_STACK_SIZE);
+  game->states_stack[game->state_idx] = state;
 }
 
-// static void
-// game_recover_prev_state (Game *game)
-// {
-//   game->stack_states.head--;
-//   assert (game->stack_states.head >= 0);
-// }
+static void
+game_recover_prev_state (Game *game)
+{
+  assert (game->state_idx > 0);
+  game->state_idx--;
+}
 
 void
 game_init (Game *game, int height, int width, int seed)
@@ -35,11 +34,10 @@ game_init (Game *game, int height, int width, int seed)
   game->seed = seed;
   game->laby_rows = height;
   game->laby_cols = width;
-  game->state = ST_MAIN_MENU;
-  // game->stack_states.head = 0;
-  // game->stack_states.values
-  //     = malloc (sizeof (enum game_state) * MAX_STATES_STACK_SIZE);
-  // game->stack_states.values[0] = ST_MAIN_MENU;
+  game->state_idx = 0;
+  game->states_stack
+      = malloc (sizeof (enum game_state) * MAX_STATES_STACK_SIZE);
+  game->states_stack[0] = ST_MAIN_MENU;
   game->menu = create_menu (ST_MAIN_MENU);
 }
 
@@ -182,9 +180,7 @@ handle_cmd_in_map (Game *game, enum command cmd)
       game->menu = create_menu (ST_PAUSE);
       break;
     case CMD_CLOSE_MAP:
-      // game_recover_prev_state (game);
-      game_set_state (game, ST_GAME);
-
+      game_recover_prev_state (game);
       break;
     case CMD_CMD:
       game_set_state (game, ST_CMD);
@@ -202,8 +198,7 @@ handle_cmd_in_pause (Game *game, enum command cmd)
   switch (cmd)
     {
     case CMD_CONTINUE:
-      // game_recover_prev_state (game);
-      game_set_state (game, ST_GAME);
+      game_recover_prev_state (game);
       close_menu (game->menu, ST_PAUSE);
       game->menu = NULL;
       return CONTINUE_LOOP;
@@ -239,14 +234,12 @@ handle_cmd_in_cmd_mode (Game *game, enum command cmd)
   switch (cmd)
     {
     case CMD_CONTINUE:
-      // game_recover_prev_state (game);
-      game_set_state (game, ST_GAME);
+      game_recover_prev_state (game);
       close_menu (game->menu, ST_CMD);
       game->menu = NULL;
       return CONTINUE_LOOP;
     case CMD_SHOW_ALL:
-      // game_recover_prev_state (game);
-      game_set_state (game, ST_GAME);
+      game_recover_prev_state (game);
       close_menu (game->menu, ST_CMD);
       game->menu = NULL;
       laby_mark_whole_as_known (&L);

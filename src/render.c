@@ -354,8 +354,9 @@ render_cmd (Render *render, char *cmd, int len)
 }
 
 static void
-render_level (Render *render, Game *game, enum laby_draw_mode mode)
+render_level (Render *render, Game *game, enum game_state state)
 {
+  enum laby_draw_mode mode = (state == ST_MAP) ? DLM_MAP : DLM_REGULAR;
   render_update_visible_area (render, &P, L.rows, L.cols);
   render_laby (render, &game->lab, mode);
 }
@@ -394,18 +395,18 @@ render (Render *render, Game *game)
       render_welcome_screen (render, game->menu);
       break;
     case ST_PAUSE:
-      render_level (render, game, DLM_REGULAR);
+      render_level (render, game, GAME_PREV_STATE);
       render_pause_menu (render, game->menu);
       break;
     case ST_CMD:
-      render_level (render, game, DLM_REGULAR);
+      render_level (render, game, GAME_PREV_STATE);
       render_cmd (render, M->cmd, M->option);
       break;
     case ST_GAME:
-      render_level (render, game, DLM_REGULAR);
+      render_level (render, game, GAME_STATE);
       break;
     case ST_MAP:
-      render_level (render, game, DLM_MAP);
+      render_level (render, game, GAME_STATE);
       break;
     case ST_WIN:
       render_winning (render, game);
