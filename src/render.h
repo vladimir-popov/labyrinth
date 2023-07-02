@@ -50,6 +50,13 @@ struct render
   u8buf buf;
 };
 
+/**
+ * Creates a new render.
+ * @lh count of symbols in the room by vertical.
+ * @lw count of symbols in the room by horizontal.
+ * @gh count of symbols in the game window by vertical.
+ * @gw count of symbols in the game window by horizontal.
+ */
 #define render_create(lh, lw, gh, gw)                                         \
   {                                                                           \
     (lh), (lw), (gh), (gw), (gh / lh), (gw / lw), 0, 0, U8_BUF_EMPTY          \

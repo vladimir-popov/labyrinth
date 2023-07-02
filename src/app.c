@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define help_title(title) printf (SGR_BOLD title "\n")
+#define help_descr(name, descr)                                               \
+  printf (SGR_BOLD "\t" name SGR_RESET " - " descr "\n")
+#define help_option(opt, descr)                                               \
+  printf (SGR_BOLD "\t" opt "\t" SGR_RESET descr "\n")
+
 time_t seed = 0;
 
 /* The terminal resolution in chars by vertical. */
@@ -30,10 +36,20 @@ parse_args (int argc, char *argv[])
   seed = time (NULL);
 
   int p;
-  while ((p = getopt (argc, argv, "s:r:c:")) != -1)
+  while ((p = getopt (argc, argv, "h s: r: c:")) != -1)
     {
       switch (p)
         {
+        case 'h':
+          help_title ("NAME");
+          help_descr ("labyrinth",
+                      "a game about looking for exit from the labyrinth.");
+          help_title ("OPTIONS");
+          help_option (
+              "-s", "an initial seed of the game. Used to generate levels.");
+          help_option("-r", "the rows count of the labyrinth.");
+          help_option("-c", "the cols count of the labyrinth.");
+          return -1;
         case 's':
           seed = strtol (optarg, NULL, 0);
           break;
