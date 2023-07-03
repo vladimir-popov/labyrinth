@@ -165,6 +165,10 @@ handle_cmd_in_game (Game *game, enum command cmd)
     case CMD_SHOW_MAP:
       game_set_state (game, ST_MAP);
       break;
+    case CMD_KEYS_SETTINGS:
+      game_set_state(game, ST_KEY_SETTINGS);
+      game->menu = create_menu(ST_KEY_SETTINGS);
+      break;
     case CMD_CMD:
       game_set_state (game, ST_CMD);
       game->menu = create_menu (ST_CMD);
@@ -184,8 +188,12 @@ handle_cmd_in_map (Game *game, enum command cmd)
       game_set_state (game, ST_PAUSE);
       game->menu = create_menu (ST_PAUSE);
       break;
-    case CMD_CLOSE_MAP:
+    case CMD_CONTINUE:
       game_recover_prev_state (game);
+      break;
+    case CMD_KEYS_SETTINGS:
+      game_set_state(game, ST_KEY_SETTINGS);
+      game->menu = create_menu(ST_KEY_SETTINGS);
       break;
     case CMD_CMD:
       game_set_state (game, ST_CMD);
@@ -219,21 +227,6 @@ handle_cmd_in_pause (Game *game, enum command cmd)
 }
 
 static int
-handle_cmd_in_win (Game *game, enum command cmd)
-{
-  switch (cmd)
-    {
-    case CMD_NEW_GAME:
-      close_menu (game->menu, ST_WIN);
-      game_set_state (game, ST_MAIN_MENU);
-      game->menu = create_menu (ST_MAIN_MENU);
-      return CONTINUE_LOOP;
-    default:
-      return CONTINUE_LOOP;
-    }
-}
-
-static int
 handle_cmd_in_cmd_mode (Game *game, enum command cmd)
 {
   switch (cmd)
@@ -260,6 +253,36 @@ handle_cmd_in_cmd_mode (Game *game, enum command cmd)
     }
 }
 
+static int
+handle_cmd_in_keys_settings (Game *game, enum command cmd)
+{
+  switch (cmd)
+    {
+    case CMD_CONTINUE:
+      game_recover_prev_state (game);
+      close_menu (game->menu, ST_KEY_SETTINGS);
+      game->menu = NULL;
+      return CONTINUE_LOOP;
+    default:
+      return CONTINUE_LOOP;
+    }
+}
+
+static int
+handle_cmd_in_win (Game *game, enum command cmd)
+{
+  switch (cmd)
+    {
+    case CMD_NEW_GAME:
+      close_menu (game->menu, ST_WIN);
+      game_set_state (game, ST_MAIN_MENU);
+      game->menu = create_menu (ST_MAIN_MENU);
+      return CONTINUE_LOOP;
+    default:
+      return CONTINUE_LOOP;
+    }
+}
+
 int
 handle_command (Game *game, enum command cmd)
 {
@@ -277,5 +300,7 @@ handle_command (Game *game, enum command cmd)
       return handle_cmd_in_win (game, cmd);
     case ST_CMD:
       return handle_cmd_in_cmd_mode (game, cmd);
+    case ST_KEY_SETTINGS:
+      return handle_cmd_in_keys_settings (game, cmd);
     }
 }

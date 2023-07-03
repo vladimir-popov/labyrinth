@@ -82,6 +82,8 @@ void render_laby (Render *render, Laby *lab, enum laby_draw_mode mode);
 
 void render_welcome_screen (Render *render, Menu *menu);
 
+void render_keys_settings (Render *render);
+
 void render_pause_menu (Render *render, Menu *menu);
 
 void render_cmd_menu (Render *render, Menu *menu);

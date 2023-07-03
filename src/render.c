@@ -301,6 +301,46 @@ render_welcome_screen (Render *render, Menu *menu)
 }
 
 void
+render_keys_settings (Render *render)
+{
+  u8buf frame = U8_BUF_EMPTY;
+  create_frame (&frame, render->game_screen_height,
+                render->game_screen_width - 2);
+
+  u8buf lb_keys = U8_BUF_EMPTY;
+  u8_buffer_parse (&lb_keys, LB_KEYS);
+  u8_buffer_merge (&frame, &lb_keys, 2, 4);
+  u8_buffer_free (&lb_keys);
+
+  u8buf keys = U8_BUF_EMPTY;
+  // clang-format off
+  u8_buffer_parse (
+      &keys,
+      bold ("?") " - show this menu;\n" 
+      bold (":") " - command mode;\n" 
+      bold("Space") " or " bold ("m") " - toggle the map;\n" 
+      bold ("ESC") " - put the game on pause;\n  \n" 
+      bold("Moving:") " \n"
+      bold ("↑") " or " bold ("j") " - move to the upper room;\n" 
+      bold ( "↓") " or " bold ("k") " - move to the bottom room;\n"
+      bold ( "←") " or " bold ("h") " - move to the left room;\n"
+      bold ( "→") " or " bold ("l") " - move to the right room;\n"
+      bold ( "→") " or " bold ("l") " - move to the right room;\n"
+  );
+  // clang-format on
+  u8_buffer_merge (&frame, &keys, 7, 7);
+  u8_buffer_free (&keys);
+
+  u8buf lb_gamepad = U8_BUF_EMPTY;
+  u8_buffer_parse (&lb_gamepad, LB_GAMEPAD);
+  u8_buffer_merge (&frame, &lb_gamepad, 18, 52);
+  u8_buffer_free (&lb_gamepad);
+
+  u8_buffer_merge (&render->buf, &frame, 0, 1);
+  u8_buffer_free (&frame);
+}
+
+void
 render_pause_menu (Render *render, Menu *menu)
 {
   u8buf frame = U8_BUF_EMPTY;
@@ -393,6 +433,9 @@ render (Render *render, Game *game)
     {
     case ST_MAIN_MENU:
       render_welcome_screen (render, game->menu);
+      break;
+    case ST_KEY_SETTINGS:
+      render_keys_settings (render);
       break;
     case ST_PAUSE:
       render_level (render, game, GAME_PREV_STATE);

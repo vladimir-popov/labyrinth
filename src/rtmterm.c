@@ -15,6 +15,7 @@ enum key
   KEY_RIGHT,
   KEY_DOWN,
   KEY_TOGGLE_MAP,
+  KEY_KEYS_SETINGS,
   KEY_CMD
 };
 
@@ -39,9 +40,12 @@ read_key ()
       case 'l':
         return KEY_RIGHT;
       case 'm':
+      case KB_SPACE:
         return KEY_TOGGLE_MAP;
       case ':':
         return KEY_CMD;
+      case '?':
+        return KEY_KEYS_SETINGS;
       }
 
   if (kp.len == 2)
@@ -69,10 +73,10 @@ parse_cmd (char *cmd, int len)
   if (strcmp (cmd, "show all") == 0)
     return CMD_SHOW_ALL;
 
-  if (strcmp(cmd, "exit") == 0 || strcmp(cmd, "q") == 0)
+  if (strcmp (cmd, "exit") == 0 || strcmp (cmd, "q") == 0)
     return CMD_EXIT;
 
-  if (strcmp(cmd, "new game") == 0)
+  if (strcmp (cmd, "new game") == 0)
     return CMD_NEW_GAME;
 
   return CMD_CONTINUE;
@@ -121,23 +125,43 @@ read_command (Game *game)
             return CMD_PAUSE;
           case KEY_TOGGLE_MAP:
             return CMD_SHOW_MAP;
+          case KEY_KEYS_SETINGS:
+            return CMD_KEYS_SETTINGS;
           case KEY_CMD:
             return CMD_CMD;
           default:
             return CMD_NOTHING;
           }
       }
+
     case ST_MAP:
       {
         enum key key = read_key ();
         switch (key)
           {
           case KEY_TOGGLE_MAP:
-            return CMD_CLOSE_MAP;
           case KEY_CANCEL:
-            return CMD_PAUSE;
+            return CMD_CONTINUE;
+          case KEY_KEYS_SETINGS:
+            return CMD_KEYS_SETTINGS;
           case KEY_CMD:
             return CMD_CMD;
+          default:
+            return CMD_NOTHING;
+          }
+      }
+
+    case ST_KEY_SETTINGS:
+      {
+        enum key key = read_key ();
+        switch (key)
+          {
+          case KEY_UP:
+            return CMD_MV_UP;
+          case KEY_DOWN:
+            return CMD_MV_DOWN;
+          case KEY_CANCEL:
+            return CMD_CONTINUE;
           default:
             return CMD_NOTHING;
           }

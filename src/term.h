@@ -4,8 +4,9 @@
 #define FATAL_EXIT_CODE 42
 
 /* Code of some keys */
-#define KB_ESC  27
 #define KB_ENTER 13
+#define KB_ESC 27
+#define KB_SPACE 32
 #define KB_BACKSPACE 127
 #define KB_UP 'A'
 #define KB_DOWN 'B'
@@ -55,6 +56,8 @@
 #define SGR_UNDERLINE CSI "4m"
 #define SGR_REVERSED CSI "7m"
 #define SGR_INVERT_COLORS CSI "7m"
+
+#define bold(str) SGR_BOLD str SGR_RESET
 
 typedef struct
 {

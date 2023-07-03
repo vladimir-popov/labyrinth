@@ -5,11 +5,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define help_title(title) printf (SGR_BOLD title "\n")
-#define help_descr(name, descr)                                               \
-  printf (SGR_BOLD "\t" name SGR_RESET " - " descr "\n")
-#define help_option(opt, descr)                                               \
-  printf (SGR_BOLD "\t" opt "\t" SGR_RESET descr "\n")
+#define help_title(title) printf (bold (title) "\n")
+#define help_descr(name, descr) printf (bold ("\t" name) " - " descr "\n")
+#define help_option(opt, descr) printf (bold ("\t" opt "\t") descr "\n")
 
 time_t seed = 0;
 
@@ -47,8 +45,23 @@ parse_args (int argc, char *argv[])
           help_title ("OPTIONS");
           help_option (
               "-s", "an initial seed of the game. Used to generate levels.");
-          help_option("-r", "the rows count of the labyrinth.");
-          help_option("-c", "the cols count of the labyrinth.");
+          help_option ("-r", "the rows count of the labyrinth.");
+          help_option ("-c", "the cols count of the labyrinth.");
+          // clang-format off
+          help_title ("KEYS SETTINGS");
+          printf( \
+              "\t" bold ("?") " - show this menu;\n" 
+              "\t" bold (":") " - command mode;\n" 
+              "\t" bold("Space") " or " bold ("m") " - toggle the map;\n" 
+              "\t" bold ("ESC") " - put the game on pause;\n  \n" 
+              "\t" bold("Moving:") " \n"
+              "\t" bold ("↑") " or " bold ("j") " - move to the upper room;\n" 
+              "\t" bold ( "↓") " or " bold ("k") " - move to the bottom room;\n"
+              "\t" bold ( "←") " or " bold ("h") " - move to the left room;\n"
+              "\t" bold ( "→") " or " bold ("l") " - move to the right room;\n"
+              "\t" bold ( "→") " or " bold ("l") " - move to the right room;\n"
+          );
+          // clang-format on
           return -1;
         case 's':
           seed = strtol (optarg, NULL, 0);

@@ -3,7 +3,7 @@
 
 #include "laby.h"
 
-/* The max count of states in the stack of game states 
+/* The max count of states in the stack of game states
  * is limited by logic and should not be overflowed  */
 #define MAX_STATES_STACK_SIZE 5
 
@@ -34,7 +34,7 @@ enum command
   CMD_MV_DOWN,
   /* Put the game on pause and show menu */
   CMD_PAUSE,
-  /* Close pause menu and continue the game */
+  /* Close the current menu or map and continue the game */
   CMD_CONTINUE,
   /* Exit from the game */
   CMD_EXIT,
@@ -42,8 +42,8 @@ enum command
   CMD_CMD,
   /* Command to show the map */
   CMD_SHOW_MAP,
-  /* Command to close the map */
-  CMD_CLOSE_MAP,
+  /* Show keys settings menu */
+  CMD_KEYS_SETTINGS,
   /* Cheat to show whole labyrinth */
   CMD_SHOW_ALL
 };
@@ -58,6 +58,8 @@ enum game_state
   ST_MAP,
   /* The game is on pause and pause menu is shown */
   ST_PAUSE,
+  /* The keys settings menu is shown */
+  ST_KEY_SETTINGS,
   /* The message about victory is shown */
   ST_WIN,
   /* The game is on pause and waiting a special command from user */
