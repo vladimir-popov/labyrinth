@@ -17,12 +17,18 @@ u8_find_symbol (const char *source, int len, int *idx)
 
   /* skip control sequence */
   // TODO skip CS more generally
-  if (source[*idx] == '\x1b')
-    do
-      {
-        (*idx)++;
-      }
-    while (source[*idx] == '[' || source[*idx] == 'H');
+  if (source[*idx] == '\x1b' && source[++(*idx)] == '[')
+    {
+      (*idx)++;
+      while (*idx < len)
+        {
+          char c = source[*idx];
+          (*idx)++;
+          if (c == 'B' || c == 'C' || c == 'J' || c == 'H' || c == 'h'
+              || c == 'm' || c == 'l' || c == 'n')
+            break;
+        }
+    }
 
   /* count symbol's bytes */
   int n = 1;

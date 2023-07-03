@@ -52,12 +52,12 @@ static char *
 utf8_find_symbol_test ()
 {
   // given:
-  const char *utf_str = "Ⓐ\x1b[ⒷⒸⒹ";
+  const char *utf_str = "Ⓐ\x1b[mⒷⒸⒹ";
   int bix = 1;
   // when:
   int size = u8_find_symbol (utf_str, strlen (utf_str), &bix);
   // then:
-  mu_assert ("Wrong position of the symbol", bix == 5);
+  mu_assert ("Wrong position of the symbol", bix == 6);
   mu_assert ("Wrong size of the symbol", size == 3);
   return 0;
 }
