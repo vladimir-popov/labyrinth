@@ -50,7 +50,7 @@ parse_args (int argc, char *argv[])
           // clang-format off
           help_title ("KEYS SETTINGS");
           printf( \
-              "\t" bold ("?") " - show this menu;\n" 
+              "\t" bold ("?") " - show keys settings menu;\n" 
               "\t" bold (":") " - command mode;\n" 
               "\t" bold("Space") " or " bold ("m") " - toggle the map;\n" 
               "\t" bold ("ESC") " - put the game on pause;\n  \n" 

@@ -1,6 +1,7 @@
 [![CI](https://github.com/vladimir-popov/laby/actions/workflows/ci.yaml/badge.svg)](https://github.com/vladimir-popov/laby/actions/workflows/ci.yaml)
 
 ![logo](logo.png)
+
 # About:
 <pre>
 NAME
@@ -10,7 +11,7 @@ OPTIONS
         -r      the rows count of the labyrinth.
         -c      the cols count of the labyrinth.
 KEYS SETTINGS
-        ? - show this menu;
+        ? - show keys settings menu;
         : - command mode;
         Space or m - toggle the map;
         ESC - put the game on pause;

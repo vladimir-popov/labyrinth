@@ -1,5 +1,7 @@
 # Code convention
 
+External libraries should not be used in this project.
+
 Code should be formatted according to [GNU Coding Standards](https://www.gnu.org/prep/standards/standards.html).
 
 ## Short naming convention
