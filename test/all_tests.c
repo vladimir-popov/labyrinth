@@ -1,7 +1,7 @@
 #include "2d_math_tests.c"
 #include "render_tests.c"
-#include "u8_tests.c"
 #include "term.h"
+#include "u8_tests.c"
 #include <stdio.h>
 
 int tests_run = 0;
@@ -12,10 +12,10 @@ char *
 all_tests ()
 {
   /* 2d math tests */
-  mu_run_test(intersected_lines_test);
-  mu_run_test(parallel_lines_intersection_test);
-  mu_run_test(perpendicular_lines_intersection_test);
-  mu_run_test(lines_intersection_test_1);
+  mu_run_test (intersected_lines_test);
+  mu_run_test (parallel_lines_intersection_test);
+  mu_run_test (perpendicular_lines_intersection_test);
+  mu_run_test (lines_intersection_test_1);
   /* str tests */
   mu_run_test (utf8_find_index_test);
   mu_run_test (utf8_symbols_count_test);
@@ -25,7 +25,7 @@ all_tests ()
   mu_run_test (utf8_merge_into_empty_str_test);
   mu_run_test (utf8_str_crop_test_1);
   mu_run_test (utf8_str_crop_test_2);
-  mu_run_test (utf8_str_crop_test_3); 
+  mu_run_test (utf8_str_crop_test_3);
   mu_run_test (utf8_str_crop_test_4);
   /* buffer tests */
   mu_run_test (parse_string_to_buffer_test);

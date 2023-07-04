@@ -345,7 +345,7 @@ render_keys_settings (Render *render)
 
   u8buf lb_keys = U8_BUF_EMPTY;
   u8buf lb_colon = U8_BUF_EMPTY;
-  u8_buffer_parse(&lb_colon, LB_COLON);
+  u8_buffer_parse (&lb_colon, LB_COLON);
   u8_buffer_parse (&lb_keys, LB_KEYS_SETTINGS);
   u8_buffer_merge (&lb_keys, &lb_colon, 0, 45);
   u8_buffer_merge (&frame, &lb_keys, 2, 4);

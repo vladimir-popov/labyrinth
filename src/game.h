@@ -126,9 +126,9 @@ void game_init (Game *game, int rows, int cols, int seed);
 
 void game_run_loop (Game *game, Render *render);
 
-void menu_next_option(Menu *menu);
+void menu_next_option (Menu *menu);
 
-void menu_prev_option(Menu *menu);
+void menu_prev_option (Menu *menu);
 
 /* ========== THIS FUNCTION RUNTIME DEPENDED ========== */
 

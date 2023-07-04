@@ -109,10 +109,10 @@ read_command (Game *game)
           case KEY_CANCEL:
             return CMD_EXIT;
           case KEY_UP:
-            menu_prev_option(m);
+            menu_prev_option (m);
             return CMD_NOTHING;
           case KEY_DOWN:
-            menu_next_option(m);
+            menu_next_option (m);
             return CMD_NOTHING;
 
           default:
@@ -214,11 +214,11 @@ read_command (Game *game)
         switch (key)
           {
           case KEY_UP:
-            menu_prev_option(m);
+            menu_prev_option (m);
             return CMD_NOTHING;
 
           case KEY_DOWN:
-            menu_next_option(m);
+            menu_next_option (m);
             return CMD_NOTHING;
 
           case KEY_CANCEL:
