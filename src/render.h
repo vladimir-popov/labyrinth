@@ -11,6 +11,7 @@ enum menu_option
 {
   M_NEW_GAME,
   M_CONTINUE,
+  M_KEYS_SETTINGS,
   M_EXIT
 };
 
@@ -18,10 +19,14 @@ enum menu_option
 
 struct menu
 {
-  /* The current option in the menu */
-  enum menu_option option;
   /* Used to accumulate user command from the command line */
   char *cmd;
+  /* The current option in the menu */
+  int option_idx;
+  /* The count of options of the menu (but for cmd it's a cmd length) */
+  int options_count;
+  /* Possible options of the menu */
+  enum menu_option *options;
 };
 
 struct render

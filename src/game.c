@@ -37,8 +37,8 @@ game_init (Game *game, int height, int width, int seed)
   game->state_idx = 0;
   game->states_stack
       = malloc (sizeof (enum game_state) * MAX_STATES_STACK_SIZE);
-  game->states_stack[0] = ST_MAIN_MENU;
-  game->menu = create_menu (ST_MAIN_MENU);
+  game->states_stack[0] = ST_WELCOME_SCREEN;
+  game->menu = create_menu (ST_WELCOME_SCREEN);
 }
 
 void
@@ -94,17 +94,25 @@ run_new_game (Game *game)
 }
 
 static int
-handle_cmd_in_main_menu (Game *game, enum command cmd)
+handle_cmd_in_welcome_screen (Game *game, enum command cmd)
 {
   switch (cmd)
     {
     case CMD_NEW_GAME:
       run_new_game (game);
-      close_menu (game->menu, ST_MAIN_MENU);
+      close_menu (game->menu, ST_WELCOME_SCREEN);
       game->menu = NULL;
       return CONTINUE_LOOP;
+
+    case CMD_SHOW_KEYS_SETTINGS:
+      game_set_state (game, ST_KEY_SETTINGS);
+      close_menu (game->menu, ST_WELCOME_SCREEN);
+      game->menu = create_menu (ST_KEY_SETTINGS);
+      return CONTINUE_LOOP;
+
     case CMD_EXIT:
       return STOP_LOOP;
+
     default:
       return CONTINUE_LOOP;
     }
@@ -165,9 +173,9 @@ handle_cmd_in_game (Game *game, enum command cmd)
     case CMD_SHOW_MAP:
       game_set_state (game, ST_MAP);
       break;
-    case CMD_KEYS_SETTINGS:
-      game_set_state(game, ST_KEY_SETTINGS);
-      game->menu = create_menu(ST_KEY_SETTINGS);
+    case CMD_SHOW_KEYS_SETTINGS:
+      game_set_state (game, ST_KEY_SETTINGS);
+      game->menu = create_menu (ST_KEY_SETTINGS);
       break;
     case CMD_CMD:
       game_set_state (game, ST_CMD);
@@ -191,9 +199,9 @@ handle_cmd_in_map (Game *game, enum command cmd)
     case CMD_CONTINUE:
       game_recover_prev_state (game);
       break;
-    case CMD_KEYS_SETTINGS:
-      game_set_state(game, ST_KEY_SETTINGS);
-      game->menu = create_menu(ST_KEY_SETTINGS);
+    case CMD_SHOW_KEYS_SETTINGS:
+      game_set_state (game, ST_KEY_SETTINGS);
+      game->menu = create_menu (ST_KEY_SETTINGS);
       break;
     case CMD_CMD:
       game_set_state (game, ST_CMD);
@@ -215,6 +223,13 @@ handle_cmd_in_pause (Game *game, enum command cmd)
       close_menu (game->menu, ST_PAUSE);
       game->menu = NULL;
       return CONTINUE_LOOP;
+
+    case CMD_SHOW_KEYS_SETTINGS:
+      game_recover_prev_state (game);
+      game_set_state (game, ST_KEY_SETTINGS);
+      close_menu (game->menu, ST_PAUSE);
+      game->menu = create_menu (ST_KEY_SETTINGS);
+      break;
 
     case CMD_EXIT:
       return STOP_LOOP;
@@ -261,7 +276,14 @@ handle_cmd_in_keys_settings (Game *game, enum command cmd)
     case CMD_CONTINUE:
       game_recover_prev_state (game);
       close_menu (game->menu, ST_KEY_SETTINGS);
-      game->menu = NULL;
+      if (GAME_STATE == ST_WELCOME_SCREEN)
+        {
+          game->menu = create_menu (ST_WELCOME_SCREEN);
+          /* return to the option "keys settings" */
+          menu_next_option (game->menu);
+        }
+      else
+        game->menu = NULL;
       return CONTINUE_LOOP;
     default:
       return CONTINUE_LOOP;
@@ -275,8 +297,8 @@ handle_cmd_in_win (Game *game, enum command cmd)
     {
     case CMD_NEW_GAME:
       close_menu (game->menu, ST_WIN);
-      game_set_state (game, ST_MAIN_MENU);
-      game->menu = create_menu (ST_MAIN_MENU);
+      game_set_state (game, ST_WELCOME_SCREEN);
+      game->menu = create_menu (ST_WELCOME_SCREEN);
       return CONTINUE_LOOP;
     default:
       return CONTINUE_LOOP;
@@ -288,8 +310,8 @@ handle_command (Game *game, enum command cmd)
 {
   switch (GAME_STATE)
     {
-    case ST_MAIN_MENU:
-      return handle_cmd_in_main_menu (game, cmd);
+    case ST_WELCOME_SCREEN:
+      return handle_cmd_in_welcome_screen (game, cmd);
     case ST_GAME:
       return handle_cmd_in_game (game, cmd);
     case ST_MAP:

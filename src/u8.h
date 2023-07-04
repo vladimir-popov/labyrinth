@@ -135,8 +135,8 @@ u8str u8_buffer_to_u8str (const u8buf *buf);
  *         after which the lines from the `source` should be inserted to
  *         the `dest` buffer.
  * @colpad the count of symbols from the left border of the `dest` buffer,
- *         after which the symbols from the `source` line should be
- * inserted.
+ *         after which the symbols from the `source` buffer should be
+ *         inserted.
  */
 void u8_buffer_merge (u8buf *dest, const u8buf *source, int rowpad,
                       int colpad);

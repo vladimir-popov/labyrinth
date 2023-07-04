@@ -33,13 +33,27 @@ Menu *
 create_menu (enum game_state state)
 {
   Menu *menu = malloc (sizeof (Menu));
-  menu->option = 0;
+  menu->option_idx = 0;
+  menu->options_count = 0;
+  menu->options = NULL;
 
-  if (state == ST_MAIN_MENU)
-    menu->option = M_NEW_GAME;
+  if (state == ST_WELCOME_SCREEN)
+    {
+      menu->options_count = 3;
+      menu->options = malloc (sizeof (M_NEW_GAME) * menu->options_count);
+      menu->options[0] = M_NEW_GAME;
+      menu->options[1] = M_KEYS_SETTINGS;
+      menu->options[2] = M_EXIT;
+    }
 
   if (state == ST_PAUSE)
-    menu->option = M_CONTINUE;
+    {
+      menu->options_count = 3;
+      menu->options = malloc (sizeof (M_NEW_GAME) * menu->options_count);
+      menu->options[0] = M_CONTINUE;
+      menu->options[1] = M_KEYS_SETTINGS;
+      menu->options[2] = M_EXIT;
+    }
 
   if (state == ST_CMD)
     menu->cmd = malloc (sizeof (char) * MAX_CMD_LENGTH);
@@ -52,8 +66,28 @@ close_menu (Menu *menu, enum game_state state)
 {
   if (state == ST_CMD)
     free (menu->cmd);
+  else if (state != ST_KEY_SETTINGS)
+    free (menu->options);
 
   free (menu);
+}
+
+void
+menu_next_option (Menu *menu)
+{
+  if (menu->option_idx < (menu->options_count - 1))
+    menu->option_idx++;
+  else
+    menu->option_idx = 0;
+}
+
+void
+menu_prev_option (Menu *menu)
+{
+  if (menu->option_idx > 0)
+    menu->option_idx--;
+  else
+    menu->option_idx = menu->options_count - 1;
 }
 
 static void
@@ -282,14 +316,16 @@ render_welcome_screen (Render *render, Menu *menu)
 {
   u8_buffer_parse (&render->buf, WELCOME_SCREEN);
   u8buf label = U8_BUF_EMPTY;
-  switch (menu->option)
+  switch (menu->options[menu->option_idx])
     {
-      /* New game */
     case M_NEW_GAME:
       u8_buffer_parse (&label, LB_NEW_GAME);
       u8_buffer_merge (&render->buf, &label, 15, 22);
       break;
-      /* Exit */
+    case M_KEYS_SETTINGS:
+      u8_buffer_parse (&label, LB_KEYS_SETTINGS);
+      u8_buffer_merge (&render->buf, &label, 15, 15);
+      break;
     case M_EXIT:
       u8_buffer_parse (&label, LB_EXIT);
       u8_buffer_merge (&render->buf, &label, 15, 30);
@@ -308,8 +344,12 @@ render_keys_settings (Render *render)
                 render->game_screen_width - 2);
 
   u8buf lb_keys = U8_BUF_EMPTY;
-  u8_buffer_parse (&lb_keys, LB_KEYS);
+  u8buf lb_colon = U8_BUF_EMPTY;
+  u8_buffer_parse(&lb_colon, LB_COLON);
+  u8_buffer_parse (&lb_keys, LB_KEYS_SETTINGS);
+  u8_buffer_merge (&lb_keys, &lb_colon, 0, 45);
   u8_buffer_merge (&frame, &lb_keys, 2, 4);
+  u8_buffer_free (&lb_colon);
   u8_buffer_free (&lb_keys);
 
   u8buf keys = U8_BUF_EMPTY;
@@ -345,17 +385,20 @@ render_pause_menu (Render *render, Menu *menu)
 {
   u8buf frame = U8_BUF_EMPTY;
   u8buf label = U8_BUF_EMPTY;
-  create_frame (&frame, 8, 40);
-  switch (menu->option)
+  create_frame (&frame, 8, 54);
+  switch (menu->options[menu->option_idx])
     {
     case M_CONTINUE:
       u8_buffer_parse (&label, LB_CONTINUE);
-      u8_buffer_merge (&frame, &label, 3, 4);
+      u8_buffer_merge (&frame, &label, 3, 10);
       break;
     case M_EXIT:
       u8_buffer_parse (&label, LB_EXIT);
-      u8_buffer_merge (&frame, &label, 3, 14);
+      u8_buffer_merge (&frame, &label, 3, 20);
       break;
+    case M_KEYS_SETTINGS:
+      u8_buffer_parse (&label, LB_KEYS_SETTINGS);
+      u8_buffer_merge (&frame, &label, 3, 4);
     default:
       break;
     }
@@ -431,7 +474,7 @@ render (Render *render, Game *game)
 
   switch (GAME_STATE)
     {
-    case ST_MAIN_MENU:
+    case ST_WELCOME_SCREEN:
       render_welcome_screen (render, game->menu);
       break;
     case ST_KEY_SETTINGS:
@@ -443,7 +486,7 @@ render (Render *render, Game *game)
       break;
     case ST_CMD:
       render_level (render, game, GAME_PREV_STATE);
-      render_cmd (render, M->cmd, M->option);
+      render_cmd (render, M->cmd, M->options_count);
       break;
     case ST_GAME:
       render_level (render, game, GAME_STATE);

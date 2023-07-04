@@ -43,7 +43,7 @@ enum command
   /* Command to show the map */
   CMD_SHOW_MAP,
   /* Show keys settings menu */
-  CMD_KEYS_SETTINGS,
+  CMD_SHOW_KEYS_SETTINGS,
   /* Cheat to show whole labyrinth */
   CMD_SHOW_ALL
 };
@@ -51,7 +51,7 @@ enum command
 enum game_state
 {
   /* The welcome screen is shown */
-  ST_MAIN_MENU,
+  ST_WELCOME_SCREEN,
   /* The game in a process */
   ST_GAME,
   /* The map is shown */
@@ -125,6 +125,10 @@ typedef struct
 void game_init (Game *game, int rows, int cols, int seed);
 
 void game_run_loop (Game *game, Render *render);
+
+void menu_next_option(Menu *menu);
+
+void menu_prev_option(Menu *menu);
 
 /* ========== THIS FUNCTION RUNTIME DEPENDED ========== */
 

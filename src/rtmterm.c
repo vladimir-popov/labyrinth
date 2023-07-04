@@ -88,19 +88,31 @@ read_command (Game *game)
 {
   switch (GAME_STATE)
     {
-    case ST_MAIN_MENU:
+    case ST_WELCOME_SCREEN:
       {
         enum key key = read_key ();
         Menu *m = game->menu;
         switch (key)
           {
           case KEY_ENTER:
-            return (m->option == M_NEW_GAME) ? CMD_NEW_GAME : CMD_EXIT;
+            switch (m->options[m->option_idx])
+              {
+              case M_NEW_GAME:
+                return CMD_NEW_GAME;
+              case M_KEYS_SETTINGS:
+                return CMD_SHOW_KEYS_SETTINGS;
+              case M_EXIT:
+                return CMD_EXIT;
+              default:
+                return CMD_NOTHING;
+              }
           case KEY_CANCEL:
             return CMD_EXIT;
           case KEY_UP:
+            menu_prev_option(m);
+            return CMD_NOTHING;
           case KEY_DOWN:
-            m->option = (m->option == M_NEW_GAME) ? M_EXIT : M_NEW_GAME;
+            menu_next_option(m);
             return CMD_NOTHING;
 
           default:
@@ -126,7 +138,7 @@ read_command (Game *game)
           case KEY_TOGGLE_MAP:
             return CMD_SHOW_MAP;
           case KEY_KEYS_SETINGS:
-            return CMD_KEYS_SETTINGS;
+            return CMD_SHOW_KEYS_SETTINGS;
           case KEY_CMD:
             return CMD_CMD;
           default:
@@ -143,7 +155,7 @@ read_command (Game *game)
           case KEY_CANCEL:
             return CMD_CONTINUE;
           case KEY_KEYS_SETINGS:
-            return CMD_KEYS_SETTINGS;
+            return CMD_SHOW_KEYS_SETTINGS;
           case KEY_CMD:
             return CMD_CMD;
           default:
@@ -177,16 +189,16 @@ read_command (Game *game)
               case KB_ESC:
                 return CMD_CONTINUE;
               case KB_ENTER:
-                return parse_cmd (M->cmd, M->option);
+                return parse_cmd (M->cmd, M->options_count);
               case KB_BACKSPACE:
-                if (M->option > 0)
-                  M->option--;
+                if (M->options_count > 0)
+                  M->options_count--;
                 return CMD_NOTHING;
               default:
-                if (M->option < MAX_CMD_LENGTH)
+                if (M->options_count < MAX_CMD_LENGTH)
                   {
-                    M->cmd[M->option] = k.chars[0];
-                    M->option++;
+                    M->cmd[M->options_count] = k.chars[0];
+                    M->options_count++;
                   }
                 return CMD_NOTHING;
               }
@@ -202,18 +214,28 @@ read_command (Game *game)
         switch (key)
           {
           case KEY_UP:
+            menu_prev_option(m);
+            return CMD_NOTHING;
+
           case KEY_DOWN:
-            m->option = (m->option == M_CONTINUE) ? M_EXIT : M_CONTINUE;
-            break;
+            menu_next_option(m);
+            return CMD_NOTHING;
 
           case KEY_CANCEL:
             return CMD_CONTINUE;
 
           case KEY_ENTER:
-            if (m->option == M_CONTINUE)
-              return CMD_CONTINUE;
-            else
-              return CMD_EXIT;
+            switch (m->options[m->option_idx])
+              {
+              case M_CONTINUE:
+                return CMD_CONTINUE;
+              case M_KEYS_SETTINGS:
+                return CMD_SHOW_KEYS_SETTINGS;
+              case M_EXIT:
+                return CMD_EXIT;
+              default:
+                return CMD_NOTHING;
+              }
 
           default:
             return CMD_NOTHING;
