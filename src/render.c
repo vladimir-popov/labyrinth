@@ -365,7 +365,6 @@ render_keys_settings (Render *render)
       bold ( "↓") " or " bold ("k") " - move to the bottom room;\n"
       bold ( "←") " or " bold ("h") " - move to the left room;\n"
       bold ( "→") " or " bold ("l") " - move to the right room;\n"
-      bold ( "→") " or " bold ("l") " - move to the right room;\n"
   );
   // clang-format on
   u8_buffer_merge (&frame, &keys, 7, 7);

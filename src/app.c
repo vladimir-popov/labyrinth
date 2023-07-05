@@ -59,7 +59,6 @@ parse_args (int argc, char *argv[])
               "\t" bold ( "↓") " or " bold ("k") " - move to the bottom room;\n"
               "\t" bold ( "←") " or " bold ("h") " - move to the left room;\n"
               "\t" bold ( "→") " or " bold ("l") " - move to the right room;\n"
-              "\t" bold ( "→") " or " bold ("l") " - move to the right room;\n"
           );
           help_title("AUTHOR");
           printf("Vladimir Popov <vladimir@dokwork.ru>\n");
