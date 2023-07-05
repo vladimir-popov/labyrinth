@@ -14,11 +14,12 @@ jobs:
           fetch-depth: 0
       - name: Build
         run: make RELEASE=true
+      - name: Pack
+        run: cd ./build/ && tar -czf labyrinth_linux64.tar.gz  ./labyrinth
       - uses: actions/upload-artifact@v3
         with:
-          name: labyrinth_linux
-          path: |
-            build/labyrinth
+          name: labyrinth_linux64.tar.gz
+          path: build/labyrinth_linux64.tar.gz
 
   macOS:
     runs-on: macos-13
@@ -28,8 +29,9 @@ jobs:
           fetch-depth: 0
       - name: Build
         run: make RELEASE=true
+      - name: Pack
+        run: cd ./build/ && tar -czf labyrinth_macos.tar.gz  ./labyrinth
       - uses: actions/upload-artifact@v3
         with:
-          name: labyrinth_macos
-          path: |
-            build/labyrinth
+          name: labyrinth_macos.tar.gz
+          path: build/labyrinth_macos.tar.gz

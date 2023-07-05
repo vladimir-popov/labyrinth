@@ -61,6 +61,8 @@ parse_args (int argc, char *argv[])
               "\t" bold ( "→") " or " bold ("l") " - move to the right room;\n"
               "\t" bold ( "→") " or " bold ("l") " - move to the right room;\n"
           );
+          help_title("AUTHOR");
+          printf("Vladimir Popov <vladimir@dokwork.ru>\n");
           // clang-format on
           return -1;
         case 's':
