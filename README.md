@@ -21,7 +21,6 @@ KEYS SETTINGS
         ↓ or k - move to the bottom room;
         ← or h - move to the left room;
         → or l - move to the right room;
-        → or l - move to the right room;
 </pre>
 
 # How to:
